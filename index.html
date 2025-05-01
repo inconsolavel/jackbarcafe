@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hard Rock Café</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+
+    body {
+      background-color: #121212;
+      color: #fff;
+    }
+
+    header {
+      background-color: #1e1e1e;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 40px;
+      border-bottom: 4px solid #ff0000;
+    }
+
+    header img {
+      height: 60px;
+    }
+
+    nav a {
+      color: #ff0000;
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.5s ease;
+    }
+
+    nav a:hover {
+      color: #fff;
+    }
+
+    .hero {
+      position: relative;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      color: #ff3333;
+      text-shadow: 3px 3px 10px #000;
+      z-index: 2;
+      position: relative;
+    }
+
+    .carousel-background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 700vw;
+      height: 100%;
+      display: flex;
+      z-index: 1;
+      animation: slideShow 180s linear infinite;
+    }
+
+    .carousel-background img {
+      width: 100vw;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.4;
+    }
+
+    @keyframes slideShow {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-600vw); }
+    }
+
+    .section {
+      padding: 60px 40px;
+      background-color: #1a1a1a;
+    }
+
+    .section h2 {
+      color: #ff0000;
+      margin-bottom: 20px;
+    }
+
+    .section p {
+      max-width: 800px;
+      line-height: 1.6;
+    }
+
+    .galeria {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .galeria img {
+      width: 32%;
+      border-radius: 8px;
+    }
+
+    footer {
+      background-color: #0d0d0d;
+      color: #888;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .btn {
+      background-color: #ff0000;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #cc0000;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="Logo do Café" />
+    <nav>
+      <a href="#historia">História</a>
+      <a href="#informacoes">Informações</a>
+      <a href="#galeria">Galeria</a>
+      <a href="#musica">Música</a>
+      <a href="#mapa">Localização</a>
+      <a href="#contato">Contato</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div class="carousel-background">
+      <img src="img-1.jpg" alt="Imagem 1">
+      <img src="img-2.jpg" alt="Imagem 2">
+      <img src="img-3.jpg" alt="Imagem 3">
+      <img src="img-4.jpg" alt="Imagem 4">
+      <img src="img-5.jpg" alt="Imagem 5">
+      <img src="img-6.jpg" alt="Imagem 6">
+      <img src="img-1.jpg" alt="Imagem 1 (duplicada)">
+    </div>
+    <h1>Bem-vindo ao Jack Bar Café</h1>
+  </div>
+
+  <section class="section" id="historia">
+    <h2>Nossa História</h2>
+    <p>
+      Fundado com a paixão pela música e pela boa gastronomia, nosso café é um ponto de encontro para os amantes de rock e um bom espresso. Desde o primeiro dia, buscamos oferecer uma experiência única, misturando ambiente vibrante, decoração temática e sabores marcantes. Cada detalhe do nosso espaço foi pensado para homenagear o verdadeiro espírito do rock'n'roll.
+    </p>
+  </section>
+
+  <section class="section" id="informacoes">
+    <h2>Informações</h2>
+    <p>
+      Endereço: Praça Barão do Rio Branco, 17 - Taubaté<br>
+      Horário de Funcionamento: Segunda a quinta, das 08h às 19h<br>
+      Sexta e Sábado, das 08h às 23h<br>
+      Especialidade: Cafés artesanais, drinks temáticos inspirados em clássicos do rock.
+    </p>
+  </section>
+
+  <section class="section" id="galeria">
+    <h2>Galeria de Eventos</h2>
+    <p>Confira momentos incríveis que já rolaram por aqui:</p>
+    <div class="galeria">
+      <img src="galeria/evento1.jpg" alt="Show ao vivo">
+      <img src="galeria/evento2.jpg" alt="Clientes curtindo">
+      <img src="galeria/evento3.jpg" alt="Banda tocando">
+    </div>
+  </section>
+
+  <section class="section" id="musica">
+    <h2>Som de Qualidade</h2>
+    <p>Entre no clima com nossa playlist oficial de rock no Spotify:</p>
+    <iframe style="border-radius:12px" 
+      src="https://open.spotify.com/embed/playlist/37i9dQZF1DX1spT6G94GFC?utm_source=generator"
+      width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy"></iframe>
+  </section>
+
+  <section class="section" id="mapa">
+    <h2>Onde Estamos</h2>
+    <p>Venha nos visitar! Estamos te esperando com rock e café!</p>
+    <iframe
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.7663818938013!2d-45.56104708502066!3d-23.50642506592968!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ccc5b390aeb15d%3A0x31b7c4a52db8adad!2sPra%C3%A7a%20Bar%C3%A3o%20do%20Rio%20Branco%2C%2017%20-%20Centro%2C%20Taubat%C3%A9%20-%20SP!5e0!3m2!1spt-BR!2sbr!4v1714594051021!5m2!1spt-BR!2sbr"
+      width="100%" height="400"
+      style="border:0; border-radius: 10px; margin-top: 20px;"
+      allowfullscreen=""
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade">
+    </iframe>
+  </section>
+
+  <section class="section" id="contato">
+    <h2>Fale Conosco</h2>
+    <p>
+      Quer saber mais ou fazer uma reserva? Entre em contato conosco!
+    </p>
+    <button class="btn">Entrar em Contato</button>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 Hard Rock Café - Todos os direitos reservados</p>
+  </footer>
+</body>
+</html>
