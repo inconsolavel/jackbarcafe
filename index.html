@@ -2,153 +2,79 @@
 <html lang="pt-BR">
 <head>
   <link rel="icon" href="favicon.png" type="image/x-icon">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4158709418174659"
-     crossorigin="anonymous"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jack Bar Café</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Arial', sans-serif;
-    }
-
-    body {
-      background-color: #121212;
-      color: #fff;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+    body { background-color: #121212; color: #fff; }
     header {
       background-color: #1e1e1e;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 40px;
-      border-bottom: 4px solid #ff0000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 40px; border-bottom: 4px solid #ff0000;
     }
-
-    header img {
-      height: 60px;
-    }
-
+    header img { height: 60px; }
     nav a {
-      color: #ff0000;
-      margin-left: 20px;
-      text-decoration: none;
-      font-weight: bold;
-      transition: color 0.5s ease;
+      color: #ff0000; margin-left: 20px; text-decoration: none;
+      font-weight: bold; transition: color 0.5s ease;
     }
-
-    nav a:hover {
-      color: #fff;
-    }
-
+    nav a:hover { color: #fff; }
     .hero {
-      position: relative;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      overflow: hidden;
+      position: relative; height: 100vh; display: flex; align-items: center;
+      justify-content: center; text-align: center; overflow: hidden;
     }
-
     .hero h1 {
-      font-size: 3.5rem;
-      color: #ff3333;
+      font-size: 3.5rem; color: #ff3333;
       text-shadow: 3px 3px 10px #000;
-      z-index: 2;
-      position: relative;
+      z-index: 2; position: relative;
     }
-
     .carousel-background {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 700vw;
-      height: 100%;
-      display: flex;
-      z-index: 1;
-      animation: slideShow 180s linear infinite;
+      position: absolute; top: 0; left: 0; width: 700vw; height: 100%;
+      display: flex; z-index: 1; animation: slideShow 180s linear infinite;
     }
-
     .carousel-background img {
-      width: 100vw;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.4;
+      width: 100vw; height: 100%; object-fit: cover; opacity: 0.4;
     }
-
     @keyframes slideShow {
-      0%   { transform: translateX(0); }
+      0% { transform: translateX(0); }
       100% { transform: translateX(-600vw); }
     }
-
-    .section {
-      padding: 60px 40px;
-      background-color: #1a1a1a;
-    }
-
-    .section h2 {
-      color: #ff0000;
-      margin-bottom: 20px;
-    }
-
-    .section p {
-      max-width: 800px;
-      line-height: 1.6;
-    }
-
-    .galeria {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .galeria img {
-      width: 32%;
-      border-radius: 8px;
-    }
-
-    .som-e-mapa {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 40px;
-    }
-
-    .som-e-mapa .sub-section {
-      flex: 1;
-      min-width: 300px;
-    }
-
-    .som-e-mapa iframe {
-      width: 100%;
-      border-radius: 12px;
-    }
-
-    footer {
-      background-color: #0d0d0d;
-      color: #888;
-      text-align: center;
-      padding: 20px;
-    }
-
+    .section { padding: 60px 40px; background-color: #1a1a1a; }
+    .section h2 { color: #ff0000; margin-bottom: 20px; }
+    .section p { max-width: 800px; line-height: 1.6; }
+    .galeria { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .galeria img { width: 32%; border-radius: 8px; }
+    .som-e-mapa { display: flex; flex-wrap: wrap; gap: 40px; }
+    .som-e-mapa .sub-section { flex: 1; min-width: 300px; }
+    .som-e-mapa iframe { width: 100%; border-radius: 12px; }
+    footer { background-color: #0d0d0d; color: #888; text-align: center; padding: 20px; }
     .btn {
-      background-color: #ff0000;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: background 0.3s ease;
+      background-color: #ff0000; color: #fff; border: none;
+      padding: 10px 20px; font-size: 1rem; cursor: pointer;
+      margin-top: 20px; transition: background 0.3s ease;
     }
-
-    .btn:hover {
-      background-color: #cc0000;
+    .btn:hover { background-color: #cc0000; }
+    #loginModal {
+      display: none; position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8);
+      justify-content: center; align-items: center; z-index: 999;
+    }
+    .modal-content {
+      background: #1e1e1e; padding: 30px; border-radius: 8px;
+      text-align: center; box-shadow: 0 0 10px #ff0000;
+      position: relative;
+    }
+    .modal-content input {
+      width: 90%; padding: 10px; margin: 10px 0;
+      border-radius: 4px; border: none;
+    }
+    .modal-content button {
+      padding: 10px 20px; background-color: #ff0000;
+      color: white; border: none; border-radius: 4px; cursor: pointer;
+    }
+    .close {
+      position: absolute; top: 20px; right: 30px;
+      font-size: 28px; color: white; cursor: pointer;
     }
   </style>
 </head>
@@ -162,6 +88,9 @@
       <a href="#musica">Música</a>
       <a href="#mapa">Localização</a>
       <a href="#contato">Contato</a>
+      <a href="#" id="loginLink">Login</a>
+      <a href="#" id="logoutLink" style="display:none">Sair</a>
+      <span id="user-info"></span>
     </nav>
   </header>
 
@@ -177,7 +106,6 @@
     </div>
     <h1>Bem-vindo ao Jack Bar Café</h1>
   </div>
-
   <section class="section" id="historia">
     <h2>Nossa História</h2>
     <p>
@@ -238,9 +166,94 @@
     </p>
     <button class="btn">Entrar em Contato</button>
   </section>
+  
 
-  <footer>
-    <p>&copy; 2025 Jack Bar Café - Todos os direitos reservados</p>
-  </footer>
+  <!-- Seções omitidas por brevidade (mesmas do código anterior) -->
+
+  <footer><p>&copy; 2025 Jack Bar Café - Todos os direitos reservados</p></footer>
+
+  <!-- Modal de Login -->
+  <div id="loginModal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <h2>Login</h2>
+      <input type="email" id="emailInput" placeholder="Email" />
+      <input type="password" id="passwordInput" placeholder="Senha" />
+      <button id="loginBtn">Entrar</button>
+      <p id="loginError" style="color:red;"></p>
+    </div>
+  </div>
+  
+  
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
+      authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
+      projectId: "jackbarcafe-b8fa8",
+      storageBucket: "jackbarcafe-b8fa8.appspot.com",
+      messagingSenderId: "849215333925",
+      appId: "1:849215333925:web:e02cb0d11c590af32201cc"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const loginModal = document.getElementById("loginModal");
+    const loginLink = document.getElementById("loginLink");
+    const logoutLink = document.getElementById("logoutLink");
+    const closeModal = document.getElementById("closeModal");
+    const loginBtn = document.getElementById("loginBtn");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const loginError = document.getElementById("loginError");
+    const userInfo = document.getElementById("user-info");
+
+    loginLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      loginModal.style.display = "flex";
+    });
+
+    closeModal.addEventListener("click", () => {
+      loginModal.style.display = "none";
+      loginError.textContent = "";
+    });
+
+    loginBtn.addEventListener("click", () => {
+      const email = emailInput.value;
+      const password = passwordInput.value;
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          loginModal.style.display = "none";
+          emailInput.value = "";
+          passwordInput.value = "";
+          loginError.textContent = "";
+        })
+        .catch((error) => {
+          loginError.textContent = error.message;
+        });
+    });
+
+    logoutLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      signOut(auth);
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        userInfo.textContent = "Olá, " + user.email;
+        logoutLink.style.display = "inline";
+        loginLink.style.display = "none";
+      } else {
+        userInfo.textContent = "";
+        logoutLink.style.display = "none";
+        loginLink.style.display = "inline";
+      }
+    });
+  </script>
 </body>
 </html>
