@@ -1,36 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <link rel="icon" href="favicon.png" type="image/x-icon">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4158709418174659"
-     crossorigin="anonymous"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jack Bar Café</title>
+  <title>Jack Bar Café - Login</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Arial', sans-serif;
-    }
-
     body {
+      margin: 0;
+      font-family: Arial, sans-serif;
       background-color: #121212;
-      color: #fff;
+      color: white;
     }
 
     header {
-      background-color: #1e1e1e;
+      background: #1e1e1e;
+      padding: 20px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      padding: 20px 40px;
-      border-bottom: 4px solid #ff0000;
-    }
-
-    header img {
-      height: 60px;
+      align-items: center;
     }
 
     nav a {
@@ -38,209 +25,163 @@
       margin-left: 20px;
       text-decoration: none;
       font-weight: bold;
-      transition: color 0.5s ease;
     }
 
     nav a:hover {
       color: #fff;
     }
 
-    .hero {
-      position: relative;
-      height: 100vh;
-      display: flex;
-      align-items: center;
+    #user-info {
+      margin-left: 20px;
+    }
+
+    /* Modal Login */
+    #loginModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 999;
       justify-content: center;
-      text-align: center;
-      overflow: hidden;
+      align-items: center;
     }
 
-    .hero h1 {
-      font-size: 3.5rem;
-      color: #ff3333;
-      text-shadow: 3px 3px 10px #000;
-      z-index: 2;
-      position: relative;
-    }
-
-    .carousel-background {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 700vw;
-      height: 100%;
-      display: flex;
-      z-index: 1;
-      animation: slideShow 180s linear infinite;
-    }
-
-    .carousel-background img {
-      width: 100vw;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.4;
-    }
-
-    @keyframes slideShow {
-      0%   { transform: translateX(0); }
-      100% { transform: translateX(-600vw); }
-    }
-
-    .section {
-      padding: 60px 40px;
-      background-color: #1a1a1a;
-    }
-
-    .section h2 {
-      color: #ff0000;
-      margin-bottom: 20px;
-    }
-
-    .section p {
-      max-width: 800px;
-      line-height: 1.6;
-    }
-
-    .galeria {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .galeria img {
-      width: 32%;
+    .modal-content {
+      background: #1e1e1e;
+      padding: 30px;
       border-radius: 8px;
-    }
-
-    .som-e-mapa {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 40px;
-    }
-
-    .som-e-mapa .sub-section {
-      flex: 1;
-      min-width: 300px;
-    }
-
-    .som-e-mapa iframe {
-      width: 100%;
-      border-radius: 12px;
-    }
-
-    footer {
-      background-color: #0d0d0d;
-      color: #888;
+      width: 90%;
+      max-width: 400px;
       text-align: center;
-      padding: 20px;
+      box-shadow: 0 0 10px #ff0000;
     }
 
-    .btn {
-      background-color: #ff0000;
-      color: #fff;
+    .modal-content input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
       border: none;
-      padding: 10px 20px;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: background 0.3s ease;
     }
 
-    .btn:hover {
-      background-color: #cc0000;
+    .modal-content button {
+      padding: 10px 20px;
+      background-color: #ff0000;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 28px;
+      color: white;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="Logo do Café" />
+    <div>
+      <strong>Jack Bar Café</strong>
+    </div>
     <nav>
-      <a href="#historia">História</a>
-      <a href="#informacoes">Informações</a>
-      <a href="#galeria">Galeria</a>
-      <a href="#musica">Música</a>
-      <a href="#mapa">Localização</a>
-      <a href="#contato">Contato</a>
+      <a href="#" id="loginLink">Login</a>
+      <a href="#" id="logoutLink" style="display:none">Sair</a>
+      <span id="user-info"></span>
     </nav>
   </header>
 
-  <div class="hero">
-    <div class="carousel-background">
-      <img src="img-1.JPG" alt="Imagem 1">
-      <img src="img-2.JPG" alt="Imagem 2">
-      <img src="img-3.JPG" alt="Imagem 3">
-      <img src="img-4.JPG" alt="Imagem 4">
-      <img src="img-5.JPG" alt="Imagem 5">
-      <img src="img-6.JPG" alt="Imagem 6">
-      <img src="img-1.JPG" alt="Imagem 1 (duplicada)">
-    </div>
+  <main style="padding: 40px;">
     <h1>Bem-vindo ao Jack Bar Café</h1>
+    <p>Autenticação com Firebase (exemplo funcional).</p>
+  </main>
+
+  <!-- Modal -->
+  <div id="loginModal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <h2>Login</h2>
+      <input type="email" id="emailInput" placeholder="Email" />
+      <input type="password" id="passwordInput" placeholder="Senha" />
+      <button id="loginBtn">Entrar</button>
+      <p id="loginError" style="color:red;"></p>
+    </div>
   </div>
 
-  <section class="section" id="historia">
-    <h2>Nossa História</h2>
-    <p>
-      Fundado com a paixão pela música e pela boa gastronomia, nosso café é um ponto de encontro para os amantes de rock e um bom espresso. Desde o primeiro dia, buscamos oferecer uma experiência única, misturando ambiente vibrante, decoração temática e sabores marcantes. Cada detalhe do nosso espaço foi pensado para homenagear o verdadeiro espírito do rock'n'roll.
-    </p>
-  </section>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js"></script>
 
-  <section class="section" id="informacoes">
-    <h2>Informações</h2>
-    <p>
-      Endereço: Praça Barão do Rio Branco, 17 - Taubaté<br>
-      Horário de Funcionamento: Segunda a quinta, das 08h às 19h<br>
-      Sexta e Sábado, das 08h às 22h<br>
-      Especialidade: Cafés artesanais, drinks temáticos inspirados em clássicos do rock.
-    </p>
-  </section>
+  <script>
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
+      authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
+      projectId: "jackbarcafe-b8fa8",
+      storageBucket: "jackbarcafe-b8fa8.appspot.com",
+      messagingSenderId: "849215333925",
+      appId: "1:849215333925:web:e02cb0d11c590af32201cc"
+    };
 
-  <section class="section" id="galeria">
-    <h2>Galeria de Eventos</h2>
-    <p>Confira momentos incríveis que já rolaram por aqui:</p>
-    <div class="galeria">
-      <img src="galeria/evento1.jpg" alt="Show ao vivo">
-      <img src="galeria/evento2.jpg" alt="Clientes curtindo">
-      <img src="galeria/evento3.jpg" alt="Banda tocando">
-    </div>
-  </section>
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-  <section class="section som-e-mapa">
-    <div class="sub-section" id="musica">
-      <h2>Som de Qualidade</h2>
-      <p>Entre no clima com nossa playlist oficial de rock no Spotify:</p>
-      <iframe 
-        src="https://open.spotify.com/embed/playlist/37i9dQZF1DX1spT6G94GFC?utm_source=generator"
-        height="380" frameBorder="0" allowfullscreen="" 
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-        loading="lazy">
-      </iframe>
-    </div>
+    const loginModal = document.getElementById("loginModal");
+    const loginLink = document.getElementById("loginLink");
+    const logoutLink = document.getElementById("logoutLink");
+    const closeModal = document.getElementById("closeModal");
+    const loginBtn = document.getElementById("loginBtn");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const loginError = document.getElementById("loginError");
+    const userInfo = document.getElementById("user-info");
 
-    <div class="sub-section" id="mapa">
-      <h2>Onde Estamos</h2>
-      <p>Venha nos visitar! Estamos te esperando com rock e café!</p>
-      <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.7663818938013!2d-45.56104708502066!3d-23.50642506592968!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ccc5b390aeb15d%3A0x31b7c4a52db8adad!2sPra%C3%A7a%20Bar%C3%A3o%20do%20Rio%20Branco%2C%2017%20-%20Centro%2C%20Taubat%C3%A9%20-%20SP!5e0!3m2!1spt-BR!2sbr!4v1714594051021!5m2!1spt-BR!2sbr"
-        height="380"
-        style="border:0;"
-        allowfullscreen=""
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
-      </iframe>
-    </div>
-  </section>
+    loginLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      loginModal.style.display = "flex";
+    });
 
-  <section class="section" id="contato">
-    <h2>Fale Conosco</h2>
-    <p>
-      Quer saber mais ou fazer uma reserva? Entre em contato conosco!
-    </p>
-    <button class="btn">Entrar em Contato</button>
-  </section>
+    closeModal.addEventListener("click", () => {
+      loginModal.style.display = "none";
+      loginError.textContent = "";
+    });
 
-  <footer>
-    <p>&copy; 2025 Jack Bar Café - Todos os direitos reservados</p>
-  </footer>
+    loginBtn.addEventListener("click", () => {
+      const email = emailInput.value;
+      const password = passwordInput.value;
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          loginModal.style.display = "none";
+          emailInput.value = "";
+          passwordInput.value = "";
+        })
+        .catch((error) => {
+          loginError.textContent = error.message;
+        });
+    });
+
+    logoutLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      auth.signOut();
+    });
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        userInfo.textContent = "Olá, " + user.email;
+        logoutLink.style.display = "inline";
+        loginLink.style.display = "none";
+      } else {
+        userInfo.textContent = "";
+        logoutLink.style.display = "none";
+        loginLink.style.display = "inline";
+      }
+    });
+  </script>
 </body>
 </html>
