@@ -166,107 +166,160 @@
     <p>&copy; 2025 Jack Bar Café - Todos os direitos reservados</p>
   </footer>
 
-  <div id="loginModal">
-    <div class="modal-content">
-      <span class="close" id="closeModal">&times;</span>
-      <h2>Login / Cadastro</h2>
-      <input type="email" id="emailInput" placeholder="Email" />
-      <input type="password" id="passwordInput" placeholder="Senha" />
-      <button id="loginBtn">Entrar</button>
-      <button id="signupBtn">Criar Conta</button>
-      <p id="loginError" style="color:red;"></p>
-    </div>
+ <!-- Modal de Login/Cadastro -->
+<div id="loginModal">
+  <div class="modal-content">
+    <span class="close" id="closeModal">&times;</span>
+    <h2 id="modalTitle">Login</h2>
+    <input type="email" id="emailInput" placeholder="Email" />
+    <input type="password" id="passwordInput" placeholder="Senha" />
+    <input type="password" id="confirmPasswordInput" placeholder="Confirmar Senha" style="display:none;" />
+    
+    <button id="submitBtn">Entrar</button>
+    <p style="margin-top: 10px;">
+      <a href="#" id="toggleModeLink">Criar conta</a>
+    </p>
+    <p id="loginError" style="color:red;"></p>
   </div>
+</div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-    import {
-      getAuth,
-      signInWithEmailAndPassword,
-      createUserWithEmailAndPassword,
-      signOut,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+<!-- Firebase + Autenticação -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
-      authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
-      projectId: "jackbarcafe-b8fa8",
-      storageBucket: "jackbarcafe-b8fa8.appspot.com",
-      messagingSenderId: "849215333925",
-      appId: "1:849215333925:web:e02cb0d11c590af32201cc"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
+    authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
+    projectId: "jackbarcafe-b8fa8",
+    storageBucket: "jackbarcafe-b8fa8.appspot.com",
+    messagingSenderId: "849215333925",
+    appId: "1:849215333925:web:e02cb0d11c590af32201cc"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-    const loginModal = document.getElementById("loginModal");
-    const loginLink = document.getElementById("loginLink");
-    const logoutLink = document.getElementById("logoutLink");
-    const closeModal = document.getElementById("closeModal");
-    const loginBtn = document.getElementById("loginBtn");
-    const signupBtn = document.getElementById("signupBtn");
-    const emailInput = document.getElementById("emailInput");
-    const passwordInput = document.getElementById("passwordInput");
-    const loginError = document.getElementById("loginError");
-    const userInfo = document.getElementById("user-info");
+  const loginModal = document.getElementById("loginModal");
+  const loginLink = document.getElementById("loginLink");
+  const logoutLink = document.getElementById("logoutLink");
+  const closeModal = document.getElementById("closeModal");
+  const submitBtn = document.getElementById("submitBtn");
+  const toggleModeLink = document.getElementById("toggleModeLink");
+  const modalTitle = document.getElementById("modalTitle");
+  const emailInput = document.getElementById("emailInput");
+  const passwordInput = document.getElementById("passwordInput");
+  const confirmPasswordInput = document.getElementById("confirmPasswordInput");
+  const loginError = document.getElementById("loginError");
+  const userInfo = document.getElementById("user-info");
 
-    loginLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      loginModal.style.display = "flex";
-    });
+  let isLoginMode = true;
 
-    closeModal.addEventListener("click", () => {
-      loginModal.style.display = "none";
-      loginError.textContent = "";
-    });
+  loginLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    loginModal.style.display = "flex";
+  });
 
-    loginBtn.addEventListener("click", () => {
-      const email = emailInput.value;
-      const password = passwordInput.value;
+  closeModal.addEventListener("click", () => {
+    loginModal.style.display = "none";
+    resetForm();
+  });
+
+  toggleModeLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    isLoginMode = !isLoginMode;
+    updateFormMode();
+  });
+
+  function updateFormMode() {
+    if (isLoginMode) {
+      modalTitle.textContent = "Login";
+      submitBtn.textContent = "Entrar";
+      toggleModeLink.textContent = "Criar conta";
+      confirmPasswordInput.style.display = "none";
+    } else {
+      modalTitle.textContent = "Criar Conta";
+      submitBtn.textContent = "Cadastrar";
+      toggleModeLink.textContent = "Já tem conta? Entrar";
+      confirmPasswordInput.style.display = "block";
+    }
+    loginError.textContent = "";
+  }
+
+  function resetForm() {
+    emailInput.value = "";
+    passwordInput.value = "";
+    confirmPasswordInput.value = "";
+    loginError.textContent = "";
+    isLoginMode = true;
+    updateFormMode();
+  }
+
+  submitBtn.addEventListener("click", () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+
+    if (!email.includes("@") || !email.includes(".")) {
+      loginError.textContent = "Digite um e-mail válido.";
+      return;
+    }
+
+    if (password.length < 6) {
+      loginError.textContent = "A senha deve ter pelo menos 6 caracteres.";
+      return;
+    }
+
+    if (!isLoginMode && password !== confirmPassword) {
+      loginError.textContent = "As senhas não coincidem.";
+      return;
+    }
+
+    if (isLoginMode) {
+      // LOGIN
       signInWithEmailAndPassword(auth, email, password)
         .then(() => {
           loginModal.style.display = "none";
-          emailInput.value = "";
-          passwordInput.value = "";
-          loginError.textContent = "";
+          resetForm();
         })
         .catch((error) => {
-          loginError.textContent = error.message;
+          loginError.textContent = "Erro: " + error.message;
         });
-    });
-
-    signupBtn.addEventListener("click", () => {
-      const email = emailInput.value;
-      const password = passwordInput.value;
+    } else {
+      // CADASTRO
       createUserWithEmailAndPassword(auth, email, password)
         .then(() => {
           loginModal.style.display = "none";
-          emailInput.value = "";
-          passwordInput.value = "";
-          loginError.textContent = "Conta criada com sucesso! Faça login.";
+          resetForm();
         })
         .catch((error) => {
-          loginError.textContent = error.message;
+          loginError.textContent = "Erro: " + error.message;
         });
-    });
+    }
+  });
 
-    logoutLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      signOut(auth);
-    });
+  logoutLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    signOut(auth);
+  });
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        userInfo.textContent = "Olá, " + user.email;
-        logoutLink.style.display = "inline";
-        loginLink.style.display = "none";
-      } else {
-        userInfo.textContent = "";
-        logoutLink.style.display = "none";
-        loginLink.style.display = "inline";
-      }
-    });
-  </script>
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      userInfo.textContent = "Olá, " + user.email;
+      logoutLink.style.display = "inline";
+      loginLink.style.display = "none";
+    } else {
+      userInfo.textContent = "";
+      logoutLink.style.display = "none";
+      loginLink.style.display = "inline";
+    }
+  });
+</script>
 </body>
 </html>
