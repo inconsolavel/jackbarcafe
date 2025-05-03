@@ -91,6 +91,7 @@
       <a href="#" id="loginLink">Login</a>
       <a href="#" id="logoutLink" style="display:none">Sair</a>
       <span id="user-info"></span>
+      <span id="points-info" style="margin-left: 20px;"></span>
     </nav>
   </header>
 
@@ -106,6 +107,7 @@
     </div>
     <h1>Bem-vindo ao Jack Bar Café</h1>
   </div>
+
   <section class="section" id="historia">
     <h2>Nossa História</h2>
     <p>
@@ -158,15 +160,7 @@
       </iframe>
     </div>
   </section>
-
-  <section class="section" id="contato">
-    <h2>Fale Conosco</h2>
-    <p>
-      Quer saber mais ou fazer uma reserva? Entre em contato conosco!
-    </p>
-    <button class="btn">Entrar em Contato</button>
   </section>
-  
 
   <footer><p>&copy; 2025 Jack Bar Café - Todos os direitos reservados</p></footer>
 
@@ -206,13 +200,13 @@
       const loginLink = document.getElementById("loginLink");
       const logoutLink = document.getElementById("logoutLink");
       const userInfo = document.getElementById("user-info");
+      const pointsInfo = document.getElementById("points-info");
 
       loginLink.addEventListener("click", function() {
         loginModal.style.display = "flex";
       });
 
-      const closeModal = document.getElementById("closeModal");
-      closeModal.addEventListener("click", function() {
+      document.getElementById("closeModal").addEventListener("click", function() {
         loginModal.style.display = "none";
       });
 
@@ -221,24 +215,33 @@
         const email = document.getElementById("emailInput").value;
         const password = document.getElementById("passwordInput").value;
 
-        auth.signInWithEmailAndPassword(email, password)
+        firebase.auth().signInWithEmailAndPassword(email, password)
           .then((userCredential) => {
             const user = userCredential.user;
+            userInfo.textContent = `Bem-vindo, ${user.email}`;
             loginModal.style.display = "none";
-            userInfo.innerText = `Bem-vindo, ${user.email}`;
             loginLink.style.display = "none";
-            logoutLink.style.display = "inline";
+            logoutLink.style.display = "inline-block";
+
+            // Obtendo e mostrando pontos
+            db.collection("users").doc(user.uid).get().then((doc) => {
+              if (doc.exists) {
+                pointsInfo.textContent = `Pontos: ${doc.data().points || 0}`;
+              }
+            });
           })
           .catch((error) => {
+            const errorCode = error.code;
             const errorMessage = error.message;
-            document.getElementById("loginError").innerText = errorMessage;
+            document.getElementById("loginError").textContent = errorMessage;
           });
       });
 
       logoutLink.addEventListener("click", function() {
-        auth.signOut().then(() => {
-          userInfo.innerText = "";
-          loginLink.style.display = "inline";
+        firebase.auth().signOut().then(() => {
+          userInfo.textContent = "";
+          pointsInfo.textContent = "";
+          loginLink.style.display = "inline-block";
           logoutLink.style.display = "none";
         });
       });
