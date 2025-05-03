@@ -76,6 +76,18 @@
       position: absolute; top: 20px; right: 30px;
       font-size: 28px; color: white; cursor: pointer;
     }
+    #pointsModal {
+      display: none; position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8);
+      justify-content: center; align-items: center; z-index: 999;
+    }
+    #pointsDisplay {
+      font-size: 2rem; margin: 20px 0; color: #ffcc00;
+    }
+    #pointsHistory {
+      max-height: 300px; overflow-y: auto; margin-top: 20px;
+      padding: 10px; background: #121212; border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -90,6 +102,7 @@
       <a href="#contato">Contato</a>
       <a href="#" id="loginLink">Login</a>
       <a href="#" id="logoutLink" style="display:none">Sair</a>
+      <a href="#" id="pointsLink" style="display:none; margin-left: 20px; color: #ffcc00;">Meus Pontos</a>
       <span id="user-info"></span>
     </nav>
   </header>
@@ -120,6 +133,7 @@
       Sexta e Sábado, das 08h às 22h<br>
       Especialidade: Cafés artesanais, drinks temáticos inspirados em clássicos do rock.
     </p>
+    <button class="btn" id="shareBtn">Compartilhar no Facebook (+20 pontos)</button>
   </section>
 
   <section class="section" id="galeria">
@@ -166,160 +180,400 @@
     <p>&copy; 2025 Jack Bar Café - Todos os direitos reservados</p>
   </footer>
 
- <!-- Modal de Login/Cadastro -->
-<div id="loginModal">
-  <div class="modal-content">
-    <span class="close" id="closeModal">&times;</span>
-    <h2 id="modalTitle">Login</h2>
-    <input type="email" id="emailInput" placeholder="Email" />
-    <input type="password" id="passwordInput" placeholder="Senha" />
-    <input type="password" id="confirmPasswordInput" placeholder="Confirmar Senha" style="display:none;" />
-    
-    <button id="submitBtn">Entrar</button>
-    <p style="margin-top: 10px;">
-      <a href="#" id="toggleModeLink">Criar conta</a>
-    </p>
-    <p id="loginError" style="color:red;"></p>
+  <!-- Modal de Login/Cadastro -->
+  <div id="loginModal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <h2 id="modalTitle">Login</h2>
+      <input type="email" id="emailInput" placeholder="Email" />
+      <input type="password" id="passwordInput" placeholder="Senha" />
+      <input type="password" id="confirmPasswordInput" placeholder="Confirmar Senha" style="display:none;" />
+      
+      <button id="submitBtn">Entrar</button>
+      <p style="margin-top: 10px;">
+        <a href="#" id="toggleModeLink">Criar conta</a>
+      </p>
+      <p id="loginError" style="color:red;"></p>
+    </div>
   </div>
-</div>
 
-<!-- Firebase + Autenticação -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-  import {
-    getAuth,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    signOut,
-    onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+  <!-- Modal de Pontos -->
+  <div id="pointsModal">
+    <div class="modal-content">
+      <span class="close" id="closePointsModal">&times;</span>
+      <h2>Seus Pontos</h2>
+      <div id="pointsDisplay">0 pontos</div>
+      <button id="redeemPoints" class="btn" style="margin: 10px;">Resgatar 100 pontos por um café grátis</button>
+      <div id="pointsHistory"></div>
+    </div>
+  </div>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
-    authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
-    projectId: "jackbarcafe-b8fa8",
-    storageBucket: "jackbarcafe-b8fa8.appspot.com",
-    messagingSenderId: "849215333925",
-    appId: "1:849215333925:web:e02cb0d11c590af32201cc"
-  };
+  <!-- Firebase + Autenticação + Pontos -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      createUserWithEmailAndPassword, 
+      signOut, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      setDoc, 
+      getDoc, 
+      updateDoc, 
+      increment,
+      collection,
+      query,
+      where,
+      getDocs,
+      addDoc,
+      serverTimestamp,
+      orderBy,
+      limit
+    } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
+      authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
+      projectId: "jackbarcafe-b8fa8",
+      storageBucket: "jackbarcafe-b8fa8.appspot.com",
+      messagingSenderId: "849215333925",
+      appId: "1:849215333925:web:e02cb0d11c590af32201cc"
+    };
 
-  const loginModal = document.getElementById("loginModal");
-  const loginLink = document.getElementById("loginLink");
-  const logoutLink = document.getElementById("logoutLink");
-  const closeModal = document.getElementById("closeModal");
-  const submitBtn = document.getElementById("submitBtn");
-  const toggleModeLink = document.getElementById("toggleModeLink");
-  const modalTitle = document.getElementById("modalTitle");
-  const emailInput = document.getElementById("emailInput");
-  const passwordInput = document.getElementById("passwordInput");
-  const confirmPasswordInput = document.getElementById("confirmPasswordInput");
-  const loginError = document.getElementById("loginError");
-  const userInfo = document.getElementById("user-info");
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  let isLoginMode = true;
+    // Elementos do DOM
+    const loginModal = document.getElementById("loginModal");
+    const pointsModal = document.getElementById("pointsModal");
+    const loginLink = document.getElementById("loginLink");
+    const logoutLink = document.getElementById("logoutLink");
+    const pointsLink = document.getElementById("pointsLink");
+    const closeModal = document.getElementById("closeModal");
+    const closePointsModal = document.getElementById("closePointsModal");
+    const submitBtn = document.getElementById("submitBtn");
+    const toggleModeLink = document.getElementById("toggleModeLink");
+    const modalTitle = document.getElementById("modalTitle");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const confirmPasswordInput = document.getElementById("confirmPasswordInput");
+    const loginError = document.getElementById("loginError");
+    const userInfo = document.getElementById("user-info");
+    const pointsDisplay = document.getElementById("pointsDisplay");
+    const pointsHistory = document.getElementById("pointsHistory");
+    const redeemPoints = document.getElementById("redeemPoints");
+    const shareBtn = document.getElementById("shareBtn");
 
-  loginLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    loginModal.style.display = "flex";
-  });
+    let isLoginMode = true;
+    let currentUser = null;
 
-  closeModal.addEventListener("click", () => {
-    loginModal.style.display = "none";
-    resetForm();
-  });
+    // Event Listeners
+    loginLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      loginModal.style.display = "flex";
+    });
 
-  toggleModeLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    isLoginMode = !isLoginMode;
-    updateFormMode();
-  });
+    pointsLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      showPointsModal();
+    });
 
-  function updateFormMode() {
-    if (isLoginMode) {
-      modalTitle.textContent = "Login";
-      submitBtn.textContent = "Entrar";
-      toggleModeLink.textContent = "Criar conta";
-      confirmPasswordInput.style.display = "none";
-    } else {
-      modalTitle.textContent = "Criar Conta";
-      submitBtn.textContent = "Cadastrar";
-      toggleModeLink.textContent = "Já tem conta? Entrar";
-      confirmPasswordInput.style.display = "block";
+    closeModal.addEventListener("click", () => {
+      loginModal.style.display = "none";
+      resetForm();
+    });
+
+    closePointsModal.addEventListener("click", () => {
+      pointsModal.style.display = "none";
+    });
+
+    toggleModeLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      isLoginMode = !isLoginMode;
+      updateFormMode();
+    });
+
+    redeemPoints.addEventListener("click", () => {
+      redeemUserPoints();
+    });
+
+    shareBtn.addEventListener("click", async () => {
+      if (!currentUser) {
+        alert("Por favor, faça login para ganhar pontos!");
+        loginModal.style.display = "flex";
+        return;
+      }
+      
+      // Simula compartilhamento (substitua por implementação real)
+      const shared = await simulateShare();
+      if (shared) {
+        const success = await addPointsToUser(currentUser.uid, 20, "Compartilhamento no Facebook");
+        if (success) {
+          alert("Você ganhou 20 pontos por compartilhar!");
+          showPointsModal();
+        }
+      }
+    });
+
+    function updateFormMode() {
+      if (isLoginMode) {
+        modalTitle.textContent = "Login";
+        submitBtn.textContent = "Entrar";
+        toggleModeLink.textContent = "Criar conta";
+        confirmPasswordInput.style.display = "none";
+      } else {
+        modalTitle.textContent = "Criar Conta";
+        submitBtn.textContent = "Cadastrar";
+        toggleModeLink.textContent = "Já tem conta? Entrar";
+        confirmPasswordInput.style.display = "block";
+      }
+      loginError.textContent = "";
     }
-    loginError.textContent = "";
-  }
 
-  function resetForm() {
-    emailInput.value = "";
-    passwordInput.value = "";
-    confirmPasswordInput.value = "";
-    loginError.textContent = "";
-    isLoginMode = true;
-    updateFormMode();
-  }
-
-  submitBtn.addEventListener("click", () => {
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-    const confirmPassword = confirmPasswordInput.value;
-
-    if (!email.includes("@") || !email.includes(".")) {
-      loginError.textContent = "Digite um e-mail válido.";
-      return;
+    function resetForm() {
+      emailInput.value = "";
+      passwordInput.value = "";
+      confirmPasswordInput.value = "";
+      loginError.textContent = "";
+      isLoginMode = true;
+      updateFormMode();
     }
 
-    if (password.length < 6) {
-      loginError.textContent = "A senha deve ter pelo menos 6 caracteres.";
-      return;
+    async function createUserProfile(user) {
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          email: user.email,
+          points: 0,
+          createdAt: new Date(),
+          lastLogin: new Date()
+        });
+      } else {
+        await updateDoc(userRef, {
+          lastLogin: new Date()
+        });
+      }
     }
 
-    if (!isLoginMode && password !== confirmPassword) {
-      loginError.textContent = "As senhas não coincidem.";
-      return;
+    async function addPointsToUser(userId, points, reason) {
+      try {
+        const userRef = doc(db, "users", userId);
+        
+        // Adiciona pontos
+        await updateDoc(userRef, {
+          points: increment(points)
+        });
+        
+        // Registra a transação no histórico
+        await addDoc(collection(db, "pointsHistory"), {
+          userId: userId,
+          points: points,
+          reason: reason,
+          date: serverTimestamp()
+        });
+        
+        // Atualiza a exibição se o usuário estiver vendo o modal
+        if (currentUser && currentUser.uid === userId) {
+          await showPointsModal();
+        }
+        return true;
+      } catch (error) {
+        console.error("Erro ao adicionar pontos:", error);
+        return false;
+      }
     }
 
-    if (isLoginMode) {
-      // LOGIN
-      signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
+    async function showPointsModal() {
+      if (!currentUser) return;
+      
+      try {
+        const userRef = doc(db, "users", currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          pointsDisplay.textContent = `${userData.points} pontos`;
+          
+          // Carrega o histórico
+          const historyQuery = query(
+            collection(db, "pointsHistory"),
+            where("userId", "==", currentUser.uid),
+            orderBy("date", "desc"),
+            limit(10)
+          );
+          
+          const historySnap = await getDocs(historyQuery);
+          pointsHistory.innerHTML = "<h3>Histórico Recente</h3>";
+          
+          if (historySnap.empty) {
+            pointsHistory.innerHTML += "<p>Nenhuma atividade recente</p>";
+          } else {
+            historySnap.forEach(doc => {
+              const data = doc.data();
+              const date = data.date ? data.date.toDate().toLocaleString() : "Data desconhecida";
+              pointsHistory.innerHTML += `
+                <div style="margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 5px;">
+                  <p><strong>${data.reason}</strong></p>
+                  <p>Pontos: ${data.points > 0 ? '+' : ''}${data.points}</p>
+                  <p style="font-size: 0.8em; color: #aaa;">${date}</p>
+                </div>
+              `;
+            });
+          }
+          
+          pointsModal.style.display = "flex";
+        }
+      } catch (error) {
+        console.error("Erro ao carregar pontos:", error);
+        alert("Erro ao carregar informações de pontos");
+      }
+    }
+
+    async function redeemUserPoints() {
+      if (!currentUser) return;
+      
+      try {
+        const userRef = doc(db, "users", currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          if (userData.points < 100) {
+            alert("Você precisa de pelo menos 100 pontos para resgatar um benefício!");
+            return;
+          }
+          
+          const confirmRedeem = confirm(`Você tem ${userData.points} pontos. Deseja resgatar 100 pontos por um café grátis?`);
+          
+          if (confirmRedeem) {
+            await updateDoc(userRef, {
+              points: increment(-100)
+            });
+            
+            await addDoc(collection(db, "pointsHistory"), {
+              userId: currentUser.uid,
+              points: -100,
+              reason: "Resgate: Café grátis",
+              date: serverTimestamp()
+            });
+            
+            alert("Parabéns! Você resgatou um café grátis com seus pontos!");
+            await showPointsModal();
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao resgatar pontos:", error);
+        alert("Erro ao processar resgate de pontos");
+      }
+    }
+
+    async function simulateShare() {
+      // Simula o compartilhamento (substitua por implementação real)
+      return new Promise(resolve => {
+        setTimeout(() => {
+          // Aqui você implementaria a lógica real de compartilhamento
+          // Por enquanto, apenas simulamos que o usuário compartilhou
+          resolve(true);
+        }, 1000);
+      });
+    }
+
+    submitBtn.addEventListener("click", async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+
+      if (!email.includes("@") || !email.includes(".")) {
+        loginError.textContent = "Digite um e-mail válido.";
+        return;
+      }
+
+      if (password.length < 6) {
+        loginError.textContent = "A senha deve ter pelo menos 6 caracteres.";
+        return;
+      }
+
+      if (!isLoginMode && password !== confirmPassword) {
+        loginError.textContent = "As senhas não coincidem.";
+        return;
+      }
+
+      try {
+        if (isLoginMode) {
+          // LOGIN
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          await createUserProfile(userCredential.user);
           loginModal.style.display = "none";
           resetForm();
-        })
-        .catch((error) => {
-          loginError.textContent = "Erro: " + error.message;
-        });
-    } else {
-      // CADASTRO
-      createUserWithEmailAndPassword(auth, email, password)
-        .then(() => {
+          
+          // Adiciona pontos por login (apenas uma vez por dia)
+          const today = new Date().toDateString();
+          const lastLogin = localStorage.getItem(`lastLogin-${userCredential.user.uid}`);
+          
+          if (lastLogin !== today) {
+            await addPointsToUser(userCredential.user.uid, 10, "Login diário");
+            localStorage.setItem(`lastLogin-${userCredential.user.uid}`, today);
+          }
+        } else {
+          // CADASTRO
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          await createUserProfile(userCredential.user);
+          
+          // Adiciona pontos de boas-vindas
+          await addPointsToUser(userCredential.user.uid, 50, "Cadastro");
+          
           loginModal.style.display = "none";
           resetForm();
-        })
-        .catch((error) => {
-          loginError.textContent = "Erro: " + error.message;
-        });
-    }
-  });
+        }
+      } catch (error) {
+        loginError.textContent = "Erro: " + error.message;
+      }
+    });
 
-  logoutLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    signOut(auth);
-  });
+    logoutLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      signOut(auth);
+    });
 
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      userInfo.textContent = "Olá, " + user.email;
-      logoutLink.style.display = "inline";
-      loginLink.style.display = "none";
-    } else {
-      userInfo.textContent = "";
-      logoutLink.style.display = "none";
-      loginLink.style.display = "inline";
-    }
-  });
-</script>
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      
+      if (user) {
+        userInfo.textContent = "Olá, " + user.email;
+        logoutLink.style.display = "inline";
+        loginLink.style.display = "none";
+        pointsLink.style.display = "inline";
+        
+        // Verifica se é o primeiro login do dia para adicionar pontos
+        const today = new Date().toDateString();
+        const lastLogin = localStorage.getItem(`lastLogin-${user.uid}`);
+        
+        if (lastLogin !== today) {
+          await addPointsToUser(user.uid, 10, "Login diário");
+          localStorage.setItem(`lastLogin-${user.uid}`, today);
+        }
+      } else {
+        userInfo.textContent = "";
+        logoutLink.style.display = "none";
+        loginLink.style.display = "inline";
+        pointsLink.style.display = "none";
+      }
+    });
+
+    // Função global para adicionar pontos (pode ser chamada de outros lugares do site)
+    window.addUserPoints = async function(points, reason) {
+      if (currentUser) {
+        return await addPointsToUser(currentUser.uid, points, reason);
+      }
+      return false;
+    };
+  </script>
 </body>
 </html>
