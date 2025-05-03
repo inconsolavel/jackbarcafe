@@ -76,18 +76,6 @@
       position: absolute; top: 20px; right: 30px;
       font-size: 28px; color: white; cursor: pointer;
     }
-    #pointsModal {
-      display: none; position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8);
-      justify-content: center; align-items: center; z-index: 999;
-    }
-    #pointsDisplay {
-      font-size: 2rem; margin: 20px 0; color: #ffcc00;
-    }
-    #pointsHistory {
-      max-height: 300px; overflow-y: auto; margin-top: 20px;
-      padding: 10px; background: #121212; border-radius: 8px;
-    }
   </style>
 </head>
 <body>
@@ -102,7 +90,6 @@
       <a href="#contato">Contato</a>
       <a href="#" id="loginLink">Login</a>
       <a href="#" id="logoutLink" style="display:none">Sair</a>
-      <a href="#" id="pointsLink" style="display:none; margin-left: 20px; color: #ffcc00;">Meus Pontos</a>
       <span id="user-info"></span>
     </nav>
   </header>
@@ -119,25 +106,26 @@
     </div>
     <h1>Bem-vindo ao Jack Bar Café</h1>
   </div>
-
   <section class="section" id="historia">
     <h2>Nossa História</h2>
-    <p>Fundado com a paixão pela música e pela boa gastronomia, nosso café é um ponto de encontro para os amantes de rock e um bom espresso. Desde o primeiro dia, buscamos oferecer uma experiência única, misturando ambiente vibrante, decoração temática e sabores marcantes. Cada detalhe do nosso espaço foi pensado para homenagear o verdadeiro espírito do rock'n'roll.
+    <p>
+      Fundado com a paixão pela música e pela boa gastronomia, nosso café é um ponto de encontro para os amantes de rock e um bom espresso. Desde o primeiro dia, buscamos oferecer uma experiência única, misturando ambiente vibrante, decoração temática e sabores marcantes. Cada detalhe do nosso espaço foi pensado para homenagear o verdadeiro espírito do rock'n'roll.
     </p>
   </section>
 
   <section class="section" id="informacoes">
     <h2>Informações</h2>
-    <p>Endereço: Praça Barão do Rio Branco, 17 - Taubaté<br>
+    <p>
+      Endereço: Praça Barão do Rio Branco, 17 - Taubaté<br>
       Horário de Funcionamento: Segunda a quinta, das 08h às 19h<br>
       Sexta e Sábado, das 08h às 22h<br>
       Especialidade: Cafés artesanais, drinks temáticos inspirados em clássicos do rock.
     </p>
-    <button class="btn" id="shareBtn">Compartilhar no Facebook (+20 pontos)</button>
   </section>
 
   <section class="section" id="galeria">
     <h2>Galeria de Eventos</h2>
+    <p>Confira momentos incríveis que já rolaram por aqui:</p>
     <div class="galeria">
       <img src="galeria/evento1.jpg" alt="Show ao vivo">
       <img src="galeria/evento2.jpg" alt="Clientes curtindo">
@@ -145,7 +133,7 @@
     </div>
   </section>
 
-   <section class="section som-e-mapa">
+  <section class="section som-e-mapa">
     <div class="sub-section" id="musica">
       <h2>Som de Qualidade</h2>
       <p>Entre no clima com nossa playlist oficial de rock no Spotify:</p>
@@ -173,65 +161,177 @@
 
   <section class="section" id="contato">
     <h2>Fale Conosco</h2>
+    <p>
+      Quer saber mais ou fazer uma reserva? Entre em contato conosco!
+    </p>
     <button class="btn">Entrar em Contato</button>
   </section>
+  
 
-  <footer>
-    <p>&copy; 2025 Jack Bar Café - Todos os direitos reservados</p>
-  </footer>
+  <!-- Seções omitidas por brevidade (mesmas do código anterior) -->
 
-  <!-- Modal de Login/Cadastro -->
+  <footer><p>&copy; 2025 Jack Bar Café - Todos os direitos reservados</p></footer>
+
+  <!-- Modal de Login -->
   <div id="loginModal">
     <div class="modal-content">
       <span class="close" id="closeModal">&times;</span>
-      <h2 id="modalTitle">Login</h2>
+      <h2>Login</h2>
       <input type="email" id="emailInput" placeholder="Email" />
       <input type="password" id="passwordInput" placeholder="Senha" />
-      <input type="password" id="confirmPasswordInput" placeholder="Confirmar Senha" style="display:none;" />
-      
-      <button id="submitBtn">Entrar</button>
-      <p style="margin-top: 10px;">
-        <a href="#" id="toggleModeLink">Criar conta</a>
-      </p>
+      <button id="loginBtn">Entrar</button>
       <p id="loginError" style="color:red;"></p>
     </div>
   </div>
+  
+  
 
-  <!-- Modal de Pontos -->
-  <div id="pointsModal">
-    <div class="modal-content">
-      <span class="close" id="closePointsModal">&times;</span>
-      <h2>Seus Pontos</h2>
-      <div id="pointsDisplay">0 pontos</div>
-      <button id="redeemPoints" class="btn" style="margin: 10px;">Resgatar 100 pontos por um café grátis</button>
-      <div id="pointsHistory"></div>
-    </div>
-  </div>
+   <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
 
-  <!-- Firebase + Autenticação + Pontos -->
- <!-- Firebase SDKs sem modules -->
-<script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
+      authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
+      projectId: "jackbarcafe-b8fa8",
+      storageBucket: "jackbarcafe-b8fa8.appspot.com",
+      messagingSenderId: "849215333925",
+      appId: "1:849215333925:web:e02cb0d11c590af32201cc"
+    };
 
-<script>
-  // Configuração do Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
-    authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
-    projectId: "jackbarcafe-b8fa8",
-    storageBucket: "jackbarcafe-b8fa8.appspot.com",
-    messagingSenderId: "849215333925",
-    appId: "1:849215333925:web:e02cb0d11c590af32201cc"
-  };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-  // Inicialização do Firebase
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+    const loginModal = document.getElementById("loginModal");
+    const pointsModal = document.getElementById("pointsModal");
+    const loginLink = document.getElementById("loginLink");
+    const logoutLink = document.getElementById("logoutLink");
+    const pointsLink = document.getElementById("pointsLink");
+    const submitBtn = document.getElementById("submitBtn");
+    const toggleModeLink = document.getElementById("toggleModeLink");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const confirmPasswordInput = document.getElementById("confirmPasswordInput");
+    const modalTitle = document.getElementById("modalTitle");
+    const loginError = document.getElementById("loginError");
+    const userInfo = document.getElementById("user-info");
 
-  // Agora você pode continuar com sua lógica usando `auth` e `db`
-</script>
+    let isLoginMode = true;
+
+    loginLink.addEventListener("click", () => loginModal.style.display = "flex");
+    document.getElementById("closeModal").addEventListener("click", () => loginModal.style.display = "none");
+    document.getElementById("closePointsModal").addEventListener("click", () => pointsModal.style.display = "none");
+
+    toggleModeLink.addEventListener("click", () => {
+      isLoginMode = !isLoginMode;
+      modalTitle.textContent = isLoginMode ? "Login" : "Criar Conta";
+      submitBtn.textContent = isLoginMode ? "Entrar" : "Cadastrar";
+      toggleModeLink.textContent = isLoginMode ? "Criar conta" : "Já tem conta? Login";
+      confirmPasswordInput.style.display = isLoginMode ? "none" : "block";
+    });
+
+    submitBtn.addEventListener("click", async () => {
+      const email = emailInput.value;
+      const password = passwordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+
+      loginError.textContent = "";
+      try {
+        if (isLoginMode) {
+          await auth.signInWithEmailAndPassword(email, password);
+          loginModal.style.display = "none";
+        } else {
+          if (password !== confirmPassword) {
+            loginError.textContent = "As senhas não coincidem.";
+            return;
+          }
+          const cred = await auth.createUserWithEmailAndPassword(email, password);
+          await db.collection("users").doc(cred.user.uid).set({
+            points: 0,
+            history: []
+          });
+          loginModal.style.display = "none";
+        }
+      } catch (err) {
+        loginError.textContent = err.message;
+      }
+    });
+
+    logoutLink.addEventListener("click", () => auth.signOut());
+
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        loginLink.style.display = "none";
+        logoutLink.style.display = "inline";
+        pointsLink.style.display = "inline";
+        userInfo.textContent = `Olá, ${user.email}`;
+      } else {
+        loginLink.style.display = "inline";
+        logoutLink.style.display = "none";
+        pointsLink.style.display = "none";
+        userInfo.textContent = "";
+      }
+    });
+
+    pointsLink.addEventListener("click", async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      const doc = await db.collection("users").doc(user.uid).get();
+      const data = doc.data();
+      document.getElementById("pointsDisplay").textContent = `${data.points} pontos`;
+
+      const historyDiv = document.getElementById("pointsHistory");
+      historyDiv.innerHTML = "";
+      data.history.slice().reverse().forEach(entry => {
+        const p = document.createElement("p");
+        p.textContent = `${entry.date}: ${entry.description}`;
+        historyDiv.appendChild(p);
+      });
+
+      pointsModal.style.display = "flex";
+    });
+
+    document.getElementById("redeemPoints").addEventListener("click", async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      const ref = db.collection("users").doc(user.uid);
+      const doc = await ref.get();
+      const data = doc.data();
+
+      if (data.points >= 100) {
+        await ref.update({
+          points: data.points - 100,
+          history: firebase.firestore.FieldValue.arrayUnion({
+            date: new Date().toLocaleString(),
+            description: "Resgatou 100 pontos por um café grátis"
+          })
+        });
+        alert("Resgate realizado com sucesso!");
+        pointsModal.style.display = "none";
+      } else {
+        alert("Você precisa de pelo menos 100 pontos para resgatar.");
+      }
+    });
+
+    document.getElementById("shareBtn").addEventListener("click", async () => {
+      const user = auth.currentUser;
+      if (!user) return alert("Você precisa estar logado para ganhar pontos.");
+      const ref = db.collection("users").doc(user.uid);
+      await ref.update({
+        points: firebase.firestore.FieldValue.increment(20),
+        history: firebase.firestore.FieldValue.arrayUnion({
+          date: new Date().toLocaleString(),
+          description: "Ganhou 20 pontos por compartilhar no Facebook"
+        })
+      });
+      alert("Você ganhou 20 pontos!");
+    });
+  </script>
+</body>
+</html>
 
 </body>
 </html>
