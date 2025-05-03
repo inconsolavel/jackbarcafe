@@ -111,7 +111,7 @@
   <section class="section" id="historia">
     <h2>Nossa História</h2>
     <p>
-      Fundado com a paixão pela música e pela boa gastronomia, nosso café é um ponto de encontro para os amantes de rock e um bom espresso. Desde o primeiro dia, buscamos oferecer uma experiência única, misturando ambiente vibrante, decoração temática e sabores marcantes. Cada detalhe do nosso espaço foi pensado para homenagear o verdadeiro espírito do rock'n'roll.
+      Fundado com a paixão pela música e pela boa gastronomia, nosso café é um ponto de encontro para os amantes de rock e um bom espresso.
     </p>
   </section>
 
@@ -160,12 +160,11 @@
       </iframe>
     </div>
   </section>
-  </section>
+
   <section class="section" id="contato">
     <h2>Fale Conosco</h2>
     <button class="btn">Entrar em Contato</button>
   </section>
-
 
   <footer><p>&copy; 2025 Jack Bar Café - Todos os direitos reservados</p></footer>
 
@@ -177,6 +176,7 @@
       <input type="email" id="emailInput" placeholder="Email" />
       <input type="password" id="passwordInput" placeholder="Senha" />
       <button id="loginBtn">Entrar</button>
+      <button id="googleLoginBtn" style="margin-top: 10px; background-color: #4285F4;">Entrar com Google</button>
       <p id="loginError" style="color:red;"></p>
     </div>
   </div>
@@ -215,12 +215,11 @@
         loginModal.style.display = "none";
       });
 
-      const loginBtn = document.getElementById("loginBtn");
-      loginBtn.addEventListener("click", function() {
+      document.getElementById("loginBtn").addEventListener("click", function() {
         const email = document.getElementById("emailInput").value;
         const password = document.getElementById("passwordInput").value;
 
-        firebase.auth().signInWithEmailAndPassword(email, password)
+        auth.signInWithEmailAndPassword(email, password)
           .then((userCredential) => {
             const user = userCredential.user;
             userInfo.textContent = `Bem-vindo, ${user.email}`;
@@ -228,7 +227,6 @@
             loginLink.style.display = "none";
             logoutLink.style.display = "inline-block";
 
-            // Obtendo e mostrando pontos
             db.collection("users").doc(user.uid).get().then((doc) => {
               if (doc.exists) {
                 pointsInfo.textContent = `Pontos: ${doc.data().points || 0}`;
@@ -236,14 +234,38 @@
             });
           })
           .catch((error) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            document.getElementById("loginError").textContent = errorMessage;
+            document.getElementById("loginError").textContent = error.message;
+          });
+      });
+
+      document.getElementById("googleLoginBtn").addEventListener("click", function() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider)
+          .then((result) => {
+            const user = result.user;
+            userInfo.textContent = `Bem-vindo, ${user.displayName}`;
+            loginModal.style.display = "none";
+            loginLink.style.display = "none";
+            logoutLink.style.display = "inline-block";
+
+            const userRef = db.collection("users").doc(user.uid);
+            userRef.get().then((doc) => {
+              if (doc.exists) {
+                pointsInfo.textContent = `Pontos: ${doc.data().points || 0}`;
+              } else {
+                userRef.set({ points: 0 }).then(() => {
+                  pointsInfo.textContent = `Pontos: 0`;
+                });
+              }
+            });
+          })
+          .catch((error) => {
+            document.getElementById("loginError").textContent = error.message;
           });
       });
 
       logoutLink.addEventListener("click", function() {
-        firebase.auth().signOut().then(() => {
+        auth.signOut().then(() => {
           userInfo.textContent = "";
           pointsInfo.textContent = "";
           loginLink.style.display = "inline-block";
