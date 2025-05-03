@@ -208,39 +208,31 @@
     const userInfo = document.getElementById("user-info");
     const pointsInfo = document.getElementById("points-info");
 
+    // Abrir modal de login
     loginLink.addEventListener("click", function () {
       loginModal.style.display = "flex";
     });
 
+    // Fechar modal
     document.getElementById("closeModal").addEventListener("click", function () {
       loginModal.style.display = "none";
     });
 
-    const loginBtn = document.getElementById("loginBtn");
-    loginBtn.addEventListener("click", function () {
+    // Login com email/senha
+    document.getElementById("loginBtn").addEventListener("click", function () {
       const email = document.getElementById("emailInput").value;
       const password = document.getElementById("passwordInput").value;
 
       auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          userInfo.textContent = `Bem-vindo, ${user.email}`;
+        .then(() => {
           loginModal.style.display = "none";
-          loginLink.style.display = "none";
-          logoutLink.style.display = "inline-block";
-
-          db.collection("users").doc(user.uid).get().then((doc) => {
-            if (doc.exists) {
-              pointsInfo.textContent = `Pontos: ${doc.data().points || 0}`;
-            }
-          });
         })
         .catch((error) => {
           document.getElementById("loginError").textContent = error.message;
         });
     });
 
-    // Botão Criar Conta
+    // Criar conta com email/senha
     document.getElementById("signupBtn").addEventListener("click", function () {
       const email = document.getElementById("emailInput").value;
       const password = document.getElementById("passwordInput").value;
@@ -248,43 +240,38 @@
       auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
           const user = userCredential.user;
-          db.collection("users").doc(user.uid).set({ points: 0 }).then(() => {
-            userInfo.textContent = `Bem-vindo, ${user.email}`;
-            pointsInfo.textContent = `Pontos: 0`;
-            loginModal.style.display = "none";
-            loginLink.style.display = "none";
-            logoutLink.style.display = "inline-block";
-          });
+          return db.collection("users").doc(user.uid).set({ points: 0 });
+        })
+        .then(() => {
+          loginModal.style.display = "none";
         })
         .catch((error) => {
           document.getElementById("loginError").textContent = error.message;
         });
     });
 
-    // Botão Login com Google
+    // Login com Google
     document.getElementById("googleLoginBtn").addEventListener("click", function () {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
         .then((result) => {
           const user = result.user;
-
-          // Verifica se usuário já tem doc, senão cria com 0 pontos
-          db.collection("users").doc(user.uid).get().then((doc) => {
+          const userRef = db.collection("users").doc(user.uid);
+          return userRef.get().then((doc) => {
             if (!doc.exists) {
-              db.collection("users").doc(user.uid).set({ points: 0 });
+              return userRef.set({ points: 0 });
             }
-            userInfo.textContent = `Bem-vindo, ${user.email}`;
-            loginModal.style.display = "none";
-            loginLink.style.display = "none";
-            logoutLink.style.display = "inline-block";
-            pointsInfo.textContent = `Pontos: ${doc.data()?.points || 0}`;
           });
+        })
+        .then(() => {
+          loginModal.style.display = "none";
         })
         .catch((error) => {
           document.getElementById("loginError").textContent = error.message;
         });
     });
 
+    // Logout
     logoutLink.addEventListener("click", function () {
       auth.signOut().then(() => {
         userInfo.textContent = "";
@@ -292,6 +279,28 @@
         loginLink.style.display = "inline-block";
         logoutLink.style.display = "none";
       });
+    });
+
+    // Verificar se usuário já está logado (em qualquer login)
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        userInfo.textContent = `Bem-vindo, ${user.email}`;
+        loginLink.style.display = "none";
+        logoutLink.style.display = "inline-block";
+
+        db.collection("users").doc(user.uid).get().then((doc) => {
+          if (doc.exists) {
+            pointsInfo.textContent = `Pontos: ${doc.data().points || 0}`;
+          } else {
+            pointsInfo.textContent = "Pontos: 0";
+          }
+        });
+      } else {
+        userInfo.textContent = "";
+        pointsInfo.textContent = "";
+        loginLink.style.display = "inline-block";
+        logoutLink.style.display = "none";
+      }
     });
   });
 </script>
