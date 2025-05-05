@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <link rel="icon" href="favicon.png" type="image/x-icon">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jack Bar Café</title>
+  <link rel="icon" href="favicon.png" type="image/x-icon">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
     body { background-color: #121212; color: #fff; }
@@ -19,13 +19,6 @@
       font-weight: bold; transition: color 0.5s ease;
     }
     nav a:hover { color: #fff; }
-
-    #points-info { /* ALTERADO: para facilitar visualização dos pontos */
-      background-color: rgba(255, 255, 255, 0.1);
-      padding: 5px 10px;
-      border-radius: 6px;
-    }
-
     .hero {
       position: relative; height: 100vh; display: flex; align-items: center;
       justify-content: center; text-align: center; overflow: hidden;
@@ -55,12 +48,14 @@
     .som-e-mapa .sub-section { flex: 1; min-width: 300px; }
     .som-e-mapa iframe { width: 100%; border-radius: 12px; }
     footer { background-color: #0d0d0d; color: #888; text-align: center; padding: 20px; }
+
     .btn {
       background-color: #ff0000; color: #fff; border: none;
       padding: 10px 20px; font-size: 1rem; cursor: pointer;
       margin-top: 20px; transition: background 0.3s ease;
     }
     .btn:hover { background-color: #cc0000; }
+
     #loginModal {
       display: none; position: fixed; top: 0; left: 0;
       width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8);
@@ -117,63 +112,40 @@
 
   <section class="section" id="historia">
     <h2>Nossa História</h2>
-    <p>
-      Fundado com a paixão pela música e pela boa gastronomia, nosso café é um ponto de encontro para os amantes de rock e um bom espresso.
-    </p>
+    <p>Fundado com a paixão pela música e pela boa gastronomia, nosso café é um ponto de encontro para os amantes de rock e um bom espresso.</p>
   </section>
 
   <section class="section" id="informacoes">
     <h2>Informações</h2>
-    <p>
-      Endereço: Praça Barão do Rio Branco, 17 - Taubaté<br>
-      Horário de Funcionamento: Segunda a quinta, das 08h às 19h<br>
-      Sexta e Sábado, das 08h às 22h<br>
-      Especialidade: Cafés artesanais, drinks temáticos inspirados em clássicos do rock.
-    </p>
+    <p>Endereço: Praça Barão do Rio Branco, 17 - Taubaté<br>Horário: Seg. a Sáb., das 08h às 22h<br>Especialidade: Cafés artesanais e rock!</p>
   </section>
 
   <section class="section" id="galeria">
-    <h2>Galeria de Eventos</h2>
-    <p>Confira momentos incríveis que já rolaram por aqui:</p>
+    <h2>Galeria</h2>
     <div class="galeria">
-      <img src="galeria/evento1.jpg" alt="Show ao vivo">
-      <img src="galeria/evento2.jpg" alt="Clientes curtindo">
-      <img src="galeria/evento3.jpg" alt="Banda tocando">
+      <img src="galeria/evento1.jpg" alt="Evento 1">
+      <img src="galeria/evento2.jpg" alt="Evento 2">
+      <img src="galeria/evento3.jpg" alt="Evento 3">
     </div>
   </section>
 
   <section class="section som-e-mapa">
     <div class="sub-section" id="musica">
       <h2>Som de Qualidade</h2>
-      <p>Entre no clima com nossa playlist oficial de rock no Spotify:</p>
-      <iframe 
-        src="https://open.spotify.com/embed/playlist/37i9dQZF1DX1spT6G94GFC?utm_source=generator"
-        height="380" frameBorder="0" allowfullscreen="" 
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-        loading="lazy">
-      </iframe>
+      <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DX1spT6G94GFC?utm_source=generator"
+              height="380" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
     </div>
-
     <div class="sub-section" id="mapa">
       <h2>Onde Estamos</h2>
-      <p>Venha nos visitar! Estamos te esperando com rock e café!</p>
-      <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.7663818938013!2d-45.56104708502066!3d-23.50642506592968!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ccc5b390aeb15d%3A0x31b7c4a52db8adad!2sPra%C3%A7a%20Bar%C3%A3o%20do%20Rio%20Branco%2C%2017%20-%20Centro%2C%20Taubat%C3%A9%20-%20SP!5e0!3m2!1spt-BR!2sbr!4v1714594051021!5m2!1spt-BR!2sbr"
-        height="380"
-        style="border:0;"
-        allowfullscreen=""
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
-      </iframe>
+      <iframe src="https://www.google.com/maps/embed?pb=..." height="380" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
     </div>
   </section>
 
   <section class="section" id="contato">
-    <h2>Fale Conosco</h2>
+     <h2>Fale Conosco</h2>
     <button class="btn">Entrar em Contato</button>
-
-    <!-- ALTERADO: Botão de teste para adicionar pontos -->
-    <button class="btn" id="addPointsBtn">Adicionar Pontos</button>
+    <h2>Ganhar Pontos</h2>
+    <button class="btn" id="addPointsBtn" style="display:none">Ganhar 10 Pontos</button>
   </section>
 
   <footer><p>&copy; 2025 Jack Bar Café - Todos os direitos reservados</p></footer>
@@ -192,7 +164,7 @@
     </div>
   </div>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
@@ -217,122 +189,83 @@
       const logoutLink = document.getElementById("logoutLink");
       const userInfo = document.getElementById("user-info");
       const pointsInfo = document.getElementById("points-info");
+      const addPointsBtn = document.getElementById("addPointsBtn");
 
-      loginLink.addEventListener("click", function () {
-        loginModal.style.display = "flex";
-      });
+      function updatePoints(uid) {
+        db.collection("users").doc(uid).get().then(doc => {
+          if (doc.exists) {
+            pointsInfo.textContent = `Pontos: ${doc.data().points || 0}`;
+          }
+        });
+      }
 
-      document.getElementById("closeModal").addEventListener("click", function () {
-        loginModal.style.display = "none";
-      });
+      function addPoints(uid, amount) {
+        const userRef = db.collection("users").doc(uid);
+        userRef.update({
+          points: firebase.firestore.FieldValue.increment(amount)
+        }).then(() => updatePoints(uid));
+      }
 
-      document.getElementById("loginBtn").addEventListener("click", function () {
+      loginLink.addEventListener("click", () => loginModal.style.display = "flex");
+      document.getElementById("closeModal").addEventListener("click", () => loginModal.style.display = "none");
+
+      document.getElementById("loginBtn").addEventListener("click", () => {
         const email = document.getElementById("emailInput").value;
         const password = document.getElementById("passwordInput").value;
-
         auth.signInWithEmailAndPassword(email, password)
-          .then(() => {
-            loginModal.style.display = "none";
-          })
-          .catch((error) => {
-            document.getElementById("loginError").textContent = error.message;
-          });
+          .then(() => loginModal.style.display = "none")
+          .catch(e => document.getElementById("loginError").textContent = e.message);
       });
 
-      document.getElementById("signupBtn").addEventListener("click", function () {
+      document.getElementById("signupBtn").addEventListener("click", () => {
         const email = document.getElementById("emailInput").value;
         const password = document.getElementById("passwordInput").value;
-
         auth.createUserWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            const user = userCredential.user;
-            return db.collection("users").doc(user.uid).set({ points: 0 });
-          })
-          .then(() => {
-            loginModal.style.display = "none";
-          })
-          .catch((error) => {
-            document.getElementById("loginError").textContent = error.message;
-          });
+          .then(cred => db.collection("users").doc(cred.user.uid).set({ points: 0 }))
+          .then(() => loginModal.style.display = "none")
+          .catch(e => document.getElementById("loginError").textContent = e.message);
       });
 
-      document.getElementById("googleLoginBtn").addEventListener("click", function () {
+      document.getElementById("googleLoginBtn").addEventListener("click", () => {
         const provider = new firebase.auth.GoogleAuthProvider();
         auth.signInWithPopup(provider)
-          .then((result) => {
+          .then(result => {
             const user = result.user;
             const userRef = db.collection("users").doc(user.uid);
-            return userRef.get().then((doc) => {
-              if (!doc.exists) {
-                return userRef.set({ points: 0 });
-              }
+            return userRef.get().then(doc => {
+              if (!doc.exists) return userRef.set({ points: 0 });
             });
           })
-          .then(() => {
-            loginModal.style.display = "none";
-          })
-          .catch((error) => {
-            document.getElementById("loginError").textContent = error.message;
-          });
+          .then(() => loginModal.style.display = "none")
+          .catch(e => document.getElementById("loginError").textContent = e.message);
       });
 
-      logoutLink.addEventListener("click", function () {
+      logoutLink.addEventListener("click", () => {
         auth.signOut().then(() => {
           userInfo.textContent = "";
           pointsInfo.textContent = "";
           loginLink.style.display = "inline-block";
           logoutLink.style.display = "none";
+          addPointsBtn.style.display = "none";
         });
       });
 
-      auth.onAuthStateChanged((user) => {
+      auth.onAuthStateChanged(user => {
         if (user) {
           userInfo.textContent = `Bem-vindo, ${user.email}`;
           loginLink.style.display = "none";
           logoutLink.style.display = "inline-block";
-
-          db.collection("users").doc(user.uid).get().then((doc) => {
-            if (doc.exists) {
-              pointsInfo.textContent = `Pontos: ${doc.data().points || 0}`;
-            } else {
-              pointsInfo.textContent = "Pontos: 0";
-            }
-          });
+          addPointsBtn.style.display = "inline-block";
+          updatePoints(user.uid);
+          addPointsBtn.onclick = () => addPoints(user.uid, 10);
         } else {
           userInfo.textContent = "";
           pointsInfo.textContent = "";
           loginLink.style.display = "inline-block";
           logoutLink.style.display = "none";
+          addPointsBtn.style.display = "none";
         }
       });
-
-      // ALTERADO: botão de teste para adicionar pontos
-      document.getElementById("addPointsBtn").addEventListener("click", function () {
-        const user = auth.currentUser;
-        if (!user) {
-          alert("Você precisa estar logado para ganhar pontos.");
-          return;
-        }
-
-        const userRef = db.collection("users").doc(user.uid);
-        db.runTransaction((transaction) => {
-          return transaction.get(userRef).then((doc) => {
-            if (!doc.exists) throw "Usuário não encontrado!";
-            const newPoints = (doc.data().points || 0) + 10;
-            transaction.update(userRef, { points: newPoints });
-          });
-        }).then(() => {
-          alert("10 pontos adicionados!");
-          userRef.get().then((doc) => {
-            if (doc.exists) {
-              pointsInfo.textContent = `Pontos: ${doc.data().points}`;
-            }
-          });
-        }).catch((err) => {
-          console.error("Erro ao adicionar pontos:", err);
-        });
-      });
-
     });
   </script>
 </body>
