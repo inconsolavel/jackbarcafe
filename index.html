@@ -1,51 +1,23 @@
-q<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jack Bar Café</title>
   <link rel="icon" href="favicon.png" type="image/x-icon">
   <style>
-
-    footer {
-  text-align: center;
-  padding: 20px;
-  background-color: #111; /* mesma cor do fundo do rodapé */
-  color: #ccc; /* cor do texto */
-}
+    footer { text-align: center; padding: 20px; background-color: #111; color: #ccc; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
     body { background-color: #121212; color: #fff; }
-    header {
-      background-color: #1e1e1e;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 20px 40px; border-bottom: 4px solid #ff0000;
-    }
+    header { background-color: #1e1e1e; display: flex; align-items: center; justify-content: space-between; padding: 20px 40px; border-bottom: 4px solid #ff0000; }
     header img { height: 60px; }
-    nav a {
-      color: #ff0000; margin-left: 20px; text-decoration: none;
-      font-weight: bold; transition: color 0.5s ease;
-    }
+    nav a { color: #ff0000; margin-left: 20px; text-decoration: none; font-weight: bold; transition: color 0.5s ease; }
     nav a:hover { color: #fff; }
-    .hero {
-      position: relative; height: 100vh; display: flex; align-items: center;
-      justify-content: center; text-align: center; overflow: hidden;
-    }
-    .hero h1 {
-      font-size: 3.5rem; color: #ff3333;
-      text-shadow: 3px 3px 10px #000;
-      z-index: 2; position: relative;
-    }
-    .carousel-background {
-      position: absolute; top: 0; left: 0; width: 700vw; height: 100%;
-      display: flex; z-index: 1; animation: slideShow 180s linear infinite;
-    }
-    .carousel-background img {
-      width: 100vw; height: 100%; object-fit: cover; opacity: 0.4;
-    }
-    @keyframes slideShow {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-600vw); }
-    }
+    .hero { position: relative; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .hero h1 { font-size: 3.5rem; color: #ff3333; text-shadow: 3px 3px 10px #000; z-index: 2; position: relative; }
+    .carousel-background { position: absolute; top: 0; left: 0; width: 700vw; height: 100%; display: flex; z-index: 1; animation: slideShow 180s linear infinite; }
+    .carousel-background img { width: 100vw; height: 100%; object-fit: cover; opacity: 0.4; }
+    @keyframes slideShow { 0% { transform: translateX(0); } 100% { transform: translateX(-600vw); } }
     .section { padding: 60px 40px; background-color: #1a1a1a; }
     .section h2 { color: #ff0000; margin-bottom: 20px; }
     .section p { max-width: 800px; line-height: 1.6; }
@@ -54,42 +26,19 @@ q<!DOCTYPE html>
     .som-e-mapa { display: flex; flex-wrap: wrap; gap: 40px; }
     .som-e-mapa .sub-section { flex: 1; min-width: 300px; }
     .som-e-mapa iframe { width: 100%; border-radius: 12px; }
-    footer { background-color: #0d0d0d; color: #888; text-align: center; padding: 20px; }
-
-    .btn {
-      background-color: #ff0000; color: #fff; border: none;
-      padding: 10px 20px; font-size: 1rem; cursor: pointer;
-      margin-top: 20px; transition: background 0.3s ease;
-    }
+    .btn { background-color: #ff0000; color: #fff; border: none; padding: 10px 20px; font-size: 1rem; cursor: pointer; margin-top: 20px; transition: background 0.3s ease; }
     .btn:hover { background-color: #cc0000; }
-
-    #loginModal {
-      display: none; position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8);
-      justify-content: center; align-items: center; z-index: 999;
-    }
-    .modal-content {
-      background: #1e1e1e; padding: 30px; border-radius: 8px;
-      text-align: center; box-shadow: 0 0 10px #ff0000;
-      position: relative;
-    }
-    .modal-content input {
-      width: 90%; padding: 10px; margin: 10px 0;
-      border-radius: 4px; border: none;
-    }
-    .modal-content button {
-      padding: 10px 20px; background-color: #ff0000;
-      color: white; border: none; border-radius: 4px; cursor: pointer;
-    }
-    .close {
-      position: absolute; top: 20px; right: 30px;
-      font-size: 28px; color: white; cursor: pointer;
-    }
+    #loginModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 999; }
+    .modal-content { background: #1e1e1e; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 0 10px #ff0000; position: relative; }
+    .modal-content input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 4px; border: none; }
+    .modal-content button { margin: 5px; padding: 10px 20px; background-color: #ff0000; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    .modal-content #googleLoginBtn { background-color: #4285F4; }
+    .close { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #fff; cursor: pointer; }
   </style>
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="Logo do Café" />
+    <img src="logo.png" alt="Logo do Café">
     <nav>
       <a href="#historia">História</a>
       <a href="#informacoes">Informações</a>
@@ -97,10 +46,10 @@ q<!DOCTYPE html>
       <a href="#musica">Música</a>
       <a href="#mapa">Localização</a>
       <a href="#contato">Contato</a>
+      <span id="user-info"></span>
+      <span id="points-info" style="margin-left:20px"></span>
       <a href="#" id="loginLink">Login</a>
       <a href="#" id="logoutLink" style="display:none">Sair</a>
-      <span id="user-info"></span>
-      <span id="points-info" style="margin-left: 20px;"></span>
     </nav>
   </header>
 
@@ -112,7 +61,7 @@ q<!DOCTYPE html>
       <img src="img-4.JPG" alt="Imagem 4">
       <img src="img-5.JPG" alt="Imagem 5">
       <img src="img-6.JPG" alt="Imagem 6">
-      <img src="img-1.JPG" alt="Imagem 1 (duplicada)">
+      <img src="img-1.JPG" alt="Imagem 1 duplicada">
     </div>
     <h1>Bem-vindo ao Jack Bar Café</h1>
   </div>
@@ -126,9 +75,6 @@ q<!DOCTYPE html>
     <h2>Informações</h2>
     <p>Endereço: Praça Barão do Rio Branco, 17 - Taubaté<br>Horário: Seg. a Sáb., das 08h às 22h<br>Especialidade: Cafés artesanais e rock!</p>
   </section>
-  <div id="reader" style="width:300px; margin: auto; display:none;"></div>
-<button id="scanQrBtn" class="btn" style="display:none;">Escanear QR Code</button>
-
 
   <section class="section" id="galeria">
     <h2>Galeria</h2>
@@ -138,174 +84,134 @@ q<!DOCTYPE html>
       <img src="galeria/evento3.jpg" alt="Evento 3">
     </div>
   </section>
- <section class="section som-e-mapa">
+
+  <section class="section som-e-mapa">
     <div class="sub-section" id="musica">
       <h2>Som de Qualidade</h2>
       <p>Entre no clima com nossa playlist oficial de rock no Spotify:</p>
-      <iframe 
-        src="https://open.spotify.com/embed/playlist/37i9dQZF1DX1spT6G94GFC?utm_source=generator"
-        height="380" frameBorder="0" allowfullscreen="" 
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-        loading="lazy">
-      </iframe>
+      <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DX1spT6G94GFC" height="380" frameborder="0" allow="autoplay; encrypted-media" loading="lazy"></iframe>
     </div>
-
     <div class="sub-section" id="mapa">
       <h2>Onde Estamos</h2>
-      <p>Venha nos visitar! Estamos te esperando com rock e café!</p>
-      <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.7663818938013!2d-45.56104708502066!3d-23.50642506592968!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ccc5b390aeb15d%3A0x31b7c4a52db8adad!2sPra%C3%A7a%20Bar%C3%A3o%20do%20Rio%20Branco%2C%2017%20-%20Centro%2C%20Taubat%C3%A9%20-%20SP!5e0!3m2!1spt-BR!2sbr!4v1714594051021!5m2!1spt-BR!2sbr"
-        height="380"
-        style="border:0;"
-        allowfullscreen=""
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
-      </iframe>
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.7663818938013!2d-45.56104708502066!3d-23.50642506592968!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ccc5b390aeb15d%3A0x31b7c4a52db8adad!2sPra%C3%A7a%20Bar%C3%A3o%20do%20Rio%20Branco%2C%2017%20-%20Centro%2C%20Taubat%C3%A9%20-%20SP!5e0!3m2!1spt-BR!2sbr!4v1714594051021!5m2!1spt-BR!2sbr" height="380" style="border:0;" allowfullscreen loading="lazy"></iframe>
     </div>
   </section>
 
-
   <section class="section" id="contato">
-     <h2>Fale Conosco</h2>
+    <h2>Fale Conosco</h2>
     <button class="btn">Entrar em Contato</button>
-   
-  <footer text-align: center><p>&copy; 2025 Jack Bar Café - Todos os direitos reservados</p></footer>
+  </section>
+
+  <!-- QR Scanner -->
+  <div id="reader" style="width:300px; margin:20px auto; display:none;"></div>
+  <button id="scanQrBtn" class="btn" style="display:none; margin:auto;">Escanear QR Code</button>
+
+  <footer>
+    <p>&copy; 2025 Jack Bar Café - Todos os direitos reservados</p>
+  </footer>
 
   <!-- Modal de Login -->
   <div id="loginModal">
     <div class="modal-content">
       <span class="close" id="closeModal">&times;</span>
       <h2>Login</h2>
-      <input type="email" id="emailInput" placeholder="Email" />
-      <input type="password" id="passwordInput" placeholder="Senha" />
+      <input type="email" id="emailInput" placeholder="Email">
+      <input type="password" id="passwordInput" placeholder="Senha">
       <button id="loginBtn">Entrar</button>
-      <button id="googleLoginBtn" style="margin-top: 10px; background-color: #4285F4;">Entrar com Google</button>
-      <button id="signupBtn" style="margin-top: 10px;">Criar Conta</button>
-      <p id="loginError" style="color:red;"></p>
+      <button id="googleLoginBtn">Entrar com Google</button>
+      <button id="signupBtn">Criar Conta</button>
+      <p id="loginError" style="color:red"></p>
     </div>
   </div>
-  <script src="https://unpkg.com/html5-qrcode"></script>
 
-
-  <!-- Firebase SDK -->
+  <!-- SDKs Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
+  <!-- QR Code Scanner -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
 
   <script>
-    
-    document.addEventListener("DOMContentLoaded", function () {
-      const firebaseConfig = {
-        apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
-        authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
-        projectId: "jackbarcafe-b8fa8",
-        storageBucket: "jackbarcafe-b8fa8.appspot.com",
-        messagingSenderId: "849215333925",
-        appId: "1:849215333925:web:e02cb0d11c590af32201cc"
-      };
-
+    document.addEventListener('DOMContentLoaded', () => {
+      const firebaseConfig = { /* suas chaves aqui */ };
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
-      const db = firebase.firestore();
+      const db   = firebase.firestore();
 
-      const loginModal = document.getElementById("loginModal");
-      const loginLink = document.getElementById("loginLink");
-      const logoutLink = document.getElementById("logoutLink");
-      const userInfo = document.getElementById("user-info");
-      const pointsInfo = document.getElementById("points-info");
-      const addPointsBtn = document.getElementById("addPointsBtn");
+      // Elementos do DOM
+      const loginModal  = document.getElementById('loginModal');
+      const loginLink   = document.getElementById('loginLink');
+      const logoutLink  = document.getElementById('logoutLink');
+      const closeModal  = document.getElementById('closeModal');
+      const loginBtn    = document.getElementById('loginBtn');
+      const signupBtn   = document.getElementById('signupBtn');
+      const googleBtn   = document.getElementById('googleLoginBtn');
+      const emailInput  = document.getElementById('emailInput');
+      const passInput   = document.getElementById('passwordInput');
+      const loginError  = document.getElementById('loginError');
+      const userInfo    = document.getElementById('user-info');
+      const pointsInfo  = document.getElementById('points-info');
+      const scanQrBtn   = document.getElementById('scanQrBtn');
+      const reader      = document.getElementById('reader');
 
-      function updatePoints(uid) {
-        db.collection("users").doc(uid).get().then(doc => {
-          if (doc.exists) {
-            pointsInfo.textContent = `Pontos: ${doc.data().points || 0}`;
-          }
-        });
+      // Funções autenticacão
+      loginLink.onclick = () => loginModal.style.display = 'flex';
+      closeModal.onclick = () => loginModal.style.display = 'none';
+      loginBtn.onclick = async () => {
+        try { await auth.signInWithEmailAndPassword(emailInput.value, passInput.value); loginModal.style.display = 'none'; } 
+        catch(e) { loginError.textContent = e.message; }
+      };
+      signupBtn.onclick = async () => {
+        try {
+          const cred = await auth.createUserWithEmailAndPassword(emailInput.value, passInput.value);
+          await db.collection('users').doc(cred.user.uid).set({ points: 0 });
+          loginModal.style.display = 'none';
+        } catch(e) { loginError.textContent = e.message; }
+      };
+      googleBtn.onclick = async () => {
+        try {
+          const res = await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+          const ref = db.collection('users').doc(res.user.uid);
+          const doc = await ref.get(); if(!doc.exists) await ref.set({ points: 0 });
+          loginModal.style.display = 'none';
+        } catch(e) { loginError.textContent = e.message; }
+      };
+      logoutLink.onclick = () => auth.signOut();
+
+      // Pontos
+      const updatePoints = uid => db.collection('users').doc(uid).get().then(doc => {
+        pointsInfo.textContent = `Pontos: ${doc.exists ? doc.data().points||0 : 0}`;
+      });
+      const addPoints = (uid, amt) => db.collection('users').doc(uid).set({ points: firebase.firestore.FieldValue.increment(amt) }, { merge: true }).then(() => updatePoints(uid));
+
+      // QR Scanner
+      function startQrScanner(uid, cb) {
+        const html5QrCode = new Html5Qrcode('reader');
+        html5QrCode.start({ facingMode:'environment' }, { fps: 10, qrbox:250 }, qrData => {
+          html5QrCode.stop(); cb(qrData, uid);
+        }, _err => {});
       }
 
-      function addPoints(uid, amount) {
-        const userRef = db.collection("users").doc(uid);
-        userRef.update({
-          points: firebase.firestore.FieldValue.increment(amount)
-        }).then(() => updatePoints(uid));
-      }
-
-      loginLink.addEventListener("click", () => loginModal.style.display = "flex");
-      document.getElementById("closeModal").addEventListener("click", () => loginModal.style.display = "none");
-
-      document.getElementById("loginBtn").addEventListener("click", () => {
-        const email = document.getElementById("emailInput").value;
-        const password = document.getElementById("passwordInput").value;
-        auth.signInWithEmailAndPassword(email, password)
-          .then(() => loginModal.style.display = "none")
-          .catch(e => document.getElementById("loginError").textContent = e.message);
-      });
-
-      document.getElementById("signupBtn").addEventListener("click", () => {
-        const email = document.getElementById("emailInput").value;
-        const password = document.getElementById("passwordInput").value;
-        auth.createUserWithEmailAndPassword(email, password)
-          .then(cred => db.collection("users").doc(cred.user.uid).set({ points: 0 }))
-          .then(() => loginModal.style.display = "none")
-          .catch(e => document.getElementById("loginError").textContent = e.message);
-      });
-
-      document.getElementById("googleLoginBtn").addEventListener("click", () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider)
-          .then(result => {
-            const user = result.user;
-            const userRef = db.collection("users").doc(user.uid);
-            return userRef.get().then(doc => {
-              if (!doc.exists) return userRef.set({ points: 0 });
+      // Auth State
+      auth.onAuthStateChanged(user => {
+        if(user) {
+          userInfo.textContent = `Bem-vindo, ${user.email}`;
+          loginLink.style.display = 'none'; logoutLink.style.display = 'inline-block'; scanQrBtn.style.display = 'inline-block';
+          updatePoints(user.uid);
+          scanQrBtn.onclick = () => {
+            reader.style.display = 'block';
+            startQrScanner(user.uid, (data, uid) => {
+              const pts = parseInt(data) || 10;
+              addPoints(uid, pts);
+              alert(`+${pts} pontos adicionados!`);
+              reader.style.display = 'none';
             });
-          })
-          .then(() => loginModal.style.display = "none")
-          .catch(e => document.getElementById("loginError").textContent = e.message);
+          };
+        } else {
+          userInfo.textContent = ''; pointsInfo.textContent = ''; loginLink.style.display = 'inline-block'; logoutLink.style.display = 'none'; scanQrBtn.style.display = 'none'; reader.style.display = 'none';
+        }
       });
-
-      logoutLink.addEventListener("click", () => {
-        auth.signOut().then(() => {
-          userInfo.textContent = "";
-          pointsInfo.textContent = "";
-          loginLink.style.display = "inline-block";
-          logoutLink.style.display = "none";
-          addPointsBtn.style.display = "none";
-        });
-      });
-
-    auth.onAuthStateChanged(user => {
-  if (user) {
-    userInfo.textContent = `Bem-vindo, ${user.email}`;
-    loginLink.style.display = "none";
-    logoutLink.style.display = "inline-block";
-    addPointsBtn.style.display = "inline-block";
-    scanQrBtn.style.display = "inline-block";
-    updatePoints(user.uid);
-
-    addPointsBtn.onclick = () => addPoints(user.uid, 10);
-
-    scanQrBtn.onclick = () => {
-      document.getElementById("reader").style.display = "block";
-      startQrScanner(user.uid, (qrData, uid) => {
-        let pontos = parseInt(qrData) || 10;
-        addPoints(uid, pontos);
-        alert(`+${pontos} pontos adicionados!`);
-        document.getElementById("reader").style.display = "none";
-      });
-    };
-  } else {
-    userInfo.textContent = "";
-    pointsInfo.textContent = "";
-    loginLink.style.display = "inline-block";
-    logoutLink.style.display = "none";
-    addPointsBtn.style.display = "none";
-    scanQrBtn.style.display = "none";
-    document.getElementById("reader").style.display = "none";
-  }
-});
+    });
   </script>
-  <script src="qrcode.js"></script>
-
 </body>
 </html>
