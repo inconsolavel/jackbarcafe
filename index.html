@@ -193,27 +193,7 @@ q<!DOCTYPE html>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
 
   <script>
-
-    const scanQrBtn = document.getElementById("scanQrBtn");
-
-auth.onAuthStateChanged(user => {
-  if (user) {
-    scanQrBtn.style.display = "inline-block";
-    scanQrBtn.onclick = () => {
-      document.getElementById("reader").style.display = "block";
-      startQrScanner(user.uid, (qrData, uid) => {
-        // você pode definir o valor dos pontos com base no conteúdo do QR
-        let pontos = parseInt(qrData) || 10; // ou uma lógica específica
-        addPoints(uid, pontos);
-        alert(`+${pontos} pontos adicionados!`);
-        document.getElementById("reader").style.display = "none";
-      });
-    };
-  } else {
-    scanQrBtn.style.display = "none";
-    document.getElementById("reader").style.display = "none";
-  }
-});
+    
     document.addEventListener("DOMContentLoaded", function () {
       const firebaseConfig = {
         apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
@@ -294,23 +274,36 @@ auth.onAuthStateChanged(user => {
         });
       });
 
-      auth.onAuthStateChanged(user => {
-        if (user) {
-          userInfo.textContent = `Bem-vindo, ${user.email}`;
-          loginLink.style.display = "none";
-          logoutLink.style.display = "inline-block";
-          addPointsBtn.style.display = "inline-block";
-          updatePoints(user.uid);
-          addPointsBtn.onclick = () => addPoints(user.uid, 10);
-        } else {
-          userInfo.textContent = "";
-          pointsInfo.textContent = "";
-          loginLink.style.display = "inline-block";
-          logoutLink.style.display = "none";
-          addPointsBtn.style.display = "none";
-        }
+    auth.onAuthStateChanged(user => {
+  if (user) {
+    userInfo.textContent = `Bem-vindo, ${user.email}`;
+    loginLink.style.display = "none";
+    logoutLink.style.display = "inline-block";
+    addPointsBtn.style.display = "inline-block";
+    scanQrBtn.style.display = "inline-block";
+    updatePoints(user.uid);
+
+    addPointsBtn.onclick = () => addPoints(user.uid, 10);
+
+    scanQrBtn.onclick = () => {
+      document.getElementById("reader").style.display = "block";
+      startQrScanner(user.uid, (qrData, uid) => {
+        let pontos = parseInt(qrData) || 10;
+        addPoints(uid, pontos);
+        alert(`+${pontos} pontos adicionados!`);
+        document.getElementById("reader").style.display = "none";
       });
-    });
+    };
+  } else {
+    userInfo.textContent = "";
+    pointsInfo.textContent = "";
+    loginLink.style.display = "inline-block";
+    logoutLink.style.display = "none";
+    addPointsBtn.style.display = "none";
+    scanQrBtn.style.display = "none";
+    document.getElementById("reader").style.display = "none";
+  }
+});
   </script>
   <script src="qrcode.js"></script>
 
