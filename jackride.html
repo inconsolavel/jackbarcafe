@@ -1,162 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Motoqueiro Desvia</title>
+  <meta charset="UTF-8">
+  <title>Jogo do Motoqueiro</title>
   <style>
-    body {
-      background: #222;
-      color: white;
-      font-family: sans-serif;
-    }
-    canvas {
-      background: #111;
-      display: block;
-      margin: 20px auto;
-      border: 2px solid white;
-    }
+    body { margin: 0; background: #111; overflow: hidden; font-family: Arial, sans-serif; color: white; }
+    canvas { display: block; margin: 0 auto; background: #222; }
+    #ranking { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px; }
+    #score { position: absolute; top: 10px; right: 10px; font-size: 20px; }
   </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <div id="score">Score: 0</div>
+  <div id="ranking">
+    <h3>Top 10</h3>
+    <ol id="rankingList"></ol>
+  </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
 
   <script>
     const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_PROJETO.firebaseapp.com",
-      projectId: "SEU_PROJETO",
-      storageBucket: "SEU_PROJETO.appspot.com",
-      messagingSenderId: "SENDER_ID",
-      appId: "APP_ID"
+      apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
+      authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
+      projectId: "jackbarcafe-b8fa8",
+      storageBucket: "jackbarcafe-b8fa8.appspot.com",
+      messagingSenderId: "849215333925",
+      appId: "1:849215333925:web:e02cb0d11c590af32201cc"
     };
-
-    const app = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
-  </script>
-</head>
-<body>
 
-<canvas id="gameCanvas" width="400" height="600"></canvas>
+    auth.signInAnonymously();
 
-<script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+    let userId = null;
+    auth.onAuthStateChanged(user => { if (user) userId = user.uid; });
 
-let motoqueiro = { x: 200, y: 500, width: 30, height: 50 };
-let carros = [];
-let score = 0;
-let gameInterval, spawnInterval;
-let speed = 2;
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let score = 0;
+    let speed = 2;
+    let gameOver = false;
 
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft" && motoqueiro.x > 0) motoqueiro.x -= 20;
-  if (e.key === "ArrowRight" && motoqueiro.x < canvas.width - motoqueiro.width) motoqueiro.x += 20;
-});
+    const player = { x: 175, y: 520, w: 50, h: 80, color: 'red' };
+    const cars = [];
 
-function drawMotoqueiro() {
-  ctx.fillStyle = "lime";
-  ctx.fillRect(motoqueiro.x, motoqueiro.y, motoqueiro.width, motoqueiro.height);
-}
-
-function drawCarros() {
-  ctx.fillStyle = "red";
-  carros.forEach((carro) => {
-    carro.y += speed;
-    ctx.fillRect(carro.x, carro.y, carro.width, carro.height);
-  });
-
-  carros = carros.filter(carro => carro.y < canvas.height);
-}
-
-function checkCollision() {
-  for (let carro of carros) {
-    if (
-      motoqueiro.x < carro.x + carro.width &&
-      motoqueiro.x + motoqueiro.width > carro.x &&
-      motoqueiro.y < carro.y + carro.height &&
-      motoqueiro.y + motoqueiro.height > carro.y
-    ) {
-      endGame();
+    function spawnCar() {
+      const car = {
+        x: Math.random() * 350,
+        y: -100,
+        w: 50,
+        h: 80,
+        color: 'blue'
+      };
+      cars.push(car);
     }
-  }
-}
 
-function drawScore() {
-  ctx.fillStyle = "white";
-  ctx.font = "20px Arial";
-  ctx.fillText("Pontos: " + score, 10, 30);
-}
+    function update() {
+      if (gameOver) return;
 
-function updateGame() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawMotoqueiro();
-  drawCarros();
-  drawScore();
-  checkCollision();
-  score++;
-  if (score % 200 === 0) speed += 0.5;
-}
+      score++;
+      document.getElementById('score').innerText = `Score: ${score}`;
+      speed = 2 + Math.floor(score / 200);
 
-function startGame() {
-  carros = [];
-  score = 0;
-  speed = 2;
-  gameInterval = setInterval(updateGame, 20);
-  spawnInterval = setInterval(spawnCarro, 1000);
-}
+      for (const car of cars) {
+        car.y += speed;
+        if (car.y > 600) cars.splice(cars.indexOf(car), 1);
+        if (
+          car.x < player.x + player.w &&
+          car.x + car.w > player.x &&
+          car.y < player.y + player.h &&
+          car.y + car.h > player.y
+        ) {
+          gameOver = true;
+          saveScore(score);
+          break;
+        }
+      }
+    }
 
-function spawnCarro() {
-  const width = 40;
-  const height = 60;
-  const x = Math.floor(Math.random() * (canvas.width - width));
-  carros.push({ x, y: -height, width, height });
-}
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.w, player.h);
 
-// Salva no Firebase Firestore
-function salvarPontuacao(nome, pontos) {
-  db.collection("ranking").add({
-    nome: nome,
-    pontos: pontos,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  });
-}
+      for (const car of cars) {
+        ctx.fillStyle = car.color;
+        ctx.fillRect(car.x, car.y, car.w, car.h);
+      }
+    }
 
-// Mostra ranking
-function mostrarRanking() {
-  db.collection("ranking")
-    .orderBy("pontos", "desc")
-    .limit(10)
-    .get()
-    .then((snapshot) => {
-      const rankingDiv = document.createElement("div");
-      rankingDiv.style.position = "absolute";
-      rankingDiv.style.top = "20px";
-      rankingDiv.style.left = "420px";
-      rankingDiv.style.background = "#fff";
-      rankingDiv.style.color = "#000";
-      rankingDiv.style.padding = "10px";
-      rankingDiv.style.borderRadius = "8px";
-      rankingDiv.innerHTML = "<h3>🏆 Top 10</h3><ol></ol>";
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        rankingDiv.querySelector("ol").innerHTML += `<li>${data.nome}: ${data.pontos}</li>`;
-      });
-      document.body.appendChild(rankingDiv);
+    function loop() {
+      update();
+      draw();
+      if (!gameOver) requestAnimationFrame(loop);
+    }
+
+    setInterval(spawnCar, 1200);
+    loop();
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft') player.x -= 30;
+      if (e.key === 'ArrowRight') player.x += 30;
+      player.x = Math.max(0, Math.min(350, player.x));
     });
-}
 
-function endGame() {
-  clearInterval(gameInterval);
-  clearInterval(spawnInterval);
-  const nome = prompt("Fim de jogo! Digite seu nome:");
-  if (nome) salvarPontuacao(nome, score);
-  mostrarRanking();
-  setTimeout(() => location.reload(), 10000);
-}
+    function saveScore(score) {
+      if (!userId) return;
+      const ref = db.collection('gameScores').doc(userId);
+      ref.get().then(doc => {
+        if (!doc.exists || doc.data().score < score) {
+          ref.set({ score, timestamp: new Date() });
+        }
+      });
+      loadRanking();
+    }
 
-startGame();
-</script>
+    function loadRanking() {
+      db.collection('gameScores').orderBy('score', 'desc').limit(10).get()
+        .then(snapshot => {
+          const list = document.getElementById('rankingList');
+          list.innerHTML = '';
+          snapshot.forEach(doc => {
+            const li = document.createElement('li');
+            li.textContent = `Score: ${doc.data().score}`;
+            list.appendChild(li);
+          });
+        });
+    }
 
+    loadRanking();
+  </script>
 </body>
 </html>
