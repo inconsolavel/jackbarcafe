@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Motoqueiro Desvia</title>
+  <style>
+    body {
+      background: #222;
+      color: white;
+      font-family: sans-serif;
+    }
+    canvas {
+      background: #111;
+      display: block;
+      margin: 20px auto;
+      border: 2px solid white;
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_PROJETO.firebaseapp.com",
+      projectId: "SEU_PROJETO",
+      storageBucket: "SEU_PROJETO.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="400" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let motoqueiro = { x: 200, y: 500, width: 30, height: 50 };
+let carros = [];
+let score = 0;
+let gameInterval, spawnInterval;
+let speed = 2;
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft" && motoqueiro.x > 0) motoqueiro.x -= 20;
+  if (e.key === "ArrowRight" && motoqueiro.x < canvas.width - motoqueiro.width) motoqueiro.x += 20;
+});
+
+function drawMotoqueiro() {
+  ctx.fillStyle = "lime";
+  ctx.fillRect(motoqueiro.x, motoqueiro.y, motoqueiro.width, motoqueiro.height);
+}
+
+function drawCarros() {
+  ctx.fillStyle = "red";
+  carros.forEach((carro) => {
+    carro.y += speed;
+    ctx.fillRect(carro.x, carro.y, carro.width, carro.height);
+  });
+
+  carros = carros.filter(carro => carro.y < canvas.height);
+}
+
+function checkCollision() {
+  for (let carro of carros) {
+    if (
+      motoqueiro.x < carro.x + carro.width &&
+      motoqueiro.x + motoqueiro.width > carro.x &&
+      motoqueiro.y < carro.y + carro.height &&
+      motoqueiro.y + motoqueiro.height > carro.y
+    ) {
+      endGame();
+    }
+  }
+}
+
+function drawScore() {
+  ctx.fillStyle = "white";
+  ctx.font = "20px Arial";
+  ctx.fillText("Pontos: " + score, 10, 30);
+}
+
+function updateGame() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawMotoqueiro();
+  drawCarros();
+  drawScore();
+  checkCollision();
+  score++;
+  if (score % 200 === 0) speed += 0.5;
+}
+
+function startGame() {
+  carros = [];
+  score = 0;
+  speed = 2;
+  gameInterval = setInterval(updateGame, 20);
+  spawnInterval = setInterval(spawnCarro, 1000);
+}
+
+function spawnCarro() {
+  const width = 40;
+  const height = 60;
+  const x = Math.floor(Math.random() * (canvas.width - width));
+  carros.push({ x, y: -height, width, height });
+}
+
+// Salva no Firebase Firestore
+function salvarPontuacao(nome, pontos) {
+  db.collection("ranking").add({
+    nome: nome,
+    pontos: pontos,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+// Mostra ranking
+function mostrarRanking() {
+  db.collection("ranking")
+    .orderBy("pontos", "desc")
+    .limit(10)
+    .get()
+    .then((snapshot) => {
+      const rankingDiv = document.createElement("div");
+      rankingDiv.style.position = "absolute";
+      rankingDiv.style.top = "20px";
+      rankingDiv.style.left = "420px";
+      rankingDiv.style.background = "#fff";
+      rankingDiv.style.color = "#000";
+      rankingDiv.style.padding = "10px";
+      rankingDiv.style.borderRadius = "8px";
+      rankingDiv.innerHTML = "<h3>🏆 Top 10</h3><ol></ol>";
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        rankingDiv.querySelector("ol").innerHTML += `<li>${data.nome}: ${data.pontos}</li>`;
+      });
+      document.body.appendChild(rankingDiv);
+    });
+}
+
+function endGame() {
+  clearInterval(gameInterval);
+  clearInterval(spawnInterval);
+  const nome = prompt("Fim de jogo! Digite seu nome:");
+  if (nome) salvarPontuacao(nome, score);
+  mostrarRanking();
+  setTimeout(() => location.reload(), 10000);
+}
+
+startGame();
+</script>
+
+</body>
+</html>
