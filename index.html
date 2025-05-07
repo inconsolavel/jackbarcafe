@@ -126,6 +126,9 @@ q<!DOCTYPE html>
     <h2>Informações</h2>
     <p>Endereço: Praça Barão do Rio Branco, 17 - Taubaté<br>Horário: Seg. a Sáb., das 08h às 22h<br>Especialidade: Cafés artesanais e rock!</p>
   </section>
+  <div id="reader" style="width:300px; margin: auto; display:none;"></div>
+<button id="scanQrBtn" class="btn" style="display:none;">Escanear QR Code</button>
+
 
   <section class="section" id="galeria">
     <h2>Galeria</h2>
@@ -181,6 +184,8 @@ q<!DOCTYPE html>
       <p id="loginError" style="color:red;"></p>
     </div>
   </div>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
@@ -188,6 +193,27 @@ q<!DOCTYPE html>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
 
   <script>
+
+    const scanQrBtn = document.getElementById("scanQrBtn");
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    scanQrBtn.style.display = "inline-block";
+    scanQrBtn.onclick = () => {
+      document.getElementById("reader").style.display = "block";
+      startQrScanner(user.uid, (qrData, uid) => {
+        // você pode definir o valor dos pontos com base no conteúdo do QR
+        let pontos = parseInt(qrData) || 10; // ou uma lógica específica
+        addPoints(uid, pontos);
+        alert(`+${pontos} pontos adicionados!`);
+        document.getElementById("reader").style.display = "none";
+      });
+    };
+  } else {
+    scanQrBtn.style.display = "none";
+    document.getElementById("reader").style.display = "none";
+  }
+});
     document.addEventListener("DOMContentLoaded", function () {
       const firebaseConfig = {
         apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
@@ -286,5 +312,7 @@ q<!DOCTYPE html>
       });
     });
   </script>
+  <script src="qrcode.js"></script>
+
 </body>
 </html>
