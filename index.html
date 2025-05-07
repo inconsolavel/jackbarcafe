@@ -6,7 +6,7 @@
   <title>Jack Bar Café</title>
   <link rel="icon" href="favicon.png" type="image/x-icon">
   <style>
-    /* Seus estilos originais */
+    /* Estilos originais mantidos */
     footer { text-align: center; padding: 20px; background-color: #0d0d0d; color: #888; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
     body { background-color: #121212; color: #fff; }
@@ -29,7 +29,7 @@
     .som-e-mapa iframe { width: 100%; border-radius: 12px; }
     .btn { background-color: #ff0000; color: #fff; border: none; padding: 10px 20px; font-size: 1rem; cursor: pointer; margin-top: 20px; transition: background 0.3s ease; }
     .btn:hover { background-color: #cc0000; }
-    #loginModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center; z-index: 999; }
+    #loginModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 999; }
     .modal-content { background: #1e1e1e; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 0 10px #ff0000; position: relative; }
     .modal-content input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 4px; border: none; }
     .modal-content button { padding: 10px 20px; background-color: #ff0000; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
@@ -39,7 +39,7 @@
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="Logo do Café" />
+    <img src="logo.png" alt="Logo do Café">
     <nav>
       <a href="#historia">História</a>
       <a href="#informacoes">Informações</a>
@@ -48,7 +48,7 @@
       <a href="#mapa">Localização</a>
       <a href="#contato">Contato</a>
       <span id="user-info"></span>
-      <span id="points-info" style="margin-left: 20px;"></span>
+      <span id="points-info" style="margin-left:20px"></span>
       <a href="#" id="loginLink">Login</a>
       <a href="#" id="logoutLink" style="display:none">Sair</a>
     </nav>
@@ -57,124 +57,127 @@
   <div class="hero">
     <div class="carousel-background">
       <img src="img-1.JPG" alt="Imagem 1">
-      <!-- ... demais imagens ... -->
+      <!-- demais imagens -->
     </div>
     <h1>Bem-vindo ao Jack Bar Café</h1>
   </div>
 
-  <!-- Seções ... -->
-  <section class="section" id="historia"><h2>Nossa História</h2><p>...</p></section>
-  <section class="section" id="informacoes"><h2>Informações</h2><p>...</p></section>
-  <section class="section" id="galeria"><h2>Galeria</h2><div class="galeria">...</div></section>
-  <section class="section som-e-mapa"><div class="sub-section" id="musica">...</div><div class="sub-section" id="mapa">...</div></section>
-  <section class="section" id="contato"><h2>Fale Conosco</h2><button class="btn">Entrar em Contato</button></section>
+  <section class="section" id="historia">
+    <h2>Nossa História</h2>
+    <p>Fundado com a paixão pela música e pela boa gastronomia…</p>
+  </section>
+  <section class="section" id="informacoes">
+    <h2>Informações</h2>
+    <p>Endereço, horário, especialidades…</p>
+  </section>
+  <section class="section" id="galeria">
+    <h2>Galeria</h2>
+    <div class="galeria">
+      <!-- imagens -->
+    </div>
+  </section>
+  <section class="section som-e-mapa">
+    <div class="sub-section" id="musica">
+      <!-- Spotify -->
+    </div>
+    <div class="sub-section" id="mapa">
+      <!-- Google Maps -->
+    </div>
+  </section>
+  <section class="section" id="contato">
+    <h2>Fale Conosco</h2>
+    <button class="btn">Entrar em Contato</button>
+  </section>
 
   <!-- QR Scanner -->
-  <div id="reader" style="width:300px; margin:20px auto; display:none;"></div>
+  <div id="reader" style="display:none; width:300px; margin:20px auto;"></div>
   <button id="scanQrBtn" class="btn" style="display:none; margin:auto;">Escanear QR Code</button>
 
-  <footer><p>&copy; 2025 Jack Bar Café - Todos os direitos reservados</p></footer>
+  <footer><p>&copy; 2025 Jack Bar Café</p></footer>
 
   <!-- Modal de Login -->
   <div id="loginModal">
     <div class="modal-content">
       <span class="close" id="closeModal">&times;</span>
       <h2>Login</h2>
-      <input type="email" id="emailInput" placeholder="Email" />
-      <input type="password" id="passwordInput" placeholder="Senha" />
+      <input type="email" id="emailInput" placeholder="Email">
+      <input type="password" id="passwordInput" placeholder="Senha">
       <button id="loginBtn">Entrar</button>
       <button id="googleLoginBtn">Entrar com Google</button>
       <button id="signupBtn">Criar Conta</button>
-      <p id="loginError" style="color:red;"></p>
+      <p id="loginError" style="color:red"></p>
     </div>
   </div>
 
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
   <script src="https://unpkg.com/html5-qrcode"></script>
-
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "...", storageBucket: "...", messagingSenderId: "...", appId: "..." };
+      const firebaseConfig = { apiKey:'...', authDomain:'...', projectId:'...', storageBucket:'...', messagingSenderId:'...', appId:'...' };
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
       const db   = firebase.firestore();
 
-      // Referências DOM
       const loginLink = document.getElementById('loginLink');
-      const logoutLink = document.getElementById('logoutLink');
-      const loginModal = document.getElementById('loginModal');
-      const closeModal = document.getElementById('closeModal');
-      const loginBtn = document.getElementById('loginBtn');
+      const logoutLink= document.getElementById('logoutLink');
+      const loginModal= document.getElementById('loginModal');
+      const closeModal= document.getElementById('closeModal');
+      const loginBtn  = document.getElementById('loginBtn');
       const signupBtn = document.getElementById('signupBtn');
       const googleBtn = document.getElementById('googleLoginBtn');
-      const emailInput = document.getElementById('emailInput');
+      const emailInput= document.getElementById('emailInput');
       const passInput = document.getElementById('passwordInput');
-      const loginError = document.getElementById('loginError');
-      const userInfo = document.getElementById('user-info');
-      const pointsInfo = document.getElementById('points-info');
+      const loginError= document.getElementById('loginError');
+      const userInfo  = document.getElementById('user-info');
+      const pointsInfo= document.getElementById('points-info');
       const scanQrBtn = document.getElementById('scanQrBtn');
-      const reader = document.getElementById('reader');
+      const reader    = document.getElementById('reader');
 
-      // Abertura/fechamento modal
-      loginLink.onclick = () => loginModal.style.display = 'flex';
-      closeModal.onclick = () => loginModal.style.display = 'none';
+      loginLink.onclick=()=>loginModal.style.display='flex';
+      closeModal.onclick=()=>loginModal.style.display='none';
 
-      // Login/Signup/Google
-      loginBtn.onclick = () => {
-        auth.signInWithEmailAndPassword(emailInput.value, passInput.value)
-          .then(() => loginModal.style.display = 'none')
-          .catch(e => loginError.textContent = e.message);
+      loginBtn.onclick=()=>{
+        auth.signInWithEmailAndPassword(emailInput.value,passInput.value)
+          .then(()=>loginModal.style.display='none')
+          .catch(e=>loginError.textContent=e.message);
       };
-      signupBtn.onclick = () => {
-        auth.createUserWithEmailAndPassword(emailInput.value, passInput.value)
-          .then(cred => db.collection('users').doc(cred.user.uid).set({ points: 0 }))
-          .then(() => loginModal.style.display = 'none')
-          .catch(e => loginError.textContent = e.message);
+      signupBtn.onclick=()=>{
+        auth.createUserWithEmailAndPassword(emailInput.value,passInput.value)
+          .then(cred=>db.collection('users').doc(cred.user.uid).set({points:0}))
+          .then(()=>loginModal.style.display='none')
+          .catch(e=>loginError.textContent=e.message);
       };
-      googleBtn.onclick = () => {
+      googleBtn.onclick=()=>{
         auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
-          .then(res => {
-            const ref = db.collection('users').doc(res.user.uid');
-            return ref.get().then(doc => { if(!doc.exists) return ref.set({ points: 0 }); });
+          .then(res=>{
+            const ref=db.collection('users').doc(res.user.uid);
+            return ref.get().then(doc=>{if(!doc.exists) return ref.set({points:0});});
           })
-          .then(() => loginModal.style.display = 'none')
-          .catch(e => loginError.textContent = e.message);
+          .then(()=>loginModal.style.display='none')
+          .catch(e=>loginError.textContent=e.message);
       };
-      logoutLink.onclick = () => auth.signOut();
+      logoutLink.onclick=()=>auth.signOut();
 
-      // Pontos
-      const updatePoints = uid => db.collection('users').doc(uid).get().then(doc => {
-        pointsInfo.textContent = `Pontos: ${doc.exists ? doc.data().points : 0}`;
-      });
-      const addPoints = (uid, amt) => db.collection('users').doc(uid).set({ points: firebase.firestore.FieldValue.increment(amt) }, { merge: true }).then(() => updatePoints(uid));
+      const updatePoints=uid=>db.collection('users').doc(uid).get().then(doc=>pointsInfo.textContent=`Pontos: ${doc.exists?doc.data().points:0}`);
+      const addPoints=(uid,amt)=>db.collection('users').doc(uid).set({points:firebase.firestore.FieldValue.increment(amt)},{merge:true}).then(()=>updatePoints(uid));
 
-      // QR Scanner
-      function startQrScanner(uid, cb) {
-        new Html5Qrcode('reader').start({ facingMode: 'environment'}, { fps: 10, qrbox:250}, qrData => {
-          cb(qrData, uid);
-        });
+      function startQrScanner(uid,cb){
+        const qr=new Html5Qrcode('reader');
+        qr.start({facingMode:'environment'},{fps:10,qrbox:250},data=>{qr.stop();cb(data,uid);},err=>{});
       }
 
-      // Auth State Listener
-      auth.onAuthStateChanged(user => {
-        if(user) {
-          userInfo.textContent = `Bem-vindo, ${user.email}`;
-          loginLink.style.display = 'none'; logoutLink.style.display = 'inline-block';
-          scanQrBtn.style.display = 'inline-block'; updatePoints(user.uid);
-          scanQrBtn.onclick = () => {
-            reader.style.display = 'block';
-            startQrScanner(user.uid, (data, uid) => {
-              addPoints(uid, parseInt(data)||10);
-              alert(`+${parseInt(data)||10} pontos adicionados!`);
-              reader.style.display = 'none';
-            });
-          };
+      auth.onAuthStateChanged(user=>{
+        if(user){
+          userInfo.textContent=`Bem-vindo, ${user.email}`;
+          loginLink.style.display='none'; logoutLink.style.display='inline-block';
+          scanQrBtn.style.display='inline-block';
+          updatePoints(user.uid);
+          scanQrBtn.onclick=()=>{reader.style.display='block'; startQrScanner(user.uid,(data,uid)=>{ addPoints(uid,parseInt(data)||10); alert(`+${parseInt(data)||10} pontos adicionados!`); reader.style.display='none'; });};
         } else {
-          userInfo.textContent = ''; pointsInfo.textContent = '';
-          loginLink.style.display = 'inline-block'; logoutLink.style.display = 'none'; scanQrBtn.style.display = 'none'; reader.style.display = 'none';
+          userInfo.textContent=''; pointsInfo.textContent='';
+          loginLink.style.display='inline-block'; logoutLink.style.display='none'; scanQrBtn.style.display='none'; reader.style.display='none';
         }
       });
     });
