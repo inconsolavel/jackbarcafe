@@ -130,7 +130,7 @@
 
   <footer><p>&copy; 2025 Jack Bar Café</p></footer>
 
-  <!-- Modal de Login -->
+    <!-- Modal de Login -->
   <div id="loginModal">
     <div class="modal-content">
       <span class="close" id="closeModal">&times;</span>
@@ -144,18 +144,21 @@
     </div>
   </div>
 
+  <!-- Firebase e scripts -->
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const firebaseConfig = { apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
-      authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
-      projectId: "jackbarcafe-b8fa8",
-      storageBucket: "jackbarcafe-b8fa8.appspot.com",
-      messagingSenderId: "849215333925",
-      appId: "1:849215333925:web:e02cb0d11c590af32201cc"};
+      const firebaseConfig = {
+        apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
+        authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
+        projectId: "jackbarcafe-b8fa8",
+        storageBucket: "jackbarcafe-b8fa8.appspot.com",
+        messagingSenderId: "849215333925",
+        appId: "1:849215333925:web:e02cb0d11c590af32201cc"
+      };
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
       const db   = firebase.firestore();
@@ -200,24 +203,53 @@
       };
       logoutLink.onclick=()=>auth.signOut();
 
-      const updatePoints=uid=>db.collection('users').doc(uid).get().then(doc=>pointsInfo.textContent=`Pontos: ${doc.exists?doc.data().points:0}`);
-      const addPoints=(uid,amt)=>db.collection('users').doc(uid).set({points:firebase.firestore.FieldValue.increment(amt)},{merge:true}).then(()=>updatePoints(uid));
+      const updatePoints=uid=>db.collection('users').doc(uid).get().then(doc=>{
+        pointsInfo.textContent = `Pontos: ${doc.exists ? doc.data().points : 0}`;
+      });
 
-      function startQrScanner(uid,cb){
-        const qr=new Html5Qrcode('reader');
-        qr.start({facingMode:'environment'},{fps:10,qrbox:250},data=>{qr.stop();cb(data,uid);},err=>{});
+      const addPoints=(uid,amt)=>{
+        db.collection('users').doc(uid)
+          .set({points:firebase.firestore.FieldValue.increment(amt)}, {merge:true})
+          .then(()=>updatePoints(uid));
+      };
+
+      // FUNÇÃO CORRIGIDA: inicia o scanner e adiciona pontos
+      function startQrScanner(uid, cb){
+        const qr = new Html5Qrcode('reader');
+        qr.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: 250 },
+          data => {
+            qr.stop(); // Para o scanner
+            cb(data, uid); // Executa a função de callback com os dados escaneados
+          },
+          error => {}
+        );
       }
 
       auth.onAuthStateChanged(user=>{
         if(user){
-          userInfo.textContent=`Bem-vindo, ${user.email}`;
-          loginLink.style.display='none'; logoutLink.style.display='inline-block';
-          scanQrBtn.style.display='inline-block';
+          userInfo.textContent = `Bem-vindo, ${user.email}`;
+          loginLink.style.display = 'none';
+          logoutLink.style.display = 'inline-block';
+          scanQrBtn.style.display = 'inline-block';
           updatePoints(user.uid);
-          scanQrBtn.onclick=()=>{reader.style.display='block'; startQrScanner(user.uid,(data,uid)=>{ addPoints(uid,parseInt(data)||10); alert(`+${parseInt(data)||10} pontos adicionados!`); reader.style.display='none'; });};
+          scanQrBtn.onclick = () => {
+            reader.style.display = 'block';
+            startQrScanner(user.uid, (data, uid) => {
+              const points = parseInt(data) || 10;
+              addPoints(uid, points);
+              alert(`+${points} pontos adicionados!`);
+              reader.style.display = 'none';
+            });
+          };
         } else {
-          userInfo.textContent=''; pointsInfo.textContent='';
-          loginLink.style.display='inline-block'; logoutLink.style.display='none'; scanQrBtn.style.display='none'; reader.style.display='none';
+          userInfo.textContent = '';
+          pointsInfo.textContent = '';
+          loginLink.style.display = 'inline-block';
+          logoutLink.style.display = 'none';
+          scanQrBtn.style.display = 'none';
+          reader.style.display = 'none';
         }
       });
     });
