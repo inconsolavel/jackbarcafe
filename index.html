@@ -214,18 +214,48 @@
       };
 
       // FUNÇÃO CORRIGIDA: inicia o scanner e adiciona pontos
-      function startQrScanner(uid, cb){
-        const qr = new Html5Qrcode('reader');
-        qr.start(
-          { facingMode: 'environment' },
-          { fps: 10, qrbox: 250 },
-          data => {
-            qr.stop(); // Para o scanner
-            cb(data, uid); // Executa a função de callback com os dados escaneados
-          },
-          error => {}
-        );
+      function startQrScanner(uid, cb) {
+  const qr = new Html5Qrcode('reader');
+  let scanned = false;
+
+  qr.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: 250 },
+    async (data) => {
+      if (!scanned) {
+        scanned = true;
+        try {
+          // Verifica se o código já foi usado
+          const qrRef = db.collection('used_qrcodes').doc(data);
+          const qrDoc = await qrRef.get();
+          if (qrDoc.exists) {
+            alert("Este QR Code já foi usado.");
+          } else {
+            // Marca como usado
+            await qrRef.set({ uid: uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+
+            // Converte para número e dá os pontos
+            const points = parseInt(data) || 10;
+            await addPoints(uid, points);
+            alert(`+${points} pontos adicionados!`);
+          }
+        } catch (err) {
+          console.error("Erro ao processar QR Code:", err);
+          alert("Erro ao processar QR Code.");
+        } finally {
+          qr.stop().then(() => {
+            document.getElementById('reader').style.display = 'none';
+          });
+        }
       }
+    },
+    error => {
+      // Ignorado: falhas de leitura são normais
+    }
+  ).catch(err => {
+    console.error("Erro ao iniciar scanner:", err);
+  });
+}
 
       auth.onAuthStateChanged(user=>{
         if(user){
