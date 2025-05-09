@@ -4,19 +4,21 @@
   <meta charset="UTF-8">
   <title>Jogo do Motoqueiro</title>
   <style>
-    body { margin: 0; background: #111; overflow: hidden; font-family: Arial, sans-serif; color: white; }
+    body { margin: 0;
+      background-image: url('fundo.jpg'); /* nome da sua imagem */
+      background-size: cover;             /* cobre toda a tela */
+      background-repeat: no-repeat;       /* não repete */
+      background-position: center center; /* centraliza */
+      overflow: hidden; 
+      font-family: Arial, sans-serif;
+      color: white; }
     canvas { display: block; margin: 0 auto; background: #222; }
     #ranking { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px; }
     #score { position: absolute; top: 10px; right: 10px; font-size: 20px; }
+    
   </style>
 </head>
 <body>
-
-
-  background-image: url('fundo.jpg'); /* nome da sua imagem */
-  background-size: cover;             /* cobre toda a tela */
-  background-repeat: no-repeat;       /* não repete */
-  background-position: center center; /* centraliza */
 
   
   <canvas id="gameCanvas" width="400" height="600"></canvas>
