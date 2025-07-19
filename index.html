@@ -157,104 +157,101 @@
       };
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
-      const db   = firebase.firestore();
+      const db = firebase.firestore();
 
       const loginLink = document.getElementById('loginLink');
-      const logoutLink= document.getElementById('logoutLink');
-      const loginModal= document.getElementById('loginModal');
-      const closeModal= document.getElementById('closeModal');
-      const loginBtn  = document.getElementById('loginBtn');
+      const logoutLink = document.getElementById('logoutLink');
+      const loginModal = document.getElementById('loginModal');
+      const closeModal = document.getElementById('closeModal');
+      const loginBtn = document.getElementById('loginBtn');
       const signupBtn = document.getElementById('signupBtn');
       const googleBtn = document.getElementById('googleLoginBtn');
-      const emailInput= document.getElementById('emailInput');
+      const emailInput = document.getElementById('emailInput');
       const passInput = document.getElementById('passwordInput');
-      const loginError= document.getElementById('loginError');
-      const userInfo  = document.getElementById('user-info');
-      const pointsInfo= document.getElementById('points-info');
+      const loginError = document.getElementById('loginError');
+      const userInfo = document.getElementById('user-info');
+      const pointsInfo = document.getElementById('points-info');
       const scanQrBtn = document.getElementById('scanQrBtn');
-      const reader    = document.getElementById('reader');
+      const reader = document.getElementById('reader');
 
-      loginLink.onclick=()=>loginModal.style.display='flex';
-      closeModal.onclick=()=>loginModal.style.display='none';
+      loginLink.onclick = () => loginModal.style.display = 'flex';
+      closeModal.onclick = () => loginModal.style.display = 'none';
 
-      loginBtn.onclick=()=>{
-        auth.signInWithEmailAndPassword(emailInput.value,passInput.value)
-          .then(()=>loginModal.style.display='none')
-          .catch(e=>loginError.textContent=e.message);
+      loginBtn.onclick = () => {
+        auth.signInWithEmailAndPassword(emailInput.value, passInput.value)
+          .then(() => loginModal.style.display = 'none')
+          .catch(e => loginError.textContent = e.message);
       };
-      signupBtn.onclick=()=>{
-        auth.createUserWithEmailAndPassword(emailInput.value,passInput.value)
-          .then(cred=>db.collection('users').doc(cred.user.uid).set({points:0}))
-          .then(()=>loginModal.style.display='none')
-          .catch(e=>loginError.textContent=e.message);
+
+      signupBtn.onclick = () => {
+        auth.createUserWithEmailAndPassword(emailInput.value, passInput.value)
+          .then(cred => db.collection('users').doc(cred.user.uid).set({ points: 0 }))
+          .then(() => loginModal.style.display = 'none')
+          .catch(e => loginError.textContent = e.message);
       };
-      googleBtn.onclick=()=>{
+
+      googleBtn.onclick = () => {
         auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
-          .then(res=>{
-            const ref=db.collection('users').doc(res.user.uid);
-            return ref.get().then(doc=>{if(!doc.exists) return ref.set({points:0});});
+          .then(res => {
+            const ref = db.collection('users').doc(res.user.uid);
+            return ref.get().then(doc => { if (!doc.exists) return ref.set({ points: 0 }); });
           })
-          .then(()=>loginModal.style.display='none')
-          .catch(e=>loginError.textContent=e.message);
+          .then(() => loginModal.style.display = 'none')
+          .catch(e => loginError.textContent = e.message);
       };
-      logoutLink.onclick=()=>auth.signOut();
 
-      const updatePoints=uid=>db.collection('users').doc(uid).get().then(doc=>{
+      logoutLink.onclick = () => auth.signOut();
+
+      const updatePoints = uid => db.collection('users').doc(uid).get().then(doc => {
         pointsInfo.textContent = `Pontos: ${doc.exists ? doc.data().points : 0}`;
       });
 
-      const addPoints=(uid,amt)=>{
+      const addPoints = (uid, amt) => {
         db.collection('users').doc(uid)
-          .set({points:firebase.firestore.FieldValue.increment(amt)}, {merge:true})
-          .then(()=>updatePoints(uid));
+          .set({ points: firebase.firestore.FieldValue.increment(amt) }, { merge: true })
+          .then(() => updatePoints(uid));
       };
 
-      // FUNÇÃO CORRIGIDA: inicia o scanner e adiciona pontos
-      function startQrScanner(uid, cb) {
-  const qr = new Html5Qrcode('reader');
-  let scanned = false;
-
-  qr.start(
-    { facingMode: 'environment' },
-    { fps: 10, qrbox: 250 },
-    async (data) => {
-      if (!scanned) {
-        scanned = true;
-        try {
-          // Verifica se o código já foi usado
-          const qrRef = db.collection('used_qrcodes').doc(data);
-          const qrDoc = await qrRef.get();
-          if (qrDoc.exists) {
-            alert("Este QR Code já foi usado.");
-          } else {
-            // Marca como usado
-            await qrRef.set({ uid: uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-
-            // Converte para número e dá os pontos
-            const points = parseInt(data) || 10;
-            await addPoints(uid, points);
-            alert(`+${points} pontos adicionados!`);
+      function startQrScanner(uid) {
+        const qr = new Html5Qrcode('reader');
+        let scanned = false;
+        qr.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: 250 },
+          async (data) => {
+            if (!scanned) {
+              scanned = true;
+              try {
+                const qrRef = db.collection('used_qrcodes').doc(data);
+                const qrDoc = await qrRef.get();
+                if (qrDoc.exists) {
+                  alert("Este QR Code já foi usado.");
+                } else {
+                  await qrRef.set({ uid: uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                  const points = parseInt(data) || 10;
+                  await addPoints(uid, points);
+                  alert(`+${points} pontos adicionados!`);
+                }
+              } catch (err) {
+                console.error("Erro ao processar QR Code:", err);
+                alert("Erro ao processar QR Code.");
+              } finally {
+                qr.stop().then(() => {
+                  document.getElementById('reader').style.display = 'none';
+                });
+              }
+            }
+          },
+          error => {
+            // leitura ignorada
           }
-        } catch (err) {
-          console.error("Erro ao processar QR Code:", err);
-          alert("Erro ao processar QR Code.");
-        } finally {
-          qr.stop().then(() => {
-            document.getElementById('reader').style.display = 'none';
-          });
-        }
+        ).catch(err => {
+          console.error("Erro ao iniciar scanner:", err);
+        });
       }
-    },
-    error => {
-      // Ignorado: falhas de leitura são normais
-    }
-  ).catch(err => {
-    console.error("Erro ao iniciar scanner:", err);
-  });
-}
 
-      auth.onAuthStateChanged(user=>{
-        if(user){
+      auth.onAuthStateChanged(user => {
+        if (user) {
           userInfo.textContent = `Bem-vindo, ${user.email}`;
           loginLink.style.display = 'none';
           logoutLink.style.display = 'inline-block';
@@ -262,12 +259,7 @@
           updatePoints(user.uid);
           scanQrBtn.onclick = () => {
             reader.style.display = 'block';
-            startQrScanner(user.uid, (data, uid) => {
-              const points = parseInt(data) || 10;
-              addPoints(uid, points);
-              alert(`+${points} pontos adicionados!`);
-              reader.style.display = 'none';
-            });
+            startQrScanner(user.uid);
           };
         } else {
           userInfo.textContent = '';
