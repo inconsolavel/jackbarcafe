@@ -233,8 +233,8 @@
                   alert(`+${points} pontos adicionados!`);
                 }
               } catch (err) {
-                console.error("Erro ao processar QR Code:", err);
-                alert("Erro ao processar QR Code.");
+                 console.error("Erro ao processar QR Code:", err);
+                  alert("Erro ao processar QR Code: " + err.message); // <-- Mostra o erro real
               } finally {
                 qr.stop().then(() => {
                   document.getElementById('reader').style.display = 'none';
