@@ -1,16 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4158709418174659"
-     crossorigin="anonymous"></script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4158709418174659"
-     crossorigin="anonymous"></script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4158709418174659" crossorigin="anonymous"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jack Bar Café</title>
   <link rel="icon" href="favicon.png" type="image/x-icon">
   <style>
-    /* Estilos originais mantidos */
     footer { text-align: center; padding: 20px; background-color: #0d0d0d; color: #888; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
     body { background-color: #121212; color: #fff; }
@@ -58,7 +54,8 @@
       <a href="#" id="logoutLink" style="display:none">Sair</a>
     </nav>
   </header>
- <div class="hero">
+
+  <div class="hero">
     <div class="carousel-background">
       <img src="img-1.JPG" alt="Imagem 1">
       <img src="img-2.JPG" alt="Imagem 2">
@@ -71,7 +68,7 @@
     <h1>Bem-vindo ao Jack Bar Café</h1>
   </div>
 
-   <section class="section" id="historia">
+  <section class="section" id="historia">
     <h2>Nossa História</h2>
     <p>
       Fundado com a paixão pela música e pela boa gastronomia, nosso café é um ponto de encontro para os amantes de rock e um bom espresso.
@@ -82,37 +79,22 @@
     <h2>Informações</h2>
     <p>
       Endereço: Praça Barão do Rio Branco, 17 - Taubaté<br>
-      Horário de Funcionamento: Segunda a quinta, das 08h às 19h<br>
-      Sexta e Sábado, das 08h às 22h<br>
-      Especialidade: Cafés artesanais, drinks temáticos inspirados em clássicos do rock.
+      Horário: Seg a Qui, 08h às 19h | Sex e Sáb, 08h às 22h<br>
+      Especialidade: Cafés artesanais, drinks temáticos.
     </p>
   </section>
-
-
 
   <section class="section som-e-mapa">
     <div class="sub-section" id="musica">
       <h2>Som de Qualidade</h2>
       <p>Entre no clima com nossa playlist oficial de rock no Spotify:</p>
-      <iframe 
-        src="https://open.spotify.com/embed/playlist/37i9dQZF1DX1spT6G94GFC?utm_source=generator"
-        height="380" frameBorder="0" allowfullscreen="" 
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-        loading="lazy">
-      </iframe>
+      <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DX1spT6G94GFC?utm_source=generator" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
     </div>
 
     <div class="sub-section" id="mapa">
       <h2>Onde Estamos</h2>
       <p>Venha nos visitar! Estamos te esperando com rock e café!</p>
-      <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.7663818938013!2d-45.56104708502066!3d-23.50642506592968!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ccc5b390aeb15d%3A0x31b7c4a52db8adad!2sPra%C3%A7a%20Bar%C3%A3o%20do%20Rio%20Branco%2C%2017%20-%20Centro%2C%20Taubat%C3%A9%20-%20SP!5e0!3m2!1spt-BR!2sbr!4v1714594051021!5m2!1spt-BR!2sbr"
-        height="380"
-        style="border:0;"
-        allowfullscreen=""
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
-      </iframe>
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.7663818938013!2d-45.56104708502066!3d-23.50642506592968!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ccc5b390aeb15d%3A0x31b7c4a52db8adad!2sPra%C3%A7a%20Bar%C3%A3o%20do%20Rio%20Branco%2C%2017%20-%20Centro%2C%20Taubat%C3%A9%20-%20SP!5e0!3m2!1spt-BR!2sbr!4v1714594051021!5m2!1spt-BR!2sbr" height="380" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
   </section>
 
@@ -120,13 +102,14 @@
     <h2>Fale Conosco</h2>
     <button class="btn">Entrar em Contato</button>
   </section>
+
   <!-- QR Scanner -->
   <div id="reader" style="display:none; width:300px; margin:20px auto;"></div>
   <button id="scanQrBtn" class="btn" style="display:none; margin:auto;">Escanear QR Code</button>
 
   <footer><p>&copy; 2025 Jack Bar Café</p></footer>
 
-    <!-- Modal de Login -->
+  <!-- Modal de Login -->
   <div id="loginModal">
     <div class="modal-content">
       <span class="close" id="closeModal">&times;</span>
@@ -140,7 +123,7 @@
     </div>
   </div>
 
-  <!-- Firebase e scripts -->
+  <!-- Firebase + QRCode -->
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
@@ -222,31 +205,32 @@
             if (!scanned) {
               scanned = true;
               try {
-                const qrRef = db.collection('used_qrcodes').doc(data);
+                const qrId = encodeURIComponent(data);
+                const qrRef = db.collection('used_qrcodes').doc(qrId);
                 const qrDoc = await qrRef.get();
+
                 if (qrDoc.exists) {
                   alert("Este QR Code já foi usado.");
                 } else {
-                  await qrRef.set({ uid: uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                  await qrRef.set({ uid: uid, raw: data, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
                   const points = parseInt(data) || 10;
                   await addPoints(uid, points);
                   alert(`+${points} pontos adicionados!`);
                 }
               } catch (err) {
-                 console.error("Erro ao processar QR Code:", err);
-                  alert("Erro ao processar QR Code: " + err.message); // <-- Mostra o erro real
+                console.error("Erro ao processar QR Code:", err);
+                alert("Erro ao processar QR Code: " + err.message);
               } finally {
                 qr.stop().then(() => {
-                  document.getElementById('reader').style.display = 'none';
+                  reader.style.display = 'none';
                 });
               }
             }
           },
-          error => {
-            // leitura ignorada
-          }
+          error => {}
         ).catch(err => {
           console.error("Erro ao iniciar scanner:", err);
+          alert("Erro ao iniciar scanner: " + err.message);
         });
       }
 
