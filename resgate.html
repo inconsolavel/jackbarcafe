@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Resgatar Produto - Jack Bar Café</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #f7f7f7;
+      border-radius: 10px;
+    }
+    h1 { text-align: center; color: #333; }
+    .resposta { margin-top: 20px; font-size: 1.1em; color: #333; }
+    .erro { color: red; }
+    .sucesso { color: green; }
+  </style>
+</head>
+<body>
+  <h1>Resgatar Produto</h1>
+  <div id="status">Validando resgate...</div>
+  <div class="resposta" id="resposta"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+
+  <script>
+    // 🔧 Configuração Firebase (substitua pelos seus dados reais)
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
+      projectId: "jackbarcafe-b8fa8",
+      storageBucket: "jackbarcafe-b8fa8.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // 📦 Obter parâmetros da URL
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const data = params.get("data");
+
+    const statusEl = document.getElementById("status");
+    const respostaEl = document.getElementById("resposta");
+
+    // 🔐 Autenticação anônima (opcional: ou use login real)
+    auth.signInAnonymously().then(() => {
+      validarResgate();
+    }).catch(err => {
+      statusEl.textContent = "Erro ao autenticar.";
+      respostaEl.textContent = err.message;
+      respostaEl.classList.add("erro");
+    });
+
+    // 🎯 Função de validação de resgate
+    async function validarResgate() {
+      if (!id || !data) {
+        statusEl.textContent = "QR Code inválido.";
+        respostaEl.classList.add("erro");
+        return;
+      }
+
+      const docId = `${id}-${data}`;
+      const docRef = db.collection("used_qrcodes").doc(docId);
+
+      try {
+        const doc = await docRef.get();
+        if (doc.exists) {
+          statusEl.textContent = "Este QR Code já foi utilizado.";
+          respostaEl.textContent = `Resgate já efetuado em ${doc.data().resgatadoEm}`;
+          respostaEl.classList.add("erro");
+          return;
+        }
+
+        // 👉 Marca como usado
+        await docRef.set({
+          resgatadoEm: new Date().toISOString()
+        });
+
+        // Aqui você pode abater pontos, adicionar produto, etc.
+        statusEl.textContent = "Resgate concluído com sucesso!";
+        respostaEl.textContent = "Obrigado por resgatar seu produto no Jack Bar Café.";
+        respostaEl.classList.add("sucesso");
+
+      } catch (error) {
+        statusEl.textContent = "Erro ao validar o resgate.";
+        respostaEl.textContent = error.message;
+        respostaEl.classList.add("erro");
+      }
+    }
+  </script>
+</body>
+</html>
