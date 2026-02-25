@@ -2,30 +2,220 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Jogo do Motoqueiro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Jack Ride</title>
   <style>
-    body { margin: 0;
-      background-image: url('fundo.jpg'); /* nome da sua imagem */
-      background-size: cover;             /* cobre toda a tela */
-      background-repeat: no-repeat;       /* não repete */
-      background-position: center center; /* centraliza */
-      overflow: hidden; 
+    :root {
+      --canvas-w: 400;
+      --canvas-h: 600;
+      --pad: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100svh;
+      background-image: url('fundo.png');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center center;
+      overflow: hidden;
       font-family: Arial, sans-serif;
-      color: white; }
-    canvas { display: block; margin: 0 auto; background: #222; }
-    #ranking { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px; }
-    #score { position: absolute; top: 10px; right: 10px; font-size: 20px; }
-    
+      color: white;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    #score {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: clamp(16px, 3vw, 20px);
+      background: rgba(0,0,0,0.55);
+      padding: 8px 10px;
+      border-radius: 10px;
+      pointer-events: auto;
+    }
+
+    #ranking {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: min(260px, calc(100vw - 24px));
+      background: rgba(0,0,0,0.62);
+      padding: 10px;
+      border-radius: 10px;
+      pointer-events: auto;
+      max-height: 42vh;
+      overflow: auto;
+    }
+
+    #ranking h3 { margin: 0 0 8px; font-size: 1rem; }
+    #ranking ol { margin: 0; padding-left: 20px; }
+    #ranking li { margin-bottom: 4px; }
+
+    .game-shell {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+      z-index: 2;
+    }
+
+    canvas {
+      display: block;
+      background: rgba(34,34,34,0.88);
+      border: 2px solid rgba(255,255,255,0.18);
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      width: min(92vw, calc((100svh - 80px) * 0.6667));
+      height: auto;
+      max-height: 84svh;
+      aspect-ratio: 2 / 3;
+      touch-action: none;
+    }
+
+    .controls {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 12px;
+      display: none;
+      gap: 10px;
+      z-index: 4;
+    }
+
+    .ctrl-btn {
+      min-width: 64px;
+      height: 52px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .top-actions {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 10px;
+      z-index: 4;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: calc(100vw - 24px);
+    }
+
+    .btn {
+      pointer-events: auto;
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 12px;
+      background: rgba(0,0,0,0.65);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+
+    .gameover {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.6);
+      z-index: 5;
+      padding: 16px;
+    }
+
+    .gameover-card {
+      background: #1f1f1f;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 20px;
+      width: min(360px, 100%);
+      text-align: center;
+    }
+
+    .gameover-card h2 { margin: 0 0 8px; color: #ff4d4d; }
+    .gameover-card p { margin: 0 0 14px; color: #ddd; }
+    .gameover-card .btn { width: 100%; background: #ff0000; }
+
+    @media (max-width: 900px) {
+      #ranking { max-width: 180px; font-size: 0.9rem; }
+      #ranking h3 { font-size: 0.95rem; }
+      .controls { display: flex; }
+      canvas { width: min(96vw, 420px); max-height: 72svh; }
+    }
+
+    @media (max-width: 520px) {
+      #ranking {
+        top: auto;
+        bottom: 76px;
+        left: 10px;
+        width: calc(100vw - 20px);
+        max-width: none;
+        max-height: 120px;
+      }
+      #score { top: 54px; right: 10px; font-size: 15px; }
+      .top-actions { top: 8px; }
+      .controls { bottom: 10px; }
+      .ctrl-btn { min-width: 86px; height: 50px; }
+      canvas { max-height: 60svh; }
+    }
   </style>
 </head>
 <body>
+  <div class="overlay" aria-hidden="true"></div>
 
-  
-  <canvas id="gameCanvas" width="400" height="600"></canvas>
-  <div id="score">Score: 0</div>
-  <div id="ranking">
-    <h3>Top 10</h3>
-    <ol id="rankingList"></ol>
+  <div class="hud">
+    <div id="score">Score: 0</div>
+    <div id="ranking">
+      <h3>Top 10</h3>
+      <ol id="rankingList"></ol>
+    </div>
+  </div>
+
+  <div class="top-actions">
+    <button class="btn" id="pauseBtn" type="button">Pausar</button>
+    <a class="btn" href="index.html" style="text-decoration:none;">Voltar</a>
+  </div>
+
+  <div class="game-shell">
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+  </div>
+
+  <div class="controls" role="group" aria-label="Controles de toque">
+    <button class="ctrl-btn" id="leftBtn" type="button">◀</button>
+    <button class="ctrl-btn" id="rightBtn" type="button">▶</button>
+  </div>
+
+  <div class="gameover" id="gameOverPanel">
+    <div class="gameover-card">
+      <h2>Fim de jogo</h2>
+      <p id="finalScoreText">Sua pontuação: 0</p>
+      <button class="btn" id="restartBtn" type="button">Jogar novamente</button>
+    </div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
@@ -41,23 +231,53 @@
       messagingSenderId: "849215333925",
       appId: "1:849215333925:web:e02cb0d11c590af32201cc"
     };
-    firebase.initializeApp(firebaseConfig);
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    auth.signInAnonymously();
+    auth.signInAnonymously().catch(console.error);
 
     let userId = null;
     auth.onAuthStateChanged(user => { if (user) userId = user.uid; });
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const rankingList = document.getElementById('rankingList');
+    const gameOverPanel = document.getElementById('gameOverPanel');
+    const finalScoreText = document.getElementById('finalScoreText');
+    const restartBtn = document.getElementById('restartBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+
     let score = 0;
     let speed = 2;
     let gameOver = false;
+    let paused = false;
+    let lastSpawnAt = 0;
+    const SPAWN_INTERVAL_MS = 1200;
 
     const player = { x: 175, y: 520, w: 50, h: 80, color: 'red' };
     const cars = [];
+
+    let leftPressed = false;
+    let rightPressed = false;
+    let pointerActive = false;
+
+    function resetGame() {
+      score = 0;
+      speed = 2;
+      gameOver = false;
+      paused = false;
+      lastSpawnAt = 0;
+      cars.length = 0;
+      player.x = 175;
+      player.y = 520;
+      scoreEl.innerText = 'Score: 0';
+      gameOverPanel.style.display = 'none';
+      pauseBtn.textContent = 'Pausar';
+      requestAnimationFrame(loop);
+    }
 
     function spawnCar() {
       const car = {
@@ -70,16 +290,29 @@
       cars.push(car);
     }
 
-    function update() {
-      if (gameOver) return;
+    function movePlayer() {
+      if (leftPressed) player.x -= 5;
+      if (rightPressed) player.x += 5;
+      player.x = Math.max(0, Math.min(350, player.x));
+    }
 
-      score++;
-      document.getElementById('score').innerText = `Score: ${score}`;
+    function update() {
+      if (gameOver || paused) return;
+
+      movePlayer();
+      score += 1;
+      scoreEl.innerText = `Score: ${score}`;
       speed = 2 + Math.floor(score / 200);
 
-      for (const car of cars) {
+      for (let i = cars.length - 1; i >= 0; i--) {
+        const car = cars[i];
         car.y += speed;
-        if (car.y > 600) cars.splice(cars.indexOf(car), 1);
+
+        if (car.y > 600) {
+          cars.splice(i, 1);
+          continue;
+        }
+
         if (
           car.x < player.x + player.w &&
           car.x + car.w > player.x &&
@@ -87,63 +320,162 @@
           car.y + car.h > player.y
         ) {
           gameOver = true;
+          finalScoreText.textContent = `Sua pontuação: ${score}`;
+          gameOverPanel.style.display = 'flex';
           saveScore(score);
           break;
         }
       }
     }
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = player.color;
-      ctx.fillRect(player.x, player.y, player.w, player.h);
+    function drawRoadGuides() {
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.fillRect(130, 0, 6, canvas.height);
+      ctx.fillRect(264, 0, 6, canvas.height);
 
-      for (const car of cars) {
-        ctx.fillStyle = car.color;
-        ctx.fillRect(car.x, car.y, car.w, car.h);
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      const dashH = 24;
+      const gap = 16;
+      const offset = (score * 0.8) % (dashH + gap);
+      for (let y = -dashH; y < canvas.height + dashH; y += dashH + gap) {
+        ctx.fillRect(197, y + offset, 6, dashH);
       }
     }
 
-    function loop() {
-      update();
-      draw();
-      if (!gameOver) requestAnimationFrame(loop);
+    function drawCarRect(obj, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.fillRect(obj.x + 6, obj.y + 8, obj.w - 12, 10);
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.fillRect(obj.x + 6, obj.y + obj.h - 14, obj.w - 12, 8);
     }
 
-    setInterval(spawnCar, 1200);
-    loop();
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(34,34,34,0.94)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawRoadGuides();
+
+      drawCarRect(player, player.color);
+      for (const car of cars) drawCarRect(car, car.color);
+
+      if (paused && !gameOver) {
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 28px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('PAUSADO', canvas.width / 2, canvas.height / 2);
+      }
+    }
+
+    function loop(ts) {
+      if (gameOver) {
+        draw();
+        return;
+      }
+
+      if (!paused) {
+        if (!lastSpawnAt) lastSpawnAt = ts;
+        if (ts - lastSpawnAt >= SPAWN_INTERVAL_MS) {
+          spawnCar();
+          lastSpawnAt = ts;
+        }
+        update();
+      }
+
+      draw();
+      requestAnimationFrame(loop);
+    }
 
     document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowLeft') player.x -= 30;
-      if (e.key === 'ArrowRight') player.x += 30;
-      player.x = Math.max(0, Math.min(350, player.x));
+      if (e.key === 'ArrowLeft') leftPressed = true;
+      if (e.key === 'ArrowRight') rightPressed = true;
+      if (e.key.toLowerCase() === 'p') togglePause();
     });
 
-    function saveScore(score) {
-      if (!userId) return;
+    document.addEventListener('keyup', e => {
+      if (e.key === 'ArrowLeft') leftPressed = false;
+      if (e.key === 'ArrowRight') rightPressed = false;
+    });
+
+    function bindHoldButton(btn, setter, direction) {
+      const on = (ev) => { ev.preventDefault(); setter(true); };
+      const off = (ev) => { ev.preventDefault(); setter(false); };
+      ['pointerdown','touchstart','mousedown'].forEach(evt => btn.addEventListener(evt, on, { passive: false }));
+      ['pointerup','pointercancel','touchend','touchcancel','mouseup','mouseleave'].forEach(evt => btn.addEventListener(evt, off, { passive: false }));
+    }
+
+    bindHoldButton(document.getElementById('leftBtn'), v => { leftPressed = v; if (v) rightPressed = false; }, 'left');
+    bindHoldButton(document.getElementById('rightBtn'), v => { rightPressed = v; if (v) leftPressed = false; }, 'right');
+
+    function pointerToCanvasX(clientX) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (clientX - rect.left) * (canvas.width / rect.width);
+      return Math.max(0, Math.min(canvas.width, x));
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      pointerActive = true;
+      canvas.setPointerCapture?.(e.pointerId);
+      const x = pointerToCanvasX(e.clientX);
+      player.x = Math.max(0, Math.min(350, x - player.w / 2));
+      e.preventDefault();
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!pointerActive) return;
+      const x = pointerToCanvasX(e.clientX);
+      player.x = Math.max(0, Math.min(350, x - player.w / 2));
+      e.preventDefault();
+    });
+
+    canvas.addEventListener('pointerup', () => { pointerActive = false; });
+    canvas.addEventListener('pointercancel', () => { pointerActive = false; });
+
+    function togglePause() {
+      if (gameOver) return;
+      paused = !paused;
+      pauseBtn.textContent = paused ? 'Continuar' : 'Pausar';
+    }
+
+    pauseBtn.addEventListener('click', togglePause);
+    restartBtn.addEventListener('click', resetGame);
+
+    function saveScore(scoreValue) {
+      if (!userId) {
+        loadRanking();
+        return;
+      }
+
       const ref = db.collection('gameScores').doc(userId);
       ref.get().then(doc => {
-        if (!doc.exists || doc.data().score < score) {
-          ref.set({ score, timestamp: new Date() });
+        if (!doc.exists || (doc.data() && doc.data().score < scoreValue)) {
+          return ref.set({ score: scoreValue, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
         }
-      });
-      loadRanking();
+      }).catch(console.error).finally(loadRanking);
     }
 
     function loadRanking() {
       db.collection('gameScores').orderBy('score', 'desc').limit(10).get()
         .then(snapshot => {
-          const list = document.getElementById('rankingList');
-          list.innerHTML = '';
+          rankingList.innerHTML = '';
           snapshot.forEach(doc => {
             const li = document.createElement('li');
-            li.textContent = `Score: ${doc.data().score}`;
-            list.appendChild(li);
+            const data = doc.data() || {};
+            li.textContent = `Score: ${data.score ?? 0}`;
+            rankingList.appendChild(li);
           });
+        })
+        .catch(err => {
+          console.error(err);
+          rankingList.innerHTML = '<li>Erro ao carregar ranking</li>';
         });
     }
 
     loadRanking();
+    requestAnimationFrame(loop);
   </script>
 </body>
 </html>

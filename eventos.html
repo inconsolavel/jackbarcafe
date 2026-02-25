@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eventos & Galeria | Jack Bar Café</title>
+  <link rel="icon" href="favicon.png" type="image/x-icon">
+  <style>
+    :root {
+      --bg: #121212;
+      --panel: #1a1a1a;
+      --panel2: #1f1f1f;
+      --accent: #ff0000;
+      --accent2: #cc0000;
+      --text-muted: #c8c8c8;
+      --border: rgba(255,255,255,.08);
+      --ok: #34c759;
+      --warn: #ffb020;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: #fff; line-height: 1.5; }
+    a { color: inherit; }
+
+    header {
+      position: sticky; top: 0; z-index: 60;
+      background: rgba(22,22,22,.95);
+      backdrop-filter: blur(6px);
+      border-bottom: 3px solid var(--accent);
+      padding: 14px 18px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .brand img { height: 50px; }
+    .brand span { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .menu-toggle {
+      display: none; border: 1px solid #444; background: transparent; color: #fff;
+      border-radius: 8px; padding: 8px 10px; cursor: pointer;
+    }
+
+    nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    nav a {
+      color: var(--accent); text-decoration: none; font-weight: 700;
+      padding: 8px 10px; border-radius: 8px;
+      transition: background .2s ease, color .2s ease;
+    }
+    nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .pill {
+      display: none;
+      color: #fff; background: rgba(255,255,255,.06); border: 1px solid var(--border);
+      padding: 8px 10px; border-radius: 8px; max-width: 240px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: .92rem;
+    }
+
+    .hero {
+      position: relative; min-height: 42svh; display: grid; place-items: center;
+      text-align: center; padding: 22px;
+      background:
+        linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,.7)),
+        url('img-2.JPG') center/cover no-repeat;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .hero h1 { color: #ff4a4a; font-size: clamp(1.7rem, 5vw, 3rem); text-shadow: 2px 2px 8px #000; }
+    .hero p { margin-top: 10px; max-width: 780px; color: #f0f0f0; }
+
+    .container { width: min(1200px, 100%); margin: 0 auto; padding: 20px; }
+    .section {
+      background: var(--panel); border: 1px solid rgba(255,255,255,.04);
+      border-radius: 16px; padding: 20px; margin: 16px 0;
+    }
+    .section h2 { color: var(--accent); margin-bottom: 10px; font-size: clamp(1.2rem, 2vw, 1.8rem); }
+    .section p { color: #ededed; }
+
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+      margin-top: 12px;
+    }
+    .toolbar .left, .toolbar .right { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .search-input, select, input[type="text"], input[type="date"], textarea, input[type="email"], input[type="password"], input[type="file"] {
+      width: 100%;
+      background: #111; color: #fff; border: 1px solid #333; border-radius: 10px;
+      padding: 11px 12px;
+    }
+    .search-input { width: min(320px, 100%); }
+
+    .btn {
+      border: none; border-radius: 10px; padding: 11px 14px; cursor: pointer;
+      background: var(--accent); color: #fff; font-weight: 700; text-decoration: none;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background .2s ease, transform .15s ease;
+    }
+    .btn:hover { background: var(--accent2); transform: translateY(-1px); }
+    .btn.secondary { background: #2b2b2b; border: 1px solid #3b3b3b; }
+    .btn.secondary:hover { background: #343434; }
+    .btn.ghost { background: transparent; border: 1px solid #3b3b3b; }
+    .btn.small { padding: 8px 10px; font-size: .92rem; }
+
+    .status {
+      margin-top: 10px; min-height: 22px; font-size: .95rem; color: var(--text-muted);
+    }
+    .status.ok { color: var(--ok); }
+    .status.warn { color: var(--warn); }
+    .status.error { color: #ff7a7a; }
+
+    .grid {
+      margin-top: 16px;
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px;
+    }
+    .card {
+      background: var(--panel2); border: 1px solid var(--border); border-radius: 14px;
+      overflow: hidden; display: flex; flex-direction: column; min-width: 0;
+    }
+    .card .img-wrap {
+      position: relative; aspect-ratio: 4 / 3; background: #0c0c0c; overflow: hidden;
+    }
+    .card img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transition: transform .25s ease; cursor: zoom-in;
+    }
+    .card:hover img { transform: scale(1.02); }
+    .card-body { padding: 12px; display: grid; gap: 8px; }
+    .meta { color: var(--text-muted); font-size: .88rem; display: flex; flex-wrap: wrap; gap: 8px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.06); border: 1px solid var(--border);
+      border-radius: 999px; padding: 4px 8px; font-size: .78rem;
+    }
+    .card h3 { font-size: 1rem; line-height: 1.35; }
+    .card p { color: #efefef; font-size: .93rem; }
+
+    .lightbox {
+      display: none; position: fixed; inset: 0; z-index: 1200;
+      background: rgba(0,0,0,.92); padding: 18px;
+      align-items: center; justify-content: center;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img { max-width: min(1200px, 96vw); max-height: 86vh; border-radius: 10px; }
+    .lightbox button {
+      position: absolute; top: 14px; right: 14px;
+      border: 1px solid #555; background: rgba(0,0,0,.5); color: #fff;
+      border-radius: 10px; padding: 8px 12px; cursor: pointer;
+    }
+
+    #adminSection { display: none; }
+
+    .admin-panel {
+      display: none;
+      margin-top: 14px;
+      background: rgba(255,255,255,.02);
+      border: 1px dashed rgba(255,255,255,.15);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .admin-panel.visible { display: block; }
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .admin-grid .full { grid-column: 1 / -1; }
+    textarea { resize: vertical; min-height: 110px; }
+    .help-text { color: var(--text-muted); font-size: .88rem; margin-top: 8px; }
+    .progress-bar {
+      height: 9px; background: #0f0f0f; border: 1px solid #2c2c2c; border-radius: 999px;
+      overflow: hidden; margin-top: 8px; display: none;
+    }
+    .progress-bar span {
+      display: block; height: 100%; width: 0%; background: linear-gradient(90deg, #ff0000, #ff6a00);
+      transition: width .15s linear;
+    }
+
+    .fallback-gallery {
+      margin-top: 12px;
+      display: grid; gap: 10px;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+    }
+    .fallback-gallery img {
+      width: 100%; height: 170px; object-fit: cover; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.06); cursor: zoom-in;
+    }
+
+    footer {
+      margin-top: 18px; text-align: center; padding: 20px; color: #999; background: #0d0d0d;
+      border-top: 1px solid rgba(255,255,255,.04);
+    }
+
+    #loginModal {
+      display: none; position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,.8); align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-content {
+      width: min(440px, 100%);
+      background: #1d1d1d; border-radius: 12px; border: 1px solid rgba(255,255,255,.08);
+      padding: 20px; position: relative;
+      box-shadow: 0 10px 35px rgba(0,0,0,.45);
+    }
+    .modal-content h3 { margin-bottom: 10px; }
+    .modal-content .close {
+      position: absolute; top: 8px; right: 10px; width: 34px; height: 34px; border-radius: 8px;
+      display: grid; place-items: center; cursor: pointer; font-size: 24px;
+    }
+    .modal-content .close:hover { background: rgba(255,255,255,.08); }
+    .modal-actions { display: grid; gap: 8px; margin-top: 8px; }
+    .modal-actions .google { background: #4285F4; }
+    #loginError { min-height: 20px; color: #ff8a8a; margin-top: 6px; font-size: .92rem; }
+
+    .empty-state {
+      margin-top: 12px; padding: 14px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.02);
+      color: #ddd;
+    }
+
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .fallback-gallery { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width: 860px) {
+      .menu-toggle { display: inline-flex; }
+      nav {
+        width: 100%; display: none; flex-direction: column; align-items: stretch;
+        border-top: 1px solid rgba(255,255,255,.08); padding-top: 8px;
+      }
+      nav.open { display: flex; }
+      nav a, .pill { width: 100%; max-width: none; }
+      .admin-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .container { padding: 12px; }
+      .section { padding: 14px; border-radius: 12px; }
+      .grid { grid-template-columns: 1fr; gap: 12px; }
+      .fallback-gallery { grid-template-columns: 1fr; }
+      .fallback-gallery img { height: 210px; }
+      .card .img-wrap { aspect-ratio: 16 / 10; }
+      .toolbar { align-items: stretch; }
+      .toolbar .left, .toolbar .right { width: 100%; }
+      .search-input { width: 100%; }
+      .brand img { height: 44px; }
+      .brand span { font-size: .95rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img src="logo.png" alt="Logo do Jack Bar Café">
+      <span>Jack Bar Café</span>
+    </div>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="siteNav">☰</button>
+    <nav id="siteNav">
+      <a href="index.html">Início</a>
+      <a href="index.html#informacoes">Informações</a>
+      <a href="eventos.html">Eventos &amp; Galeria</a>
+      <a href="jackride.html">Jack Ride</a>
+      <a href="resgate.html">Resgatar pontos</a>
+      <span id="user-info" class="pill"></span>
+      <span id="points-info" class="pill"></span>
+      <a href="#" id="loginLink">Login</a>
+      <a href="#" id="logoutLink" style="display:none">Sair</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <h1>Eventos &amp; Galeria</h1>
+      <p>Divulgação de shows, noites temáticas, promoções e registros dos melhores momentos do Jack Bar Café.</p>
+    </div>
+  </section>
+
+  <main class="container">
+    <section class="section">
+      <h2>Próximos eventos e registros</h2>
+      <p>As publicações abaixo podem ser fotos, artes de divulgação e chamadas de eventos. Use os filtros para encontrar mais rápido.</p>
+      <div class="toolbar">
+        <div class="left">
+          <input id="searchInput" class="search-input" type="text" placeholder="Buscar por título, descrição ou tipo...">
+          <select id="categoryFilter" aria-label="Filtrar por tipo">
+            <option value="all">Todos</option>
+            <option value="evento">Eventos</option>
+            <option value="galeria">Galeria</option>
+            <option value="promocao">Promoções</option>
+          </select>
+        </div>
+        <div class="right">
+          <button id="refreshBtn" class="btn secondary small" type="button">Atualizar</button>
+          <a class="btn ghost small" href="index.html">Voltar ao site</a>
+        </div>
+      </div>
+      <div id="feedStatus" class="status">Carregando publicações...</div>
+      <div id="feedGrid" class="grid" aria-live="polite"></div>
+      <div id="emptyState" class="empty-state" style="display:none">Nenhuma publicação encontrada. Você ainda pode usar a galeria base abaixo.</div>
+    </section>
+
+    <section class="section">
+      <h2>Galeria base do Jack Bar Café</h2>
+      <p>Essas imagens ficam como vitrine padrão do site. As imagens enviadas pelos administradores aparecem no feed acima.</p>
+      <div class="fallback-gallery" id="fallbackGallery">
+        <img src="img-1.JPG" alt="Ambiente do Jack Bar Café 1">
+        <img src="img-2.JPG" alt="Ambiente do Jack Bar Café 2">
+        <img src="img-3.JPG" alt="Ambiente do Jack Bar Café 3">
+        <img src="img-4.JPG" alt="Ambiente do Jack Bar Café 4">
+        <img src="img-5.JPG" alt="Ambiente do Jack Bar Café 5">
+        <img src="img-6.JPG" alt="Ambiente do Jack Bar Café 6">
+      </div>
+    </section>
+
+    <section class="section" id="adminSection" aria-hidden="true">
+      <h2>Painel de administrador</h2>
+      <p>Faça login e envie imagens de divulgação para aparecerem no feed. Esta área é habilitada somente para administradores.</p>
+      <div class="toolbar">
+        <div class="left">
+          <button id="adminLoginBtn" type="button" class="btn">Entrar para gerenciar</button>
+          <button id="toggleAdminPanelBtn" type="button" class="btn secondary" style="display:none">Abrir formulário de upload</button>
+        </div>
+      </div>
+      <div id="adminStatus" class="status">Faça login para verificar permissão de administrador.</div>
+
+      <div id="adminPanel" class="admin-panel" aria-hidden="true">
+        <form id="uploadForm">
+          <div class="admin-grid">
+            <div>
+              <label for="eventTitle">Título da publicação</label>
+              <input id="eventTitle" type="text" placeholder="Ex.: Noite do Rock - Sexta 21h" required>
+            </div>
+            <div>
+              <label for="eventDate">Data do evento (opcional)</label>
+              <input id="eventDate" type="date">
+            </div>
+            <div>
+              <label for="eventCategory">Tipo</label>
+              <select id="eventCategory">
+                <option value="evento">Evento</option>
+                <option value="galeria">Galeria</option>
+                <option value="promocao">Promoção</option>
+              </select>
+            </div>
+            <div>
+              <label for="eventFiles">Imagens (uma ou várias)</label>
+              <input id="eventFiles" type="file" accept="image/*" multiple required>
+            </div>
+            <div class="full">
+              <label for="eventDescription">Descrição</label>
+              <textarea id="eventDescription" placeholder="Detalhes do evento, horário, atrações, promoções, etc."></textarea>
+            </div>
+          </div>
+          <div class="help-text">As imagens serão enviadas para o Firebase Storage e cada imagem vira uma publicação no feed.</div>
+          <div class="progress-bar" id="uploadProgress"><span></span></div>
+          <div class="toolbar" style="margin-top:10px">
+            <div class="left">
+              <button class="btn" type="submit">Enviar imagens</button>
+              <button class="btn secondary" type="reset">Limpar</button>
+            </div>
+          </div>
+          <div id="uploadStatus" class="status"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>&copy; 2026 Jack Bar Café • Eventos &amp; Galeria</footer>
+
+  <div id="loginModal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <span class="close" id="closeModal" aria-label="Fechar">&times;</span>
+      <h3 id="loginTitle">Login</h3>
+      <input type="email" id="emailInput" placeholder="Email" autocomplete="email">
+      <input type="password" id="passwordInput" placeholder="Senha" autocomplete="current-password">
+      <div class="modal-actions">
+        <button class="btn" id="loginBtn" type="button">Entrar</button>
+        <button class="btn google" id="googleLoginBtn" type="button">Entrar com Google</button>
+        <button class="btn secondary" id="signupBtn" type="button">Criar conta</button>
+      </div>
+      <div id="loginError"></div>
+    </div>
+  </div>
+
+  <div id="lightbox" class="lightbox" aria-hidden="true">
+    <button type="button" id="closeLightbox">Fechar</button>
+    <img id="lightboxImage" src="" alt="Imagem ampliada">
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-storage-compat.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const firebaseConfig = {
+        apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
+        authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
+        projectId: "jackbarcafe-b8fa8",
+        storageBucket: "jackbarcafe-b8fa8.appspot.com",
+        messagingSenderId: "849215333925",
+        appId: "1:849215333925:web:e02cb0d11c590af32201cc"
+      };
+
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+      const storage = firebase.storage();
+
+      const ADMIN_EMAILS = [
+        // 'admin@jackbarcafe.com'
+      ];
+
+      const els = {
+        menuToggle: document.getElementById('menuToggle'),
+        siteNav: document.getElementById('siteNav'),
+        loginLink: document.getElementById('loginLink'),
+        logoutLink: document.getElementById('logoutLink'),
+        userInfo: document.getElementById('user-info'),
+        pointsInfo: document.getElementById('points-info'),
+        loginModal: document.getElementById('loginModal'),
+        closeModal: document.getElementById('closeModal'),
+        emailInput: document.getElementById('emailInput'),
+        passwordInput: document.getElementById('passwordInput'),
+        loginBtn: document.getElementById('loginBtn'),
+        googleLoginBtn: document.getElementById('googleLoginBtn'),
+        signupBtn: document.getElementById('signupBtn'),
+        loginError: document.getElementById('loginError'),
+        adminSection: document.getElementById('adminSection'),
+        adminLoginBtn: document.getElementById('adminLoginBtn'),
+        adminStatus: document.getElementById('adminStatus'),
+        adminPanel: document.getElementById('adminPanel'),
+        toggleAdminPanelBtn: document.getElementById('toggleAdminPanelBtn'),
+        uploadForm: document.getElementById('uploadForm'),
+        eventTitle: document.getElementById('eventTitle'),
+        eventDate: document.getElementById('eventDate'),
+        eventCategory: document.getElementById('eventCategory'),
+        eventDescription: document.getElementById('eventDescription'),
+        eventFiles: document.getElementById('eventFiles'),
+        uploadStatus: document.getElementById('uploadStatus'),
+        uploadProgress: document.getElementById('uploadProgress'),
+        uploadProgressFill: document.querySelector('#uploadProgress span'),
+        feedStatus: document.getElementById('feedStatus'),
+        feedGrid: document.getElementById('feedGrid'),
+        emptyState: document.getElementById('emptyState'),
+        refreshBtn: document.getElementById('refreshBtn'),
+        searchInput: document.getElementById('searchInput'),
+        categoryFilter: document.getElementById('categoryFilter'),
+        lightbox: document.getElementById('lightbox'),
+        lightboxImage: document.getElementById('lightboxImage'),
+        closeLightboxBtn: document.getElementById('closeLightbox')
+      };
+
+      let currentUser = null;
+      let isAdmin = false;
+      let allPosts = [];
+      let adminPanelOpen = false;
+
+      function escapeHtml(str) {
+        return String(str ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/\"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+      function escapeAttr(str) { return escapeHtml(str); }
+      function safeError(err) { return (err && (err.message || String(err))) || 'Erro inesperado.'; }
+
+      function setStatus(el, msg, type='') {
+        el.textContent = msg;
+        el.className = 'status' + (type ? ' ' + type : '');
+      }
+
+      function setMenu(open) {
+        els.siteNav.classList.toggle('open', open);
+        els.menuToggle.setAttribute('aria-expanded', String(open));
+        els.menuToggle.textContent = open ? '✕' : '☰';
+      }
+      els.menuToggle.addEventListener('click', () => setMenu(!els.siteNav.classList.contains('open')));
+      els.siteNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+        if (window.innerWidth <= 860) setMenu(false);
+      }));
+
+      function openLoginModal() {
+        els.loginError.textContent = '';
+        els.loginModal.style.display = 'flex';
+        els.loginModal.setAttribute('aria-hidden', 'false');
+      }
+      function closeLoginModal() {
+        els.loginModal.style.display = 'none';
+        els.loginModal.setAttribute('aria-hidden', 'true');
+      }
+      function openLightbox(src, alt='Imagem') {
+        if (!src) return;
+        els.lightboxImage.src = src;
+        els.lightboxImage.alt = alt;
+        els.lightbox.classList.add('open');
+        els.lightbox.setAttribute('aria-hidden', 'false');
+      }
+      function closeLightbox() {
+        els.lightbox.classList.remove('open');
+        els.lightbox.setAttribute('aria-hidden', 'true');
+        els.lightboxImage.src = '';
+      }
+
+      els.loginLink.addEventListener('click', (e) => { e.preventDefault(); openLoginModal(); });
+      els.adminLoginBtn.addEventListener('click', openLoginModal);
+      els.closeModal.addEventListener('click', closeLoginModal);
+      els.loginModal.addEventListener('click', (e) => { if (e.target === els.loginModal) closeLoginModal(); });
+      els.closeLightboxBtn.addEventListener('click', closeLightbox);
+      els.lightbox.addEventListener('click', (e) => { if (e.target === els.lightbox) closeLightbox(); });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeLoginModal();
+          closeLightbox();
+        }
+      });
+
+      els.loginBtn.addEventListener('click', async () => {
+        els.loginError.textContent = '';
+        try {
+          await auth.signInWithEmailAndPassword(els.emailInput.value.trim(), els.passwordInput.value);
+          closeLoginModal();
+        } catch (err) {
+          els.loginError.textContent = safeError(err);
+        }
+      });
+
+      els.signupBtn.addEventListener('click', async () => {
+        els.loginError.textContent = '';
+        try {
+          const cred = await auth.createUserWithEmailAndPassword(els.emailInput.value.trim(), els.passwordInput.value);
+          await db.collection('users').doc(cred.user.uid).set({ points: 0 }, { merge: true });
+          closeLoginModal();
+        } catch (err) {
+          els.loginError.textContent = safeError(err);
+        }
+      });
+
+      els.googleLoginBtn.addEventListener('click', async () => {
+        els.loginError.textContent = '';
+        try {
+          const res = await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+          const ref = db.collection('users').doc(res.user.uid);
+          const doc = await ref.get();
+          if (!doc.exists) await ref.set({ points: 0 }, { merge: true });
+          closeLoginModal();
+        } catch (err) {
+          els.loginError.textContent = safeError(err);
+        }
+      });
+
+      els.logoutLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try { await auth.signOut(); } catch (err) { console.warn(err); }
+      });
+
+      function parseDateValue(value) {
+        if (!value) return 0;
+        const d = new Date(value);
+        return Number.isFinite(d.getTime()) ? d.getTime() : 0;
+      }
+      function formatDate(value) {
+        if (!value) return '';
+        const d = new Date(value);
+        return Number.isFinite(d.getTime()) ? d.toLocaleDateString('pt-BR') : value;
+      }
+
+      function normalizePost(doc) {
+        const data = doc.data() || {};
+        let createdAt = '';
+        if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+          createdAt = data.createdAt.toDate().toISOString();
+        } else if (data.createdAtISO) {
+          createdAt = data.createdAtISO;
+        }
+        return {
+          id: doc.id,
+          title: data.title || 'Publicação sem título',
+          description: data.description || '',
+          category: String(data.category || 'galeria').toLowerCase(),
+          eventDate: data.eventDate || '',
+          imageUrl: data.imageUrl || '',
+          imageName: data.imageName || '',
+          createdAt,
+          createdByName: data.createdByName || data.createdByEmail || ''
+        };
+      }
+
+      function sortPosts(posts) {
+        return [...posts].sort((a, b) => {
+          const aEvent = parseDateValue(a.eventDate);
+          const bEvent = parseDateValue(b.eventDate);
+          if (aEvent !== bEvent) return bEvent - aEvent;
+          return parseDateValue(b.createdAt) - parseDateValue(a.createdAt);
+        });
+      }
+
+      function getFilteredPosts() {
+        const term = els.searchInput.value.trim().toLowerCase();
+        const filterCat = els.categoryFilter.value;
+        return sortPosts(allPosts).filter(post => {
+          if (filterCat !== 'all' && post.category !== filterCat) return false;
+          if (!term) return true;
+          const hay = `${post.title} ${post.description} ${post.category} ${post.imageName}`.toLowerCase();
+          return hay.includes(term);
+        });
+      }
+
+      function renderFeed() {
+        const items = getFilteredPosts();
+        els.feedGrid.innerHTML = '';
+        els.emptyState.style.display = items.length ? 'none' : 'block';
+
+        if (!allPosts.length) {
+          setStatus(els.feedStatus, 'Nenhuma publicação enviada pelos administradores ainda. Use a galeria base abaixo enquanto isso.', 'warn');
+        } else {
+          setStatus(els.feedStatus, `${items.length} publicação(ões) exibida(s) de ${allPosts.length} carregadas.`, 'ok');
+        }
+
+        items.forEach(post => {
+          const categoryLabel = post.category ? post.category.charAt(0).toUpperCase() + post.category.slice(1) : 'Galeria';
+          const card = document.createElement('article');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="img-wrap">
+              <img src="${escapeAttr(post.imageUrl)}" alt="${escapeAttr(post.title)}" loading="lazy">
+            </div>
+            <div class="card-body">
+              <h3>${escapeHtml(post.title)}</h3>
+              <div class="meta">
+                <span class="badge">🏷️ ${escapeHtml(categoryLabel)}</span>
+                ${post.eventDate ? `<span class="badge">📅 ${escapeHtml(formatDate(post.eventDate))}</span>` : ''}
+                ${post.createdByName ? `<span class="badge">👤 ${escapeHtml(post.createdByName)}</span>` : ''}
+              </div>
+              ${post.description ? `<p>${escapeHtml(post.description)}</p>` : ''}
+            </div>
+          `;
+          const img = card.querySelector('img');
+          img.addEventListener('click', () => openLightbox(post.imageUrl, post.title));
+          els.feedGrid.appendChild(card);
+        });
+      }
+
+      async function loadPosts() {
+        setStatus(els.feedStatus, 'Carregando publicações...', '');
+        try {
+          const snap = await db.collection('event_gallery').limit(200).get();
+          allPosts = snap.docs.map(normalizePost).filter(p => p.imageUrl);
+          renderFeed();
+        } catch (err) {
+          allPosts = [];
+          els.feedGrid.innerHTML = '';
+          els.emptyState.style.display = 'block';
+          setStatus(els.feedStatus, 'Erro ao carregar publicações: ' + safeError(err), 'error');
+        }
+      }
+
+      async function loadUserPoints(uid) {
+        try {
+          const doc = await db.collection('users').doc(uid).get();
+          const points = (doc.exists && typeof doc.data().points !== 'undefined') ? doc.data().points : 0;
+          els.pointsInfo.textContent = `Pontos: ${points}`;
+          els.pointsInfo.style.display = 'inline-flex';
+        } catch (err) {
+          els.pointsInfo.textContent = 'Pontos: --';
+          els.pointsInfo.style.display = 'inline-flex';
+        }
+      }
+
+      async function checkAdmin(user) {
+        if (!user) return false;
+        const email = (user.email || '').toLowerCase();
+        if (ADMIN_EMAILS.includes(email)) return true;
+        try {
+          const [userDoc, adminDoc] = await Promise.all([
+            db.collection('users').doc(user.uid).get(),
+            db.collection('admins').doc(user.uid).get()
+          ]);
+          const data = userDoc.exists ? (userDoc.data() || {}) : {};
+          return !!(data.isAdmin || adminDoc.exists);
+        } catch (err) {
+          console.warn('Erro ao verificar admin', err);
+          return false;
+        }
+      }
+
+      function setAdminPanelVisible(show) {
+        adminPanelOpen = !!show;
+        els.adminPanel.classList.toggle('visible', adminPanelOpen);
+        els.adminPanel.setAttribute('aria-hidden', String(!adminPanelOpen));
+        els.toggleAdminPanelBtn.textContent = adminPanelOpen ? 'Fechar formulário de upload' : 'Abrir formulário de upload';
+      }
+
+      function setAdminSectionVisible(show) {
+        els.adminSection.style.display = show ? 'block' : 'none';
+        els.adminSection.setAttribute('aria-hidden', String(!show));
+      }
+
+      function refreshAdminUI() {
+        if (!currentUser) {
+          isAdmin = false;
+          setAdminSectionVisible(false);
+          els.adminLoginBtn.style.display = 'inline-flex';
+          els.toggleAdminPanelBtn.style.display = 'none';
+          setAdminPanelVisible(false);
+          setStatus(els.adminStatus, 'Faça login para verificar permissão de administrador.', '');
+          return;
+        }
+
+        if (isAdmin) {
+          setAdminSectionVisible(true);
+          els.adminLoginBtn.style.display = 'none';
+          els.toggleAdminPanelBtn.style.display = 'inline-flex';
+          setStatus(els.adminStatus, 'Administrador autenticado. O upload de imagens está liberado.', 'ok');
+        } else {
+          // Oculta completamente a área administrativa para usuários comuns.
+          setAdminSectionVisible(false);
+          els.adminLoginBtn.style.display = 'none';
+          els.toggleAdminPanelBtn.style.display = 'none';
+          setAdminPanelVisible(false);
+          setStatus(els.adminStatus, 'Usuário logado, mas sem permissão de administrador.', 'warn');
+        }
+      }
+
+      els.toggleAdminPanelBtn.addEventListener('click', () => {
+        if (!isAdmin) return;
+        setAdminPanelVisible(!adminPanelOpen);
+      });
+
+      function setUploadProgress(show, pct = 0) {
+        els.uploadProgress.style.display = show ? 'block' : 'none';
+        els.uploadProgressFill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+      }
+
+      async function uploadSingleFile(file, payload, index, total) {
+        const safeFileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const storagePath = `event-gallery/${new Date().getFullYear()}/${safeFileName}`;
+        const ref = storage.ref().child(storagePath);
+        const task = ref.put(file, { contentType: file.type || 'image/jpeg' });
+
+        await new Promise((resolve, reject) => {
+          task.on('state_changed', snap => {
+            const filePct = snap.totalBytes ? (snap.bytesTransferred / snap.totalBytes) : 0;
+            const totalPct = (((index - 1) + filePct) / total) * 100;
+            setUploadProgress(true, totalPct);
+            setStatus(els.uploadStatus, `Enviando ${index}/${total}: ${file.name} (${Math.round(filePct * 100)}%)`, '');
+          }, reject, resolve);
+        });
+
+        const imageUrl = await task.snapshot.ref.getDownloadURL();
+        await db.collection('event_gallery').add({
+          ...payload,
+          imageUrl,
+          imageName: file.name,
+          storagePath,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          createdAtISO: new Date().toISOString(),
+          createdByUid: currentUser.uid,
+          createdByEmail: currentUser.email || '',
+          createdByName: currentUser.displayName || currentUser.email || 'Admin'
+        });
+      }
+
+      els.uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentUser || !isAdmin) {
+          setStatus(els.uploadStatus, 'Apenas administradores podem enviar imagens.', 'error');
+          return;
+        }
+
+        const title = els.eventTitle.value.trim();
+        const description = els.eventDescription.value.trim();
+        const eventDate = els.eventDate.value;
+        const category = String(els.eventCategory.value || 'evento').toLowerCase();
+        const files = Array.from(els.eventFiles.files || []).filter(f => f.type && f.type.startsWith('image/'));
+
+        if (!title) {
+          setStatus(els.uploadStatus, 'Informe o título da publicação.', 'error');
+          return;
+        }
+        if (!files.length) {
+          setStatus(els.uploadStatus, 'Selecione pelo menos uma imagem.', 'error');
+          return;
+        }
+
+        const payload = { title, description, eventDate: eventDate || '', category };
+
+        try {
+          setUploadProgress(true, 0);
+          for (let i = 0; i < files.length; i++) {
+            await uploadSingleFile(files[i], payload, i + 1, files.length);
+          }
+          setUploadProgress(true, 100);
+          setStatus(els.uploadStatus, `Upload concluído com sucesso! ${files.length} imagem(ns) publicada(s).`, 'ok');
+          els.uploadForm.reset();
+          setTimeout(() => setUploadProgress(false, 0), 800);
+          await loadPosts();
+        } catch (err) {
+          console.error(err);
+          setStatus(els.uploadStatus, 'Erro no upload: ' + safeError(err), 'error');
+          setUploadProgress(false, 0);
+        }
+      });
+
+      els.uploadForm.addEventListener('reset', () => {
+        setTimeout(() => {
+          setUploadProgress(false, 0);
+          setStatus(els.uploadStatus, '', '');
+        }, 0);
+      });
+
+      els.refreshBtn.addEventListener('click', loadPosts);
+      els.searchInput.addEventListener('input', renderFeed);
+      els.categoryFilter.addEventListener('change', renderFeed);
+      document.querySelectorAll('#fallbackGallery img').forEach(img => {
+        img.addEventListener('click', () => openLightbox(img.src, img.alt));
+      });
+
+      auth.onAuthStateChanged(async user => {
+        currentUser = user || null;
+        if (currentUser) {
+          els.userInfo.textContent = `Olá, ${currentUser.displayName || currentUser.email || 'usuário'}`;
+          els.userInfo.style.display = 'inline-flex';
+          els.loginLink.style.display = 'none';
+          els.logoutLink.style.display = 'inline-flex';
+          await loadUserPoints(currentUser.uid);
+          isAdmin = await checkAdmin(currentUser);
+        } else {
+          isAdmin = false;
+          els.userInfo.style.display = 'none';
+          els.userInfo.textContent = '';
+          els.pointsInfo.style.display = 'none';
+          els.pointsInfo.textContent = '';
+          els.loginLink.style.display = 'inline-flex';
+          els.logoutLink.style.display = 'none';
+        }
+        refreshAdminUI();
+      });
+
+      loadPosts();
+    });
+  </script>
+</body>
+</html>

@@ -5,97 +5,205 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Resgatar Produto - Jack Bar Café</title>
   <style>
+    * { box-sizing: border-box; }
     body {
-      font-family: sans-serif;
-      max-width: 500px;
-      margin: 40px auto;
-      padding: 20px;
-      background-color: #f7f7f7;
-      border-radius: 10px;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #111 0%, #1b1b1b 100%);
+      color: #fff;
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
     }
-    h1 { text-align: center; color: #333; }
-    .resposta { margin-top: 20px; font-size: 1.1em; color: #333; }
-    .erro { color: red; }
-    .sucesso { color: green; }
+    .card {
+      width: min(560px, 100%);
+      background: #202020;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    h1 {
+      text-align: center;
+      margin: 0 0 10px;
+      color: #ff3b3b;
+      font-size: clamp(1.3rem, 4.5vw, 1.8rem);
+    }
+    .sub { text-align: center; color: #bbb; margin-bottom: 16px; }
+    .status {
+      background: #151515;
+      border-radius: 10px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.05);
+      margin-bottom: 12px;
+      word-break: break-word;
+      line-height: 1.55;
+    }
+    .resposta { margin-top: 10px; font-size: 1rem; line-height: 1.55; word-break: break-word; }
+    .erro { color: #ff8a8a; }
+    .sucesso { color: #85ff9f; }
+    .warn { color: #ffd27a; }
+    .meta {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+      color: #ccc;
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+    .acoes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      background: #ff0000;
+      color: #fff;
+      flex: 1 1 180px;
+      min-height: 44px;
+    }
+    .btn.sec { background: #323232; }
+    @media (max-width: 480px) {
+      .card { padding: 16px; }
+      .acoes { flex-direction: column; }
+      .btn { width: 100%; }
+    }
   </style>
 </head>
 <body>
-  <h1>Resgatar Produto</h1>
-  <div id="status">Validando resgate...</div>
-  <div class="resposta" id="resposta"></div>
+  <main class="card">
+    <h1>Resgatar Produto</h1>
+    <p class="sub">Validação de QR Code do Jack Bar Café</p>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+    <div class="status" id="status">Validando resgate...</div>
+    <div class="resposta" id="resposta"></div>
+    <div class="meta" id="meta"></div>
+
+    <div class="acoes">
+      <a class="btn sec" href="index.html">Voltar ao início</a>
+      <button class="btn" id="retryBtn" type="button">Tentar novamente</button>
+    </div>
+  </main>
+
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
 
   <script>
-    // 🔧 Configuração Firebase (substitua pelos seus dados reais)
     const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
+      apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
       authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
       projectId: "jackbarcafe-b8fa8",
       storageBucket: "jackbarcafe-b8fa8.appspot.com",
-      messagingSenderId: "SENDER_ID",
-      appId: "APP_ID"
+      messagingSenderId: "849215333925",
+      appId: "1:849215333925:web:e02cb0d11c590af32201cc"
     };
-    firebase.initializeApp(firebaseConfig);
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // 📦 Obter parâmetros da URL
     const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
-    const data = params.get("data");
+    const id = params.get('id');
+    const data = params.get('data');
+    const code = params.get('code');
+    const pontos = params.get('pontos');
+    const tipo = params.get('tipo') || 'produto';
 
-    const statusEl = document.getElementById("status");
-    const respostaEl = document.getElementById("resposta");
+    const statusEl = document.getElementById('status');
+    const respostaEl = document.getElementById('resposta');
+    const metaEl = document.getElementById('meta');
+    const retryBtn = document.getElementById('retryBtn');
 
-    // 🔐 Autenticação anônima (opcional: ou use login real)
-    auth.signInAnonymously().then(() => {
-      validarResgate();
-    }).catch(err => {
-      statusEl.textContent = "Erro ao autenticar.";
-      respostaEl.textContent = err.message;
-      respostaEl.classList.add("erro");
-    });
+    retryBtn.addEventListener('click', () => window.location.reload());
 
-    // 🎯 Função de validação de resgate
+    function setStatus(text, cls) {
+      statusEl.textContent = text;
+      respostaEl.className = 'resposta';
+      if (cls) respostaEl.classList.add(cls);
+    }
+
+    function setResposta(text, cls) {
+      respostaEl.textContent = text;
+      respostaEl.className = 'resposta';
+      if (cls) respostaEl.classList.add(cls);
+    }
+
+    function renderMeta(info) {
+      metaEl.textContent = info;
+    }
+
+    function getPayloadFromUrl() {
+      // Suporta vários formatos: ?code=ABC, ?id=1&data=2 ou QR contendo valor em "data"
+      if (code) return String(code);
+      if (id && data) return `${id}-${data}`;
+      if (id) return String(id);
+      if (data) return String(data);
+      return '';
+    }
+
+    async function ensureAnonymousAuth() {
+      if (auth.currentUser) return auth.currentUser;
+      const cred = await auth.signInAnonymously();
+      return cred.user;
+    }
+
     async function validarResgate() {
-      if (!id || !data) {
-        statusEl.textContent = "QR Code inválido.";
-        respostaEl.classList.add("erro");
+      const payload = getPayloadFromUrl();
+      renderMeta(`Parâmetros recebidos: tipo=${tipo}${payload ? ` | código=${payload}` : ''}${pontos ? ` | pontos=${pontos}` : ''}`);
+
+      if (!payload) {
+        setStatus('QR Code inválido.', 'erro');
+        setResposta('A URL não possui parâmetros suficientes para validar o resgate.', 'erro');
         return;
       }
 
-      const docId = `${id}-${data}`;
-      const docRef = db.collection("used_qrcodes").doc(docId);
+      // Coleção separada para resgates (evita conflito com used_qrcodes de pontos)
+      const docId = encodeURIComponent(payload);
+      const docRef = db.collection('redemptions').doc(docId);
 
       try {
-        const doc = await docRef.get();
-        if (doc.exists) {
-          statusEl.textContent = "Este QR Code já foi utilizado.";
-          respostaEl.textContent = `Resgate já efetuado em ${doc.data().resgatadoEm}`;
-          respostaEl.classList.add("erro");
+        await ensureAnonymousAuth();
+
+        const snap = await docRef.get();
+        if (snap.exists) {
+          const d = snap.data() || {};
+          setStatus('Este QR Code já foi utilizado.', 'erro');
+          setResposta(`Resgate já efetuado${d.resgatadoEm ? ` em ${new Date(d.resgatadoEm).toLocaleString('pt-BR')}` : ''}.`, 'erro');
           return;
         }
 
-        // 👉 Marca como usado
         await docRef.set({
-          resgatadoEm: new Date().toISOString()
+          codigo: payload,
+          tipo,
+          pontos: pontos ? Number(pontos) || null : null,
+          resgatadoEm: new Date().toISOString(),
+          userAgent: navigator.userAgent
         });
 
-        // Aqui você pode abater pontos, adicionar produto, etc.
-        statusEl.textContent = "Resgate concluído com sucesso!";
-        respostaEl.textContent = "Obrigado por resgatar seu produto no Jack Bar Café.";
-        respostaEl.classList.add("sucesso");
-
+        setStatus('Resgate concluído com sucesso!', 'sucesso');
+        setResposta('Obrigado por resgatar seu produto no Jack Bar Café.', 'sucesso');
       } catch (error) {
-        statusEl.textContent = "Erro ao validar o resgate.";
-        respostaEl.textContent = error.message;
-        respostaEl.classList.add("erro");
+        console.error(error);
+        setStatus('Erro ao validar o resgate.', 'erro');
+        setResposta(error && error.message ? error.message : String(error), 'erro');
       }
     }
+
+    validarResgate();
   </script>
 </body>
 </html>

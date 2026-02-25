@@ -7,57 +7,430 @@
   <title>Jack Bar Café</title>
   <link rel="icon" href="favicon.png" type="image/x-icon">
   <style>
-    footer { text-align: center; padding: 20px; background-color: #0d0d0d; color: #888; }
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-    body { background-color: #121212; color: #fff; }
-    header { background-color: #1e1e1e; display: flex; align-items: center; justify-content: space-between; padding: 20px 40px; border-bottom: 4px solid #ff0000; }
-    header img { height: 60px; }
-    nav a { color: #ff0000; margin-left: 20px; text-decoration: none; font-weight: bold; transition: color 0.5s ease; }
-    nav a:hover { color: #fff; }
-    .hero { position: relative; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-    .hero h1 { font-size: 3.5rem; color: #ff3333; text-shadow: 3px 3px 10px #000; z-index: 2; position: relative; }
-    .carousel-background { position: absolute; top: 0; left: 0; width: 700vw; height: 100%; display: flex; z-index: 1; animation: slideShow 180s linear infinite; }
-    .carousel-background img { width: 100vw; height: 100%; object-fit: cover; opacity: 0.4; }
-    @keyframes slideShow { 0% { transform: translateX(0); } 100% { transform: translateX(-600vw); } }
-    .section { padding: 60px 40px; background-color: #1a1a1a; }
-    .section h2 { color: #ff0000; margin-bottom: 20px; }
-    .section p { max-width: 800px; line-height: 1.6; }
-    .galeria { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-    .galeria img { width: 32%; border-radius: 8px; }
-    .som-e-mapa { display: flex; flex-wrap: wrap; gap: 40px; }
-    .som-e-mapa .sub-section { flex: 1; min-width: 300px; }
-    .som-e-mapa iframe { width: 100%; border-radius: 12px; }
-    .btn { background-color: #ff0000; color: #fff; border: none; padding: 10px 20px; font-size: 1rem; cursor: pointer; margin-top: 20px; transition: background 0.3s ease; }
-    .btn:hover { background-color: #cc0000; }
-    #loginModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 999; }
-    .modal-content { background: #1e1e1e; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 0 10px #ff0000; position: relative; }
-    .modal-content input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 4px; border: none; }
-    .modal-content button { padding: 10px 20px; background-color: #ff0000; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+    :root {
+      --bg: #121212;
+      --panel: #1a1a1a;
+      --panel-2: #1e1e1e;
+      --accent: #ff0000;
+      --accent-2: #cc0000;
+      --text-muted: #bdbdbd;
+      --header-h: 92px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      color: #fff;
+      line-height: 1.5;
+    }
+
+    a { color: inherit; }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background-color: rgba(30,30,30,0.96);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 22px;
+      border-bottom: 3px solid var(--accent);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    header img {
+      height: 54px;
+      width: auto;
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: none;
+    }
+
+    .menu-toggle {
+      display: none;
+      background: transparent;
+      color: #fff;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.2s ease, background-color 0.2s ease;
+      padding: 8px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+
+    nav a:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.08);
+    }
+
+    nav .user-pill,
+    nav .points-pill {
+      color: #fff;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hero {
+      position: relative;
+      min-height: calc(100svh - var(--header-h));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      text-align: center;
+      padding: 24px;
+      isolation: isolate;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.55));
+      z-index: 1;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 5vw, 3.5rem);
+      color: #ff3333;
+      text-shadow: 3px 3px 10px #000;
+      z-index: 2;
+      position: relative;
+      max-width: 900px;
+      padding: 0 10px;
+    }
+
+    .carousel-background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 700vw;
+      height: 100%;
+      display: flex;
+      z-index: 0;
+      animation: slideShow 180s linear infinite;
+      will-change: transform;
+    }
+
+    .carousel-background img {
+      width: 100vw;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.42;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    @keyframes slideShow {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-600vw); }
+    }
+
+    .section {
+      padding: 56px 40px;
+      background-color: var(--panel);
+      border-top: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .section:nth-of-type(even) {
+      background-color: #181818;
+    }
+
+    .section h2 {
+      color: var(--accent);
+      margin-bottom: 16px;
+      font-size: clamp(1.4rem, 2.4vw, 2rem);
+    }
+
+    .section p {
+      max-width: 900px;
+      line-height: 1.7;
+      color: #f1f1f1;
+    }
+
+    .galeria {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .galeria img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .som-e-mapa {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 28px;
+      align-items: start;
+    }
+
+    .som-e-mapa .sub-section {
+      min-width: 0;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .som-e-mapa iframe {
+      width: 100%;
+      border-radius: 12px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px 18px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .btn:hover {
+      background-color: var(--accent-2);
+      transform: translateY(-1px);
+    }
+
+    #loginModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      padding: 16px;
+    }
+
+    .modal-content {
+      background: var(--panel-2);
+      padding: 24px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 0 18px rgba(255,0,0,0.35);
+      position: relative;
+      width: min(460px, 100%);
+    }
+
+    .modal-content h2 { margin-bottom: 10px; }
+
+    .modal-content input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #3a3a3a;
+      background: #121212;
+      color: #fff;
+    }
+
+    .modal-content button {
+      width: 100%;
+      padding: 11px 14px;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 6px 0;
+      font-weight: 700;
+    }
+
     .modal-content #googleLoginBtn { background-color: #4285F4; }
-    .close { position: absolute; top: 20px; right: 30px; font-size: 28px; color: white; cursor: pointer; }
+
+    .close {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      color: white;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .close:hover { background: rgba(255,255,255,0.08); }
+
+    .qr-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 24px 16px 4px;
+      background: #161616;
+    }
+
+    #reader {
+      display: none;
+      width: min(320px, 100%);
+      margin: 0 auto;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      padding: 6px;
+    }
+
+    #scanQrBtn { display: none; margin: 0 auto; }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #0d0d0d;
+      color: #888;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 1024px) {
+      header { padding: 14px 16px; }
+      nav .user-pill, nav .points-pill { max-width: 200px; }
+    }
+
+    @media (max-width: 860px) {
+      .brand-title { display: inline; }
+      .menu-toggle { display: inline-flex; }
+
+      header {
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      nav {
+        width: 100%;
+        display: none;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+      }
+
+      nav.open { display: flex; }
+
+      nav a,
+      nav .user-pill,
+      nav .points-pill {
+        width: 100%;
+        max-width: none;
+      }
+
+      .section { padding: 42px 18px; }
+
+      .som-e-mapa {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      .galeria {
+        grid-template-columns: repeat(2, minmax(0,1fr));
+      }
+
+      .galeria img { height: 170px; }
+
+      .hero { min-height: 68svh; }
+    }
+
+    @media (max-width: 520px) {
+      header img { height: 46px; }
+      .brand-title { font-size: 0.95rem; }
+      .hero { min-height: 60svh; padding: 16px; }
+      .hero h1 { font-size: clamp(1.4rem, 8vw, 2rem); }
+      .galeria { grid-template-columns: 1fr; }
+      .galeria img { height: 210px; }
+      .modal-content { padding: 18px 14px; }
+      .modal-content button { font-size: 0.95rem; }
+    }
   </style>
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="Logo do Café">
-    <nav>
+    <div class="brand">
+      <img src="logo.png" alt="Logo do Jack Bar Café">
+      <span class="brand-title">Jack Bar Café</span>
+    </div>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="siteNav">☰</button>
+    <nav id="siteNav">
       <a href="#historia">História</a>
       <a href="resgate.html">Resgate seus pontos</a>
       <a href="#informacoes">Informações</a>
-      <a href="#galeria">Galeria</a>
+      <a href="eventos.html">Eventos &amp; Galeria</a>
       <a href="jackride.html">Jack Ride</a>
       <a href="#musica">Música</a>
       <a href="#mapa">Localização</a>
       <a href="#contato">Contato</a>
-      <span id="user-info"></span>
-      <span id="points-info" style="margin-left:20px"></span>
+      <span id="user-info" class="user-pill" style="display:none"></span>
+      <span id="points-info" class="points-pill" style="display:none"></span>
       <a href="#" id="loginLink">Login</a>
       <a href="#" id="logoutLink" style="display:none">Sair</a>
     </nav>
   </header>
 
   <div class="hero">
-    <div class="carousel-background">
+    <div class="carousel-background" aria-hidden="true">
       <img src="img-1.JPG" alt="Imagem 1">
       <img src="img-2.JPG" alt="Imagem 2">
       <img src="img-3.JPG" alt="Imagem 3">
@@ -85,11 +458,17 @@
     </p>
   </section>
 
+  <section class="section" id="galeria">
+    <h2>Eventos &amp; Galeria</h2>
+    <p>Confira nossa página exclusiva com fotos e divulgação de eventos do Jack Bar Café. Lá você também encontra as publicações mais recentes e, para administradores, uma área de upload de imagens.</p>
+    <a class="btn" href="eventos.html">Abrir página de Eventos &amp; Galeria</a>
+  </section>
+
   <section class="section som-e-mapa">
     <div class="sub-section" id="musica">
       <h2>Som de Qualidade</h2>
       <p>Entre no clima com nossa playlist oficial de rock no Spotify:</p>
-      <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DX1spT6G94GFC?utm_source=generator" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DX1spT6G94GFC?utm_source=generator" height="380" frameborder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
     </div>
 
     <div class="sub-section" id="mapa">
@@ -101,27 +480,28 @@
 
   <section class="section" id="contato">
     <h2>Fale Conosco</h2>
-    <button class="btn">Entrar em Contato</button>
+    <p>Quer reservar, tirar dúvidas ou conhecer nossos eventos? Entre em contato com a equipe.</p>
+    <a class="btn" href="mailto:contato@jackbarcafe.com?subject=Contato%20-%20Jack%20Bar%20Caf%C3%A9">Entrar em Contato</a>
   </section>
 
-  <!-- QR Scanner -->
-  <div id="reader" style="display:none; width:300px; margin:20px auto;"></div>
-  <button id="scanQrBtn" class="btn" style="display:none; margin:auto;">Escanear QR Code</button>
-
+  <section class="qr-actions" aria-label="Área de QR Code">
+    <div id="reader"></div>
+    <button id="scanQrBtn" class="btn">Escanear QR Code</button>
+  </section>
 
   <footer><p>&copy; 2025 Jack Bar Café</p></footer>
 
   <!-- Modal de Login -->
-  <div id="loginModal">
-    <div class="modal-content">
-      <span class="close" id="closeModal">&times;</span>
-      <h2>Login</h2>
-      <input type="email" id="emailInput" placeholder="Email">
-      <input type="password" id="passwordInput" placeholder="Senha">
+  <div id="loginModal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <span class="close" id="closeModal" aria-label="Fechar">&times;</span>
+      <h2 id="loginTitle">Login</h2>
+      <input type="email" id="emailInput" placeholder="Email" autocomplete="email">
+      <input type="password" id="passwordInput" placeholder="Senha" autocomplete="current-password">
       <button id="loginBtn">Entrar</button>
       <button id="googleLoginBtn">Entrar com Google</button>
       <button id="signupBtn">Criar Conta</button>
-      <p id="loginError" style="color:red"></p>
+      <p id="loginError" style="color:#ff8a8a; min-height: 20px; margin-top: 6px"></p>
     </div>
   </div>
 
@@ -140,10 +520,16 @@
         messagingSenderId: "849215333925",
         appId: "1:849215333925:web:e02cb0d11c590af32201cc"
       };
-      firebase.initializeApp(firebaseConfig);
+
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+
       const auth = firebase.auth();
       const db = firebase.firestore();
 
+      const menuToggle = document.getElementById('menuToggle');
+      const siteNav = document.getElementById('siteNav');
       const loginLink = document.getElementById('loginLink');
       const logoutLink = document.getElementById('logoutLink');
       const loginModal = document.getElementById('loginModal');
@@ -159,101 +545,204 @@
       const scanQrBtn = document.getElementById('scanQrBtn');
       const reader = document.getElementById('reader');
 
-      loginLink.onclick = () => loginModal.style.display = 'flex';
-      closeModal.onclick = () => loginModal.style.display = 'none';
+      let qrScanner = null;
+      let scannerRunning = false;
 
-      loginBtn.onclick = () => {
-        auth.signInWithEmailAndPassword(emailInput.value, passInput.value)
-          .then(() => loginModal.style.display = 'none')
-          .catch(e => loginError.textContent = e.message);
-      };
+      function setMenu(open) {
+        siteNav.classList.toggle('open', open);
+        menuToggle.setAttribute('aria-expanded', String(open));
+        menuToggle.textContent = open ? '✕' : '☰';
+      }
 
-      signupBtn.onclick = () => {
-        auth.createUserWithEmailAndPassword(emailInput.value, passInput.value)
-          .then(cred => db.collection('users').doc(cred.user.uid).set({ points: 0 }))
-          .then(() => loginModal.style.display = 'none')
-          .catch(e => loginError.textContent = e.message);
-      };
-
-      googleBtn.onclick = () => {
-        auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
-          .then(res => {
-            const ref = db.collection('users').doc(res.user.uid);
-            return ref.get().then(doc => { if (!doc.exists) return ref.set({ points: 0 }); });
-          })
-          .then(() => loginModal.style.display = 'none')
-          .catch(e => loginError.textContent = e.message);
-      };
-
-      logoutLink.onclick = () => auth.signOut();
-
-      const updatePoints = uid => db.collection('users').doc(uid).get().then(doc => {
-        pointsInfo.textContent = `Pontos: ${doc.exists ? doc.data().points : 0}`;
+      menuToggle.addEventListener('click', () => {
+        setMenu(!siteNav.classList.contains('open'));
       });
 
-      const addPoints = (uid, amt) => {
-        db.collection('users').doc(uid)
-          .set({ points: firebase.firestore.FieldValue.increment(amt) }, { merge: true })
-          .then(() => updatePoints(uid));
+      siteNav.querySelectorAll('a[href^="#"]').forEach(link => {
+        link.addEventListener('click', () => {
+          if (window.innerWidth <= 860) setMenu(false);
+        });
+      });
+
+      function openLoginModal() {
+        loginModal.style.display = 'flex';
+        loginModal.setAttribute('aria-hidden', 'false');
+        loginError.textContent = '';
+      }
+
+      function closeLoginModal() {
+        loginModal.style.display = 'none';
+        loginModal.setAttribute('aria-hidden', 'true');
+      }
+
+      loginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        openLoginModal();
+      });
+
+      logoutLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        auth.signOut();
+      });
+
+      closeModal.addEventListener('click', closeLoginModal);
+      loginModal.addEventListener('click', (e) => {
+        if (e.target === loginModal) closeLoginModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && loginModal.style.display === 'flex') closeLoginModal();
+      });
+
+      function safeErrorMessage(err) {
+        if (!err) return 'Erro inesperado.';
+        if (typeof err.message === 'string' && err.message) return err.message;
+        return String(err);
+      }
+
+      loginBtn.addEventListener('click', async () => {
+        loginError.textContent = '';
+        try {
+          await auth.signInWithEmailAndPassword(emailInput.value.trim(), passInput.value);
+          closeLoginModal();
+        } catch (e) {
+          loginError.textContent = safeErrorMessage(e);
+        }
+      });
+
+      signupBtn.addEventListener('click', async () => {
+        loginError.textContent = '';
+        try {
+          const cred = await auth.createUserWithEmailAndPassword(emailInput.value.trim(), passInput.value);
+          await db.collection('users').doc(cred.user.uid).set({ points: 0 }, { merge: true });
+          closeLoginModal();
+        } catch (e) {
+          loginError.textContent = safeErrorMessage(e);
+        }
+      });
+
+      googleBtn.addEventListener('click', async () => {
+        loginError.textContent = '';
+        try {
+          const res = await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+          const ref = db.collection('users').doc(res.user.uid);
+          const doc = await ref.get();
+          if (!doc.exists) {
+            await ref.set({ points: 0 });
+          }
+          closeLoginModal();
+        } catch (e) {
+          loginError.textContent = safeErrorMessage(e);
+        }
+      });
+
+      const updatePoints = async (uid) => {
+        const doc = await db.collection('users').doc(uid).get();
+        const points = doc.exists && typeof doc.data().points === 'number' ? doc.data().points : 0;
+        pointsInfo.textContent = `Pontos: ${points}`;
+        pointsInfo.style.display = 'inline-block';
       };
 
-      function startQrScanner(uid) {
-        const qr = new Html5Qrcode('reader');
+      const addPoints = async (uid, amt) => {
+        await db.collection('users').doc(uid).set(
+          { points: firebase.firestore.FieldValue.increment(amt) },
+          { merge: true }
+        );
+        await updatePoints(uid);
+      };
+
+      async function stopQrScanner() {
+        if (qrScanner && scannerRunning) {
+          try {
+            await qrScanner.stop();
+          } catch (_) {
+            // ignore if already stopped
+          }
+        }
+        scannerRunning = false;
+        reader.style.display = 'none';
+      }
+
+      async function startQrScanner(uid) {
+        if (scannerRunning) return;
+
+        if (typeof Html5Qrcode === 'undefined') {
+          alert('Leitor de QR Code não carregou. Verifique sua conexão.');
+          return;
+        }
+
+        if (!qrScanner) {
+          qrScanner = new Html5Qrcode('reader');
+        }
+
         let scanned = false;
-        qr.start(
-          { facingMode: 'environment' },
-          { fps: 10, qrbox: 250 },
-          async (data) => {
-            if (!scanned) {
+        reader.style.display = 'block';
+
+        try {
+          scannerRunning = true;
+          await qrScanner.start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: { width: 220, height: 220 } },
+            async (data) => {
+              if (scanned) return;
               scanned = true;
+
               try {
-                const qrId = encodeURIComponent(data);
+                const qrId = encodeURIComponent(String(data));
                 const qrRef = db.collection('used_qrcodes').doc(qrId);
                 const qrDoc = await qrRef.get();
 
                 if (qrDoc.exists) {
-                  alert("Este QR Code já foi usado.");
+                  alert('Este QR Code já foi usado.');
                 } else {
-                  await qrRef.set({ uid: uid, raw: data, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-                  const points = parseInt(data) || 10;
+                  await qrRef.set({
+                    uid,
+                    raw: String(data),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+
+                  const parsed = Number.parseInt(String(data), 10);
+                  const points = Number.isFinite(parsed) && parsed > 0 ? parsed : 10;
                   await addPoints(uid, points);
                   alert(`+${points} pontos adicionados!`);
                 }
               } catch (err) {
-                console.error("Erro ao processar QR Code:", err);
-                alert("Erro ao processar QR Code: " + err.message);
+                console.error('Erro ao processar QR Code:', err);
+                alert('Erro ao processar QR Code: ' + safeErrorMessage(err));
               } finally {
-                qr.stop().then(() => {
-                  reader.style.display = 'none';
-                });
+                await stopQrScanner();
               }
-            }
-          },
-          error => {}
-        ).catch(err => {
-          console.error("Erro ao iniciar scanner:", err);
-          alert("Erro ao iniciar scanner: " + err.message);
-        });
+            },
+            () => {}
+          );
+        } catch (err) {
+          console.error('Erro ao iniciar scanner:', err);
+          scannerRunning = false;
+          reader.style.display = 'none';
+          alert('Erro ao iniciar scanner: ' + safeErrorMessage(err));
+        }
       }
 
-      auth.onAuthStateChanged(user => {
+      auth.onAuthStateChanged(async (user) => {
         if (user) {
-          userInfo.textContent = `Bem-vindo, ${user.email}`;
+          const displayName = user.displayName || user.email || 'Usuário';
+          userInfo.textContent = `Bem-vindo, ${displayName}`;
+          userInfo.style.display = 'inline-block';
           loginLink.style.display = 'none';
           logoutLink.style.display = 'inline-block';
-          scanQrBtn.style.display = 'inline-block';
-          updatePoints(user.uid);
-          scanQrBtn.onclick = () => {
-            reader.style.display = 'block';
-            startQrScanner(user.uid);
-          };
+          scanQrBtn.style.display = 'inline-flex';
+          await updatePoints(user.uid);
+
+          scanQrBtn.onclick = () => startQrScanner(user.uid);
         } else {
           userInfo.textContent = '';
           pointsInfo.textContent = '';
+          userInfo.style.display = 'none';
+          pointsInfo.style.display = 'none';
           loginLink.style.display = 'inline-block';
           logoutLink.style.display = 'none';
           scanQrBtn.style.display = 'none';
-          reader.style.display = 'none';
+          scanQrBtn.onclick = null;
+          await stopQrScanner();
         }
       });
     });
