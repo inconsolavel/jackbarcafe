@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel Administrativo</title>
+
+<link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+
+<div class="painel">
+
+<h1>Administrador</h1>
+
+<input
+id="telefone"
+type="text"
+placeholder="Telefone">
+
+<button onclick="buscarUsuario()">
+Buscar
+</button>
+
+<hr>
+
+<h2 id="nome">
+Nenhum usuário
+</h2>
+
+<p>
+
+Telefone:
+<span id="tel"></span>
+
+</p>
+
+<p>
+
+Pontos:
+
+<span id="points">0</span>
+
+</p>
+
+<input
+id="valor"
+type="number"
+placeholder="Quantidade de pontos">
+
+<textarea
+id="motivo"
+placeholder="Motivo"></textarea>
+
+<button onclick="adicionarPontos()">
+Adicionar Pontos
+</button>
+
+<button onclick="removerPontos()">
+Remover Pontos
+</button>
+
+</div>
+
+<script src="admin.js"></script>
+
+</body>
+</html>
