@@ -14,9 +14,9 @@
 <h1>Administrador</h1>
 
 <input
-id="telefone"
-type="text"
-placeholder="Telefone">
+id="email"
+type="email"
+placeholder="E-mail do usuário">
 
 <button onclick="buscarUsuario()">
 Buscar
@@ -30,7 +30,7 @@ Nenhum usuário
 
 <p>
 
-Telefone:
+E-mail:
 <span id="tel"></span>
 
 </p>
@@ -62,11 +62,18 @@ Remover Pontos
 
 </div>
 
-<script src="admin.js"></script>
+<!--
+  CORREÇÃO: faltavam os SDKs do Firebase (app/auth/firestore). Sem eles,
+  o objeto global `firebase` nem existe, e todo script abaixo que o usa
+  (auth.js, buscarUsuario.js, pontos.js) quebra silenciosamente no console.
+-->
+<script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
 
-</body>
-  <script src="../firebase-config.js"></script>
+<script src="../firebase-config.js"></script>
 
+<!-- CORREÇÃO: admin.js estava incluído duas vezes -->
 <script src="admin.js"></script>
 
 <script src="auth.js"></script>
@@ -74,4 +81,6 @@ Remover Pontos
 <script src="buscarUsuario.js"></script>
 
 <script src="pontos.js"></script>
+
+</body>
 </html>

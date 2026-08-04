@@ -724,6 +724,14 @@
           loginLink.style.display = 'none';
           logoutLink.style.display = 'inline-block';
           scanQrBtn.style.display = 'inline-flex';
+
+          // Mantém email/nome sempre atualizados no doc do usuário,
+          // para que o painel admin (que busca por e-mail) encontre a conta.
+          db.collection('users').doc(user.uid).set({
+            email: (user.email || '').toLowerCase(),
+            nome: user.displayName || user.email || ''
+          }, { merge: true }).catch(console.warn);
+
           await updatePoints(user.uid);
 
           scanQrBtn.onclick = () => startQrScanner(user.uid);

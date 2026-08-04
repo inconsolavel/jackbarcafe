@@ -1,3 +1,4 @@
+
 function startQrScanner(uid) {
   const qr = new Html5Qrcode('reader');
   let scanned = false;

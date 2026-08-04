@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -863,6 +862,14 @@
           els.userInfo.style.display = 'inline-flex';
           els.loginLink.style.display = 'none';
           els.logoutLink.style.display = 'inline-flex';
+
+          // Mantém email/nome sempre atualizados no doc do usuário,
+          // para que o painel admin (que busca por e-mail) encontre a conta.
+          db.collection('users').doc(currentUser.uid).set({
+            email: (currentUser.email || '').toLowerCase(),
+            nome: currentUser.displayName || currentUser.email || ''
+          }, { merge: true }).catch(console.warn);
+
           await loadUserPoints(currentUser.uid);
 
           // Estado inicial rápido (email) + atualização em tempo real via Firestore.
@@ -895,3 +902,4 @@
   </script>
 </body>
 </html>
+
