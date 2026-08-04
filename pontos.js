@@ -1,10 +1,3 @@
-// pontos.js
-//
-// CORREÇÃO: gravava em db.collection("usuarios") — coleção separada que o
-// resto do site nunca lê. Os pontos adicionados/removidos aqui nunca
-// refletiam na conta real do cliente (a que aparece em index.html/eventos.html,
-// gravada em "users"). Agora usa "users", igual ao resto do site.
-
 async function adicionarPontos() {
 
     if (!usuarioSelecionado)
@@ -29,9 +22,9 @@ async function adicionarPontos() {
 
             usuario: usuarioSelecionado,
 
-            email: dadosUsuario.email || "",
+            telefone: dadosUsuario.telefone,
 
-            nome: dadosUsuario.nome || "",
+            nome: dadosUsuario.nome,
 
             valor: valor,
 
@@ -73,9 +66,9 @@ async function removerPontos() {
 
             usuario: usuarioSelecionado,
 
-            email: dadosUsuario.email || "",
+            telefone: dadosUsuario.telefone,
 
-            nome: dadosUsuario.nome || "",
+            nome: dadosUsuario.nome,
 
             valor: -valor,
 

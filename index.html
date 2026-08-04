@@ -415,7 +415,7 @@
     </div>
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="siteNav">☰</button>
     <nav id="siteNav">
-      <a href="admin.html">ADMIN</a>
+      <a href="admin.html" id="adminNavLink" style="display:none">ADMIN</a>
       <a href="#historia">História</a>
       <a href="resgate.html">Resgate seus pontos</a>
       <a href="jackride.html">Jack Ride</a>
@@ -492,6 +492,8 @@
       <h2 id="loginTitle">Login</h2>
       <input type="email" id="emailInput" placeholder="Email" autocomplete="email">
       <input type="password" id="passwordInput" placeholder="Senha" autocomplete="current-password">
+      <input type="text" id="nomeInput" placeholder="Nome completo (para criar conta)" autocomplete="name">
+      <input type="tel" id="telefoneInput" placeholder="Telefone (para criar conta)" autocomplete="tel">
       <button id="loginBtn">Entrar</button>
       <button id="googleLoginBtn">Entrar com Google</button>
       <button id="signupBtn">Criar Conta</button>
@@ -533,9 +535,12 @@
       const googleBtn = document.getElementById('googleLoginBtn');
       const emailInput = document.getElementById('emailInput');
       const passInput = document.getElementById('passwordInput');
+      const nomeInput = document.getElementById('nomeInput');
+      const telefoneInput = document.getElementById('telefoneInput');
       const loginError = document.getElementById('loginError');
       const userInfo = document.getElementById('user-info');
       const pointsInfo = document.getElementById('points-info');
+      const adminNavLink = document.getElementById('adminNavLink');
       const scanQrBtn = document.getElementById('scanQrBtn');
       const reader = document.getElementById('reader');
 
@@ -603,11 +608,21 @@
         }
       });
 
+      function normalizePhone(value) {
+        return (value || '').replace(/\D/g, '');
+      }
+
       signupBtn.addEventListener('click', async () => {
         loginError.textContent = '';
+        const nome = nomeInput.value.trim();
+        const telefone = normalizePhone(telefoneInput.value);
+        if (!nome || !telefone) {
+          loginError.textContent = 'Preencha nome e telefone para criar a conta.';
+          return;
+        }
         try {
           const cred = await auth.createUserWithEmailAndPassword(emailInput.value.trim(), passInput.value);
-          await db.collection('users').doc(cred.user.uid).set({ points: 0 }, { merge: true });
+          await db.collection('users').doc(cred.user.uid).set({ points: 0, nome, telefone }, { merge: true });
           closeLoginModal();
         } catch (e) {
           loginError.textContent = safeErrorMessage(e);
@@ -621,7 +636,15 @@
           const ref = db.collection('users').doc(res.user.uid);
           const doc = await ref.get();
           if (!doc.exists) {
-            await ref.set({ points: 0 });
+            let telefone = normalizePhone(telefoneInput.value);
+            if (!telefone) {
+              telefone = normalizePhone(window.prompt('Informe seu telefone para concluir o cadastro:') || '');
+            }
+            await ref.set({
+              points: 0,
+              nome: res.user.displayName || nomeInput.value.trim() || '',
+              telefone
+            }, { merge: true });
           }
           closeLoginModal();
         } catch (e) {
@@ -724,17 +747,19 @@
           loginLink.style.display = 'none';
           logoutLink.style.display = 'inline-block';
           scanQrBtn.style.display = 'inline-flex';
-
-          // Mantém email/nome sempre atualizados no doc do usuário,
-          // para que o painel admin (que busca por e-mail) encontre a conta.
-          db.collection('users').doc(user.uid).set({
-            email: (user.email || '').toLowerCase(),
-            nome: user.displayName || user.email || ''
-          }, { merge: true }).catch(console.warn);
-
           await updatePoints(user.uid);
 
           scanQrBtn.onclick = () => startQrScanner(user.uid);
+
+          // O link ADMIN só aparece para quem realmente é administrador
+          // (mesma checagem usada em admin.html/auth.js).
+          try {
+            const adminDoc = await db.collection('users').doc(user.uid).get();
+            adminNavLink.style.display = (adminDoc.exists && adminDoc.data().isAdmin) ? 'inline-block' : 'none';
+          } catch (err) {
+            console.warn('Não foi possível verificar permissão de administrador:', err);
+            adminNavLink.style.display = 'none';
+          }
         } else {
           userInfo.textContent = '';
           pointsInfo.textContent = '';
@@ -744,6 +769,7 @@
           logoutLink.style.display = 'none';
           scanQrBtn.style.display = 'none';
           scanQrBtn.onclick = null;
+          adminNavLink.style.display = 'none';
           await stopQrScanner();
         }
       });

@@ -1,40 +1,19 @@
-// buscarUsuario.js
-//
-// CORREÇÃO: buscava em db.collection("usuarios").where("telefone", ...) —
-// coleção e campo que não existem nos dados reais do site (as contas dos
-// clientes ficam em "users", indexadas pelo uid do Firebase Auth, sem
-// campo de telefone). Por isso a busca nunca encontrava ninguém.
-//
-// Agora busca em "users" pelo campo "email" (gravado automaticamente
-// quando o cliente faz login/cadastro em index.html ou eventos.html).
-
 async function buscarUsuario() {
 
-    const email = document
-        .getElementById("email")
+    const telefone = document
+        .getElementById("telefone")
         .value
-        .trim()
-        .toLowerCase();
-
-    if (!email) {
-        alert("Informe um e-mail.");
-        return;
-    }
+        .replace(/\D/g, "");
 
     const snap = await db
         .collection("users")
-        .where("email", "==", email)
+        .where("telefone", "==", telefone)
         .limit(1)
         .get();
 
     if (snap.empty) {
 
         alert("Usuário não encontrado.");
-        usuarioSelecionado = null;
-        dadosUsuario = null;
-        document.getElementById("nome").innerHTML = "Nenhum usuário";
-        document.getElementById("tel").innerHTML = "";
-        document.getElementById("points").innerHTML = "0";
         return;
 
     }
@@ -47,12 +26,12 @@ async function buscarUsuario() {
     });
 
     document.getElementById("nome").innerHTML =
-        dadosUsuario.nome || dadosUsuario.email || "Sem nome";
+        dadosUsuario.nome;
 
     document.getElementById("tel").innerHTML =
-        dadosUsuario.email || "-";
+        dadosUsuario.telefone;
 
     document.getElementById("points").innerHTML =
-        dadosUsuario.points ?? 0;
+        dadosUsuario.points;
 
 }

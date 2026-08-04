@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -365,6 +366,8 @@
       <h3 id="loginTitle">Login</h3>
       <input type="email" id="emailInput" placeholder="Email" autocomplete="email">
       <input type="password" id="passwordInput" placeholder="Senha" autocomplete="current-password">
+      <input type="text" id="nomeInput" placeholder="Nome completo (para criar conta)" autocomplete="name">
+      <input type="tel" id="telefoneInput" placeholder="Telefone (para criar conta)" autocomplete="tel">
       <div class="modal-actions">
         <button class="btn" id="loginBtn" type="button">Entrar</button>
         <button class="btn google" id="googleLoginBtn" type="button">Entrar com Google</button>
@@ -414,6 +417,8 @@
         closeModal: document.getElementById('closeModal'),
         emailInput: document.getElementById('emailInput'),
         passwordInput: document.getElementById('passwordInput'),
+        nomeInput: document.getElementById('nomeInput'),
+        telefoneInput: document.getElementById('telefoneInput'),
         loginBtn: document.getElementById('loginBtn'),
         googleLoginBtn: document.getElementById('googleLoginBtn'),
         signupBtn: document.getElementById('signupBtn'),
@@ -521,11 +526,21 @@
         }
       });
 
+      function normalizePhone(value) {
+        return (value || '').replace(/\D/g, '');
+      }
+
       els.signupBtn.addEventListener('click', async () => {
         els.loginError.textContent = '';
+        const nome = els.nomeInput.value.trim();
+        const telefone = normalizePhone(els.telefoneInput.value);
+        if (!nome || !telefone) {
+          els.loginError.textContent = 'Preencha nome e telefone para criar a conta.';
+          return;
+        }
         try {
           const cred = await auth.createUserWithEmailAndPassword(els.emailInput.value.trim(), els.passwordInput.value);
-          await db.collection('users').doc(cred.user.uid).set({ points: 0 }, { merge: true });
+          await db.collection('users').doc(cred.user.uid).set({ points: 0, nome, telefone }, { merge: true });
           closeLoginModal();
         } catch (err) {
           els.loginError.textContent = safeError(err);
@@ -538,7 +553,17 @@
           const res = await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
           const ref = db.collection('users').doc(res.user.uid);
           const doc = await ref.get();
-          if (!doc.exists) await ref.set({ points: 0 }, { merge: true });
+          if (!doc.exists) {
+            let telefone = normalizePhone(els.telefoneInput.value);
+            if (!telefone) {
+              telefone = normalizePhone(window.prompt('Informe seu telefone para concluir o cadastro:') || '');
+            }
+            await ref.set({
+              points: 0,
+              nome: res.user.displayName || els.nomeInput.value.trim() || '',
+              telefone
+            }, { merge: true });
+          }
           closeLoginModal();
         } catch (err) {
           els.loginError.textContent = safeError(err);
@@ -862,14 +887,6 @@
           els.userInfo.style.display = 'inline-flex';
           els.loginLink.style.display = 'none';
           els.logoutLink.style.display = 'inline-flex';
-
-          // Mantém email/nome sempre atualizados no doc do usuário,
-          // para que o painel admin (que busca por e-mail) encontre a conta.
-          db.collection('users').doc(currentUser.uid).set({
-            email: (currentUser.email || '').toLowerCase(),
-            nome: currentUser.displayName || currentUser.email || ''
-          }, { merge: true }).catch(console.warn);
-
           await loadUserPoints(currentUser.uid);
 
           // Estado inicial rápido (email) + atualização em tempo real via Firestore.
@@ -902,4 +919,3 @@
   </script>
 </body>
 </html>
-

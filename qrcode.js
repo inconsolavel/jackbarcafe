@@ -1,4 +1,3 @@
-
 function startQrScanner(uid) {
   const qr = new Html5Qrcode('reader');
   let scanned = false;
@@ -42,4 +41,3 @@ function startQrScanner(uid) {
     console.error("Erro ao iniciar scanner:", err);
   });
 }
-
