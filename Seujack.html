@@ -659,7 +659,7 @@
       }
     }
 
-    // ===== DESENHO (COM SPRITES CORRIGIDOS) =====
+    // ===== DESENHO (COM LÓGICA DE DIREÇÃO CORRIGIDA) =====
 
     function desenharCenario() {
       ctx.fillStyle = '#1a1a2e';
@@ -768,16 +768,22 @@
         }
       });
 
-      // ===== JOGADOR COM SPRITE (CORRIGIDO) =====
-      // Determina direção baseado no movimento
+      // ===== JOGADOR COM SPRITE (LÓGICA CORRIGIDA POR ÂNGULO) =====
       const dx = player.targetX - player.x;
       const dy = player.targetY - player.y;
       const moving = Math.abs(dx) > 1 || Math.abs(dy) > 1;
 
       if (moving) {
-        // Prioriza movimento horizontal
-        if (Math.abs(dx) > Math.abs(dy)) {
-          playerDirection = dx > 0 ? 'direita' : 'esquerda';
+        // Calcula o ângulo exato para decidir a direção
+        let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        if (angle < 0) angle += 360;
+
+        if (angle >= 315 || angle < 45) {
+          playerDirection = 'direita';
+        } else if (angle >= 45 && angle < 135) {
+          playerDirection = 'frente';
+        } else if (angle >= 135 && angle < 225) {
+          playerDirection = 'esquerda';
         } else {
           playerDirection = 'frente';
         }
@@ -797,7 +803,7 @@
         if (!img.complete || img.naturalWidth === 0) useFallback = true;
       }
 
-      // Tamanho do sprite (ampliado)
+      // Tamanho do sprite
       const spriteSize = 32;
       const drawX = player.x - spriteSize/2;
       const drawY = player.y - spriteSize/2;
@@ -1252,7 +1258,6 @@
 
     // ===== INICIALIZAÇÃO =====
 
-    // Aguarda as imagens carregarem
     let imagesLoaded = 0;
     const totalImages = 3;
     const checkImagesLoaded = () => {
