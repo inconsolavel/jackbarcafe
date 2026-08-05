@@ -1,9 +1,15 @@
 async function buscarUsuario() {
 
-    const telefone = document
+    let telefone = document
         .getElementById("telefone")
         .value
         .replace(/\D/g, "");
+
+    // Remove o DDI 55 (Brasil) se foi digitado, pra não divergir do que
+    // foi salvo no cadastro sem DDI.
+    if (telefone.length > 11 && telefone.startsWith("55")) {
+        telefone = telefone.slice(2);
+    }
 
     if (!telefone) {
         alert("Digite um telefone para buscar.");

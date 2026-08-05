@@ -316,28 +316,6 @@
 
     .close:hover { background: rgba(255,255,255,0.08); }
 
-    .qr-actions {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 24px 16px 4px;
-      background: #161616;
-    }
-
-    #reader {
-      display: none;
-      width: min(320px, 100%);
-      margin: 0 auto;
-      border-radius: 12px;
-      overflow: hidden;
-      background: #000;
-      padding: 6px;
-    }
-
-    #scanQrBtn { display: none; margin: 0 auto; }
-
     footer {
       text-align: center;
       padding: 20px;
@@ -463,24 +441,12 @@
       <p>Venha nos visitar! Estamos te esperando com rock e café!</p>
       <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.7663818938013!2d-45.56104708502066!3d-23.50642506592968!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ccc5b390aeb15d%3A0x31b7c4a52db8adad!2sPra%C3%A7a%20Bar%C3%A3o%20do%20Rio%20Branco%2C%2017%20-%20Centro%2C%20Taubat%C3%A9%20-%20SP!5e0!3m2!1spt-BR!2sbr!4v1714594051021!5m2!1spt-BR!2sbr" height="380" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
-    <div class="sub-section">
-      <h2>Escanei seu QRcode aqui!</h2>
-      <p>Ao realizar uma compra no Jack você recebe um codigo para trocar por pontos!</p>
-      <p>troque seus pontos por premios(em breve)</p>
-      <div id="reader"></div>
-      <button id="scanQrBtn" class="btn">Escanear QR Code</button>
-      </div>
-    
   </section>
 
   <section class="section" id="contato">
     <h2>Fale Conosco</h2>
     <p>Quer reservar, tirar dúvidas ou conhecer nossos eventos? Entre em contato com a equipe.</p>
     <a class="btn" href="mailto:contato@jackbarcafe.com?subject=Contato%20-%20Jack%20Bar%20Caf%C3%A9">Entrar em Contato</a>
-  </section>
-
-  <section class="qr-actions" aria-label="Área de QR Code">
-    
   </section>
 
   <footer><p>&copy; 2025 Jack Bar Café</p></footer>
@@ -501,11 +467,10 @@
     </div>
   </div>
 
-  <!-- Firebase + QRCode -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
-  <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const firebaseConfig = {
@@ -541,11 +506,6 @@
       const userInfo = document.getElementById('user-info');
       const pointsInfo = document.getElementById('points-info');
       const adminNavLink = document.getElementById('adminNavLink');
-      const scanQrBtn = document.getElementById('scanQrBtn');
-      const reader = document.getElementById('reader');
-
-      let qrScanner = null;
-      let scannerRunning = false;
 
       function setMenu(open) {
         siteNav.classList.toggle('open', open);
@@ -609,7 +569,11 @@
       });
 
       function normalizePhone(value) {
-        return (value || '').replace(/\D/g, '');
+        let digits = (value || '').replace(/\D/g, '');
+        if (digits.length > 11 && digits.startsWith('55')) {
+          digits = digits.slice(2);
+        }
+        return digits;
       }
 
       signupBtn.addEventListener('click', async () => {
@@ -659,86 +623,6 @@
         pointsInfo.style.display = 'inline-block';
       };
 
-      const addPoints = async (uid, amt) => {
-        await db.collection('users').doc(uid).set(
-          { points: firebase.firestore.FieldValue.increment(amt) },
-          { merge: true }
-        );
-        await updatePoints(uid);
-      };
-
-      async function stopQrScanner() {
-        if (qrScanner && scannerRunning) {
-          try {
-            await qrScanner.stop();
-          } catch (_) {
-            // ignore if already stopped
-          }
-        }
-        scannerRunning = false;
-        reader.style.display = 'none';
-      }
-
-      async function startQrScanner(uid) {
-        if (scannerRunning) return;
-
-        if (typeof Html5Qrcode === 'undefined') {
-          alert('Leitor de QR Code não carregou. Verifique sua conexão.');
-          return;
-        }
-
-        if (!qrScanner) {
-          qrScanner = new Html5Qrcode('reader');
-        }
-
-        let scanned = false;
-        reader.style.display = 'block';
-
-        try {
-          scannerRunning = true;
-          await qrScanner.start(
-            { facingMode: 'environment' },
-            { fps: 10, qrbox: { width: 220, height: 220 } },
-            async (data) => {
-              if (scanned) return;
-              scanned = true;
-
-              try {
-                const qrId = encodeURIComponent(String(data));
-                const qrRef = db.collection('used_qrcodes').doc(qrId);
-                const qrDoc = await qrRef.get();
-
-                if (qrDoc.exists) {
-                  alert('Este QR Code já foi usado.');
-                } else {
-                  await qrRef.set({
-                    uid,
-                    raw: String(data),
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                  });
-
-                  const parsed = Number.parseInt(String(data), 10);
-                  const points = Number.isFinite(parsed) && parsed > 0 ? parsed : 10;
-                  await addPoints(uid, points);
-                  alert(`+${points} pontos adicionados!`);
-                }
-              } catch (err) {
-                console.error('Erro ao processar QR Code:', err);
-                alert('Erro ao processar QR Code: ' + safeErrorMessage(err));
-              } finally {
-                await stopQrScanner();
-              }
-            },
-            () => {}
-          );
-        } catch (err) {
-          console.error('Erro ao iniciar scanner:', err);
-          scannerRunning = false;
-          reader.style.display = 'none';
-          alert('Erro ao iniciar scanner: ' + safeErrorMessage(err));
-        }
-      }
-
       auth.onAuthStateChanged(async (user) => {
         if (user) {
           const displayName = user.displayName || user.email || 'Usuário';
@@ -746,10 +630,7 @@
           userInfo.style.display = 'inline-block';
           loginLink.style.display = 'none';
           logoutLink.style.display = 'inline-block';
-          scanQrBtn.style.display = 'inline-flex';
           await updatePoints(user.uid);
-
-          scanQrBtn.onclick = () => startQrScanner(user.uid);
 
           // O link ADMIN só aparece para quem realmente é administrador
           // (mesma checagem usada em admin.html/auth.js).
@@ -767,10 +648,7 @@
           pointsInfo.style.display = 'none';
           loginLink.style.display = 'inline-block';
           logoutLink.style.display = 'none';
-          scanQrBtn.style.display = 'none';
-          scanQrBtn.onclick = null;
           adminNavLink.style.display = 'none';
-          await stopQrScanner();
         }
       });
     });
