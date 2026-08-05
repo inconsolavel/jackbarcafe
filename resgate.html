@@ -91,7 +91,6 @@
     .erro { color: #ff8a8a; border-color: #ff3b3b; }
     .sucesso { color: #85ff9f; }
     .warn { color: #ffd27a; }
-    .info { color: #4fc3f7; }
     
     .saldo-box {
       background: #1a1a1a;
@@ -380,26 +379,29 @@
 
     // === INICIAR LISTENERS EM TEMPO REAL ===
     function iniciarListeners(uid) {
-      // 1. Listener do SALDO em tempo real
+      // 1. Listener do SALDO em tempo real - USANDO CAMPO "points"
       if (unsubscribeSaldo) unsubscribeSaldo();
       unsubscribeSaldo = db.collection('users').doc(uid)
         .onSnapshot((doc) => {
           if (doc.exists) {
             const data = doc.data();
-            saldoAtual = data.pontos || 0;
-            console.log('💰 Saldo atualizado:', saldoAtual);
+            // 🔥 USANDO "points" (inglês) em vez de "pontos"
+            saldoAtual = data.points || 0;
+            console.log('💰 Saldo atualizado (points):', saldoAtual);
             saldoPontos.textContent = saldoAtual;
             
             // Atualiza os botões de resgate
             atualizarBotoesResgate();
+          } else {
+            // Cria o documento com o campo "points" se não existir
+            db.collection('users').doc(uid).set({
+              points: 0,
+              isAdmin: false,
+              criadoEm: new Date().toISOString()
+            }).catch(e => console.error('❌ Erro ao criar usuário:', e));
           }
         }, (err) => {
           console.warn('⚠️ Erro no listener do saldo:', err);
-          // Tenta criar o documento se não existir
-          db.collection('users').doc(uid).set({
-            pontos: 0,
-            criadoEm: new Date().toISOString()
-          }).catch(e => console.error('❌ Erro ao criar usuário:', e));
         });
 
       // 2. Listener do HISTÓRICO em tempo real
@@ -557,7 +559,6 @@
     }
 
     function logoutAdmin() {
-      // Remove listeners antes de sair
       if (unsubscribeSaldo) unsubscribeSaldo();
       if (unsubscribeRedemptions) unsubscribeRedemptions();
       auth.signOut().then(() => window.location.reload());
@@ -584,7 +585,7 @@
       setTimeout(() => document.getElementById('loginAdminEmail').focus(), 100);
     }
 
-    // === ADMIN: PONTOS ===
+    // === ADMIN: PONTOS - USANDO CAMPO "points" ===
     async function adminAdicionarPontos() {
       if (!usuarioEhAdmin) return alert("Apenas admin.");
       const userId = document.getElementById('adminUserId').value.trim();
@@ -599,9 +600,10 @@
         await db.runTransaction(async (t) => {
           const doc = await t.get(userRef);
           if (!doc.exists) throw new Error('Usuário não encontrado.');
-          t.update(userRef, { pontos: (doc.data().pontos || 0) + pontos });
+          // 🔥 USANDO "points"
+          t.update(userRef, { points: (doc.data().points || 0) + pontos });
         });
-        statusDiv.innerHTML = `<p class="sucesso">✅ +${pontos} pontos para ${userId.substring(0,8)}...</p>`;
+        statusDiv.innerHTML = `<p class="sucesso">✅ +${pontos} points para ${userId.substring(0,8)}...</p>`;
         document.getElementById('adminPontos').value = '';
       } catch (error) {
         statusDiv.innerHTML = `<p class="erro">❌ ${error.message}</p>`;
@@ -622,11 +624,12 @@
         await db.runTransaction(async (t) => {
           const doc = await t.get(userRef);
           if (!doc.exists) throw new Error('Usuário não encontrado.');
-          const atual = doc.data().pontos || 0;
+          // 🔥 USANDO "points"
+          const atual = doc.data().points || 0;
           if (atual < pontos) throw new Error('Saldo insuficiente.');
-          t.update(userRef, { pontos: atual - pontos });
+          t.update(userRef, { points: atual - pontos });
         });
-        statusDiv.innerHTML = `<p class="sucesso">✅ -${pontos} pontos de ${userId.substring(0,8)}...</p>`;
+        statusDiv.innerHTML = `<p class="sucesso">✅ -${pontos} points de ${userId.substring(0,8)}...</p>`;
         document.getElementById('adminPontos').value = '';
       } catch (error) {
         statusDiv.innerHTML = `<p class="erro">❌ ${error.message}</p>`;
@@ -675,16 +678,16 @@
       }
     }
 
-    // === SOLICITAR RESGATE ===
+    // === SOLICITAR RESGATE - USANDO CAMPO "points" ===
     async function solicitarResgate(idItem, nomeItem, custoItem) {
       console.log('🎯 Solicitando resgate:', nomeItem, custoItem, 'pts');
-      console.log('💰 Saldo atual:', saldoAtual);
+      console.log('💰 Saldo atual (points):', saldoAtual);
       
       if (saldoAtual < custoItem) {
-        alert(`⚠️ Saldo insuficiente! Você tem ${saldoAtual} pontos.`);
+        alert(`⚠️ Saldo insuficiente! Você tem ${saldoAtual} points.`);
         return;
       }
-      if (!confirm(`Resgatar "${nomeItem}" por ${custoItem} pontos?`)) return;
+      if (!confirm(`Resgatar "${nomeItem}" por ${custoItem} points?`)) return;
 
       const uid = auth.currentUser ? auth.currentUser.uid : 'anonimo';
       const token = 'JK-' + String(Math.floor(100000 + Math.random() * 900000));
@@ -695,12 +698,13 @@
 
         const userRef = db.collection('users').doc(uid);
         await db.runTransaction(async (t) => {
-          // 1. Verifica e desconta os pontos
+          // 1. Verifica e desconta os pontos - USANDO "points"
           const doc = await t.get(userRef);
           if (!doc.exists) throw new Error('Usuário não encontrado.');
-          const atual = doc.data().pontos || 0;
+          // 🔥 USANDO "points"
+          const atual = doc.data().points || 0;
           if (atual < custoItem) throw new Error('Saldo insuficiente.');
-          t.update(userRef, { pontos: atual - custoItem });
+          t.update(userRef, { points: atual - custoItem });
           
           // 2. Cria o resgate
           t.set(db.collection('redemptions').doc(token), {
@@ -795,7 +799,7 @@
         });
     }
 
-    console.log('🚀 App carregado!');
+    console.log('🚀 App carregado! Usando campo "points" no Firestore');
   </script>
 </body>
 </html>
