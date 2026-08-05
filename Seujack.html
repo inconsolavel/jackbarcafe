@@ -224,12 +224,31 @@
     .toast.bad { border-color: #e74c3c; color: #e74c3c; }
     .toast.info { border-color: #3498db; color: #3498db; }
 
+    /* Save Indicator */
+    .save-indicator {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.75);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      color: #2ecc71;
+      z-index: 99;
+      display: none;
+      border: 1px solid rgba(255,255,255,0.05);
+      backdrop-filter: blur(4px);
+    }
+    .save-indicator.show { display: block; }
+    .save-indicator.saving { color: #f39c12; }
+
     @media (max-width: 600px) {
       .game-wrapper { padding: 12px; }
       .stats { grid-template-columns: repeat(4, 1fr); }
       .btn { padding: 6px 10px; font-size: 0.7rem; }
       .menu-overlay h1 { font-size: 1.8rem; }
       .menu-overlay .menu-btn { font-size: 1rem; padding: 14px; }
+      .save-indicator { font-size: 0.6rem; padding: 2px 10px; bottom: 5px; right: 5px; }
     }
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
@@ -237,6 +256,7 @@
 </head>
 <body>
   <div class="toast" id="toast"></div>
+  <div class="save-indicator" id="saveIndicator">💾 Salvo</div>
 
   <div class="game-wrapper">
     <!-- MENU -->
@@ -285,6 +305,7 @@
       <div class="btn-group">
         <button class="btn sec" id="btnNextDay">⏭️ Próx. Dia <span class="key">N</span></button>
         <button class="btn gold" id="btnUpgrade">⬆️ Melhorar <span class="key">U</span></button>
+        <button class="btn sec" id="btnSaveManual">💾 Salvar</button>
         <button class="btn danger" id="btnReset">🔄 Reiniciar</button>
         <button class="btn sec" id="btnSair" style="background:#c0392b;border-color:#c0392b;">🚪 Sair</button>
       </div>
@@ -322,6 +343,7 @@
     const btnMenuSair = document.getElementById('btnMenuSair');
     const saveStatus = document.getElementById('saveStatus');
     const loadingText = document.getElementById('loadingText');
+    const saveIndicator = document.getElementById('saveIndicator');
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -345,7 +367,7 @@
         speed: 0,
         service: 0,
         marketing: 0,
-        staff: 0      // nível de funcionários contratados
+        staff: 0
       }
     };
 
@@ -372,9 +394,9 @@
     let gameStarted = false;
     let saveData = null;
     let spawnTimer = 0;
-    const SPAWN_INTERVAL = 10; // segundos
+    const SPAWN_INTERVAL = 10;
     let staffTimer = 0;
-    const STAFF_INTERVAL = 8; // segundos para o funcionário ajudar
+    const STAFF_INTERVAL = 8;
 
     // ===== FUNÇÕES AUXILIARES =====
 
@@ -403,20 +425,56 @@
       statStaff.textContent = state.upgrades.staff || 0;
     }
 
+    // ===== INDICADOR DE SAVE =====
+    function showSaveIndicator(saving = false) {
+      saveIndicator.classList.add('show');
+      if (saving) {
+        saveIndicator.textContent = '💾 Salvando...';
+        saveIndicator.className = 'save-indicator show saving';
+      } else {
+        saveIndicator.textContent = '✅ Salvo!';
+        saveIndicator.className = 'save-indicator show';
+        setTimeout(() => {
+          saveIndicator.classList.remove('show');
+        }, 1500);
+      }
+    }
+
+    // ===== SALVAR ESTADO =====
     function salvarEstado() {
-      if (!userId || !gameStarted) return;
+      if (!userId) {
+        console.warn('⚠️ Usuário não autenticado, não é possível salvar.');
+        return;
+      }
+      if (!gameStarted) {
+        console.warn('⚠️ Jogo não iniciado, não é possível salvar.');
+        return;
+      }
+
+      showSaveIndicator(true);
+
       const data = {
         ...state,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         userId: userId,
         userName: userName
       };
+
       db.collection('cafeManager').doc(userId).set(data, { merge: true })
-        .then(() => console.log('💾 Jogo salvo'))
-        .catch(err => console.error('❌ Erro ao salvar:', err));
+        .then(() => {
+          console.log('💾 Jogo salvo com sucesso!');
+          showSaveIndicator(false);
+        })
+        .catch(err => {
+          console.error('❌ Erro ao salvar:', err);
+          showSaveIndicator(false);
+          showToast('❌ Erro ao salvar o jogo!', 'bad');
+        });
     }
 
+    // ===== CARREGAR ESTADO =====
     function carregarEstado(dados) {
+      if (!dados) return;
       state = {
         money: dados.money || 100,
         clients: dados.clients || 0,
@@ -426,8 +484,10 @@
       };
       atualizarUI();
       addLog('📂 Progresso carregado! Dia ' + state.day, 'info');
+      showToast('📂 Save carregado!', 'info');
     }
 
+    // ===== VERIFICAR SAVE =====
     function verificarSave() {
       if (!userId) return;
       loadingText.textContent = '⏳ Verificando saves...';
@@ -461,7 +521,6 @@
     }
 
     // ===== INICIAR JOGO =====
-
     function iniciarJogo(novoJogo) {
       if (novoJogo) {
         state = {
@@ -477,7 +536,8 @@
         atualizarUI();
         addLog('🆕 Novo jogo iniciado!', 'info');
         showToast('🚀 Novo jogo!', 'info');
-        salvarEstado();
+        // Salva imediatamente para criar o documento
+        setTimeout(() => salvarEstado(), 500);
       } else {
         if (saveData) {
           carregarEstado(saveData);
@@ -496,7 +556,7 @@
       menuOverlay.classList.add('hidden');
 
       if (saveInterval) clearInterval(saveInterval);
-      saveInterval = setInterval(salvarEstado, 30000);
+      saveInterval = setInterval(salvarEstado, 20000);
       window.addEventListener('beforeunload', salvarEstado);
 
       if (!gameLoopId) {
@@ -550,7 +610,6 @@
       const staffLevel = state.upgrades.staff || 0;
       if (staffLevel === 0) return;
 
-      // Funcionário atende automaticamente clientes em estado 'esperando'
       let atendidos = 0;
       for (const table of tables) {
         if (table.client && table.client.estado === 'esperando' && atendidos < staffLevel) {
@@ -563,7 +622,6 @@
         showToast(`👨‍🍳 Funcionário atendeu ${atendidos} cliente(s)!`, 'info');
       }
 
-      // Funcionário também pode pegar comida e servir (nível mais alto)
       if (staffLevel >= 2) {
         let servidos = 0;
         for (const table of tables) {
@@ -578,7 +636,6 @@
         }
       }
 
-      // Nível 3+ serve a comida na mesa
       if (staffLevel >= 3) {
         let entregues = 0;
         for (const table of tables) {
@@ -600,10 +657,8 @@
     function desenharCenario() {
       ctx.fillStyle = '#1a1a2e';
       ctx.fillRect(0, 0, W, H);
-
       ctx.fillStyle = '#1e1e3a';
       ctx.fillRect(0, 80, W, H - 80);
-
       ctx.strokeStyle = 'rgba(255,255,255,0.03)';
       ctx.lineWidth = 1;
       for (let x = 0; x < W; x += 40) {
@@ -632,7 +687,7 @@
       ctx.font = '10px Arial';
       ctx.fillText('BALCÃO', counter.x + counter.w/2, counter.y + 72);
 
-      // Funcionário NPC (se contratado)
+      // Funcionário NPC
       if (state.upgrades.staff > 0) {
         const staffX = 120 + state.upgrades.staff * 20;
         const staffY = 440;
@@ -741,7 +796,6 @@
     // ===== LOOP =====
 
     function updateGame(delta) {
-      // Movimento do jogador
       const dx = player.targetX - player.x;
       const dy = player.targetY - player.y;
       const dist = Math.sqrt(dx*dx + dy*dy);
@@ -754,14 +808,12 @@
         player.y = player.targetY;
       }
 
-      // Spawn automático
       spawnTimer += delta;
       if (spawnTimer >= SPAWN_INTERVAL) {
         spawnTimer = 0;
         spawnCliente();
       }
 
-      // Funcionário ajuda (a cada STAFF_INTERVAL segundos)
       if (state.upgrades.staff > 0) {
         staffTimer += delta;
         if (staffTimer >= STAFF_INTERVAL) {
@@ -770,7 +822,6 @@
         }
       }
 
-      // Atualiza timers dos clientes
       tables.forEach((table) => {
         if (!table.client) return;
         const c = table.client;
@@ -844,44 +895,32 @@
 
     function andar(direcao) {
       const passo = 80 + state.upgrades.speed * 10;
-      let tx = player.targetX,
-        ty = player.targetY;
+      let tx = player.targetX, ty = player.targetY;
       switch (direcao) {
-        case 'up':
-          ty = Math.max(80 + 30, player.targetY - passo);
-          break;
-        case 'down':
-          ty = Math.min(H - 30, player.targetY + passo);
-          break;
-        case 'left':
-          tx = Math.max(30, player.targetX - passo);
-          break;
-        case 'right':
-          tx = Math.min(W - 30, player.targetX + passo);
-          break;
+        case 'up': ty = Math.max(80 + 30, player.targetY - passo); break;
+        case 'down': ty = Math.min(H - 30, player.targetY + passo); break;
+        case 'left': tx = Math.max(30, player.targetX - passo); break;
+        case 'right': tx = Math.min(W - 30, player.targetX + passo); break;
       }
       moverPlayer(tx, ty);
     }
 
     function encontrarMesaMaisProxima() {
-      let maisProxima = null,
-        menorDist = Infinity;
+      let maisProxima = null, menorDist = Infinity;
       tables.forEach((table, index) => {
         if (table.client) {
-          const dx = player.x - table.x,
-            dy = player.y - table.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < menorDist) { menorDist = dist;
-            maisProxima = index; }
+          const dx = player.x - table.x, dy = player.y - table.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < menorDist) { menorDist = dist; maisProxima = index; }
         }
       });
       return maisProxima;
     }
 
     function estaNoBalcao() {
-      const dx = player.x - (counter.x + counter.w / 2);
-      const dy = player.y - (counter.y + counter.h / 2);
-      return Math.sqrt(dx * dx + dy * dy) < 60;
+      const dx = player.x - (counter.x + counter.w/2);
+      const dy = player.y - (counter.y + counter.h/2);
+      return Math.sqrt(dx*dx + dy*dy) < 60;
     }
 
     function acaoAtender() {
@@ -893,9 +932,8 @@
       if (!c) return;
       if (c.estado !== 'esperando') { showToast(`📋 ${c.nome} já foi atendido.`, 'info'); return; }
 
-      const dx = player.x - table.x,
-        dy = player.y - table.y;
-      if (Math.sqrt(dx * dx + dy * dy) > 80) {
+      const dx = player.x - table.x, dy = player.y - table.y;
+      if (Math.sqrt(dx*dx + dy*dy) > 80) {
         moverPlayer(table.x, table.y - 20);
         setTimeout(() => acaoAtender(), 400);
         return;
@@ -913,7 +951,7 @@
       if (!gameStarted) return;
       if (!estaNoBalcao()) {
         showToast('🚶 Vá até o balcão para pegar a comida.', 'info');
-        moverPlayer(counter.x + counter.w / 2, counter.y + counter.h / 2);
+        moverPlayer(counter.x + counter.w/2, counter.y + counter.h/2);
         setTimeout(() => acaoPegarComida(), 400);
         return;
       }
@@ -953,9 +991,8 @@
         return;
       }
 
-      const dx = player.x - table.x,
-        dy = player.y - table.y;
-      if (Math.sqrt(dx * dx + dy * dy) > 80) {
+      const dx = player.x - table.x, dy = player.y - table.y;
+      if (Math.sqrt(dx*dx + dy*dy) > 80) {
         moverPlayer(table.x, table.y - 20);
         setTimeout(() => acaoServir(), 400);
         return;
@@ -974,7 +1011,7 @@
       if (!gameStarted) return;
       if (!estaNoBalcao()) {
         showToast('🚶 Vá até o balcão para cobrar.', 'info');
-        moverPlayer(counter.x + counter.w / 2, counter.y + counter.h / 2);
+        moverPlayer(counter.x + counter.w/2, counter.y + counter.h/2);
         setTimeout(() => acaoCobrar(), 400);
         return;
       }
@@ -1041,10 +1078,10 @@
     function acaoUpgrade() {
       if (!gameStarted) return;
       const opcoes = [
-        { id: 'speed', nome: '🏃 Velocidade', desc: 'Anda mais rápido', custo: 80 + (state.upgrades.speed || 0) * 50 },
-        { id: 'service', nome: '🤝 Atendimento', desc: 'Clientes pagam mais', custo: 100 + (state.upgrades.service || 0) * 60 },
-        { id: 'marketing', nome: '📢 Marketing', desc: '+ clientes por dia', custo: 120 + (state.upgrades.marketing || 0) * 70 },
-        { id: 'staff', nome: '👨‍🍳 Contratar Func.', desc: 'Ajuda automática (nivel 1-5)', custo: 150 + (state.upgrades.staff || 0) * 100 }
+        { id: 'speed', nome: '🏃 Velocidade', desc: 'Anda mais rápido', custo: 80 + (state.upgrades.speed||0)*50 },
+        { id: 'service', nome: '🤝 Atendimento', desc: 'Clientes pagam mais', custo: 100 + (state.upgrades.service||0)*60 },
+        { id: 'marketing', nome: '📢 Marketing', desc: '+ clientes por dia', custo: 120 + (state.upgrades.marketing||0)*70 },
+        { id: 'staff', nome: '👨‍🍳 Contratar Func.', desc: 'Ajuda automática (nivel 1-5)', custo: 150 + (state.upgrades.staff||0)*100 }
       ];
       let msg = '⬆️ MELHORIAS:\n\n';
       opcoes.forEach(o => {
@@ -1055,13 +1092,13 @@
       msg += 'Digite o número:\n1 - Velocidade\n2 - Atendimento\n3 - Marketing\n4 - Contratar Func.';
       const escolha = prompt(msg);
       if (!escolha) return;
-      const idx = parseInt(escolha) - 1;
+      const idx = parseInt(escolha)-1;
       if (idx < 0 || idx > 3) { showToast('❌ Opção inválida!', 'bad'); return; }
       const op = opcoes[idx];
       if (state.upgrades[op.id] >= 5) { showToast('✅ Já está no nível máximo!', 'info'); return; }
       if (state.money < op.custo) { showToast(`❌ R$ ${op.custo} necessário!`, 'bad'); return; }
       state.money -= op.custo;
-      state.upgrades[op.id] = (state.upgrades[op.id] || 0) + 1;
+      state.upgrades[op.id] = (state.upgrades[op.id]||0) + 1;
       atualizarUI();
       salvarEstado();
       showToast(`⬆️ ${op.nome} melhorado!`, 'good');
@@ -1080,7 +1117,6 @@
         salvarEstado();
         gameStarted = false;
         menuOverlay.classList.remove('hidden');
-        // Mostra o menu com as opções atualizadas
         verificarSave();
         addLog('🚪 Saindo do jogo...', 'info');
         showToast('👋 Até logo!', 'info');
@@ -1096,17 +1132,16 @@
     document.addEventListener('keydown', (e) => {
       if (!gameStarted) return;
       const key = e.key.toLowerCase();
-      if (key === 'w') { andar('up');
-        e.preventDefault(); } else if (key === 's') { andar('down');
-        e.preventDefault(); } else if (key === 'a') { andar('left');
-        e.preventDefault(); } else if (key === 'd') { andar('right');
-        e.preventDefault(); } else if (key === 'e') { acaoAtender();
-        e.preventDefault(); } else if (key === 'f') { acaoPegarComida();
-        e.preventDefault(); } else if (key === 'r') { acaoServir();
-        e.preventDefault(); } else if (key === 'c') { acaoCobrar();
-        e.preventDefault(); } else if (key === 'n') { acaoProximoDia();
-        e.preventDefault(); } else if (key === 'u') { acaoUpgrade();
-        e.preventDefault(); }
+      if (key === 'w') { andar('up'); e.preventDefault(); }
+      else if (key === 's') { andar('down'); e.preventDefault(); }
+      else if (key === 'a') { andar('left'); e.preventDefault(); }
+      else if (key === 'd') { andar('right'); e.preventDefault(); }
+      else if (key === 'e') { acaoAtender(); e.preventDefault(); }
+      else if (key === 'f') { acaoPegarComida(); e.preventDefault(); }
+      else if (key === 'r') { acaoServir(); e.preventDefault(); }
+      else if (key === 'c') { acaoCobrar(); e.preventDefault(); }
+      else if (key === 'n') { acaoProximoDia(); e.preventDefault(); }
+      else if (key === 'u') { acaoUpgrade(); e.preventDefault(); }
     });
 
     document.getElementById('btnUp').addEventListener('click', () => andar('up'));
@@ -1119,6 +1154,10 @@
     document.getElementById('btnReset').addEventListener('click', acaoReset);
     document.getElementById('btnSair').addEventListener('click', sairJogo);
     btnMenuSair.addEventListener('click', voltarSite);
+    document.getElementById('btnSaveManual').addEventListener('click', () => {
+      salvarEstado();
+      showToast('💾 Salvando...', 'info');
+    });
 
     canvas.addEventListener('click', (e) => {
       if (!gameStarted) return;
@@ -1129,8 +1168,7 @@
       const y = (e.clientY - rect.top) * scaleY;
       moverPlayer(x, y);
       tables.forEach((table, index) => {
-        const dx = x - table.x,
-          dy = y - table.y;
+        const dx = x - table.x, dy = y - table.y;
         if (Math.abs(dx) < 30 && Math.abs(dy) < 30) {
           selectedTable = selectedTable === index ? null : index;
         }
@@ -1171,7 +1209,7 @@
     atualizarUI();
     gameLoopId = requestAnimationFrame(gameLoop);
 
-    console.log('☕ Café Runner - Versão Final com Funcionário e Save!');
+    console.log('☕ Café Runner - Save funcionando!');
   </script>
 </body>
 </html>
