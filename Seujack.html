@@ -355,6 +355,14 @@
     playerImg.esquerda.src = 'jack_esquerda.png';
     playerImg.direita.src = 'jack_direita.png';
 
+    // Log para depuração - verificar se as imagens carregaram
+    playerImg.frente.onload = () => console.log('✅ Sprite frente carregado');
+    playerImg.esquerda.onload = () => console.log('✅ Sprite esquerda carregado');
+    playerImg.direita.onload = () => console.log('✅ Sprite direita carregado');
+    playerImg.frente.onerror = () => console.warn('⚠️ Erro ao carregar frente.png');
+    playerImg.esquerda.onerror = () => console.warn('⚠️ Erro ao carregar esquerda.png');
+    playerImg.direita.onerror = () => console.warn('⚠️ Erro ao carregar direita.png');
+
     let playerDirection = 'frente';
 
     // ===== ESTADO =====
@@ -767,6 +775,7 @@
       const moving = Math.abs(dx) > 1 || Math.abs(dy) > 1;
 
       if (moving) {
+        // Prioriza movimento horizontal
         if (Math.abs(dx) > Math.abs(dy)) {
           playerDirection = dx > 0 ? 'direita' : 'esquerda';
         } else {
@@ -776,19 +785,28 @@
 
       // Seleciona a imagem
       let img = playerImg.frente;
-      if (playerDirection === 'esquerda') img = playerImg.esquerda;
-      else if (playerDirection === 'direita') img = playerImg.direita;
+      let useFallback = false;
+      if (playerDirection === 'esquerda') {
+        img = playerImg.esquerda;
+        if (!img.complete || img.naturalWidth === 0) useFallback = true;
+      } else if (playerDirection === 'direita') {
+        img = playerImg.direita;
+        if (!img.complete || img.naturalWidth === 0) useFallback = true;
+      } else {
+        img = playerImg.frente;
+        if (!img.complete || img.naturalWidth === 0) useFallback = true;
+      }
 
-      // Tamanho do sprite ampliado (16x16 -> 32x32)
+      // Tamanho do sprite (ampliado)
       const spriteSize = 32;
       const drawX = player.x - spriteSize/2;
       const drawY = player.y - spriteSize/2;
 
       // Se a imagem estiver carregada, desenha o sprite, senão desenha fallback
-      if (img.complete && img.naturalWidth > 0) {
+      if (!useFallback && img.complete && img.naturalWidth > 0) {
         ctx.drawImage(img, drawX, drawY, spriteSize, spriteSize);
       } else {
-        // Fallback visual (círculo)
+        // Fallback: círculo colorido
         ctx.shadowColor = 'rgba(255,107,53,0.3)';
         ctx.shadowBlur = 20;
         ctx.fillStyle = '#ff6b35';
@@ -1240,7 +1258,7 @@
     const checkImagesLoaded = () => {
       imagesLoaded++;
       if (imagesLoaded === totalImages) {
-        console.log('✅ Sprites carregados!');
+        console.log('✅ Todos os sprites carregados!');
         initTables();
         atualizarUI();
         gameLoopId = requestAnimationFrame(gameLoop);
@@ -1260,6 +1278,8 @@
         gameLoopId = requestAnimationFrame(gameLoop);
       }
     }, 3000);
+
+    console.log('☕ Café Runner - Versão com sprites corrigidos!');
   </script>
 </body>
 </html>
