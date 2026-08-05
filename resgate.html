@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <link rel="icon" href="favicon.png" type="image/x-icon">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Resgate de Prêmios - Jack Bar Café</title>
@@ -289,10 +288,86 @@
       font-weight: bold;
     }
 
+    /* Lista de produtos para editar/remover */
+    .produto-list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      background: #151515;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: 0.2s;
+    }
+    .produto-list-item:hover {
+      border-color: #ff3b3b44;
+    }
+    .produto-list-item .produto-info {
+      flex: 1;
+    }
+    .produto-list-item .produto-info .nome {
+      font-weight: bold;
+      font-size: 1rem;
+    }
+    .produto-list-item .produto-info .custo {
+      color: #ffd27a;
+      font-size: 0.85rem;
+    }
+    .produto-list-item .produto-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .produto-list-item .produto-actions .btn {
+      min-height: 30px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      flex: none;
+    }
+
+    /* Modal de edição */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-content {
+      background: #202020;
+      border-radius: 14px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      border: 1px solid #333;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-content h2 {
+      margin-top: 0;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
     @media (max-width: 480px) {
       .acoes { flex-direction: column; }
       .btn { width: 100%; }
       .admin-search-box { flex-direction: column; }
+      .produto-list-item { flex-direction: column; gap: 10px; }
+      .produto-list-item .produto-actions { width: 100%; }
+      .produto-list-item .produto-actions .btn { flex: 1; }
     }
   </style>
 </head>
@@ -370,7 +445,7 @@
           <div id="adminValidarStatus"></div>
         </div>
 
-        <!-- GERENCIAR USUÁRIO - COM SISTEMA DE CASHBACK -->
+        <!-- GERENCIAR USUÁRIO -->
         <div class="card">
           <h2>👤 Gerenciar Pontos do Usuário</h2>
           <p class="sub">Busque um usuário por telefone ou email</p>
@@ -463,6 +538,15 @@
           </form>
         </div>
 
+        <!-- GERENCIAR PRODUTOS - EDITAR E REMOVER -->
+        <div class="card">
+          <h2>📦 Gerenciar Produtos</h2>
+          <p class="sub">Edite ou remova produtos existentes</p>
+          <div id="listaProdutosAdmin">
+            <div class="loading">⏳ Carregando produtos...</div>
+          </div>
+        </div>
+
         <!-- TODOS OS RESGATES -->
         <div class="card">
           <h2>📊 Todos os Resgates</h2>
@@ -473,6 +557,29 @@
         </div>
       </div>
     </section>
+  </div>
+
+  <!-- MODAL DE EDIÇÃO DE PRODUTO -->
+  <div class="modal-overlay" id="modalEditarProduto">
+    <div class="modal-content">
+      <h2>✏️ Editar Produto</h2>
+      <form id="formEditarProduto" onsubmit="salvarEdicaoProduto(event)">
+        <input type="hidden" id="editProdutoId">
+        <div class="form-group">
+          <label>Nome do Produto</label>
+          <input type="text" id="editNome" required placeholder="Ex: Caneca">
+        </div>
+        <div class="form-group">
+          <label>Custo em Pontos</label>
+          <input type="number" id="editCusto" required placeholder="50" min="1">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn sec" onclick="fecharModalEditar()">Cancelar</button>
+          <button type="submit" class="btn success">💾 Salvar</button>
+        </div>
+      </form>
+      <div id="editStatus" style="margin-top:10px;"></div>
+    </div>
   </div>
 
   <!-- Firebase SDK -->
@@ -507,6 +614,7 @@
     const adminTabsHeader = document.getElementById('adminTabsHeader');
     const linkLoginAdminContainer = document.getElementById('linkLoginAdminContainer');
     const saldoPontos = document.getElementById('saldoPontos');
+    const listaProdutosAdmin = document.getElementById('listaProdutosAdmin');
     
     // ===== VARIÁVEIS GLOBAIS =====
     let usuarioEhAdmin = false;
@@ -515,8 +623,9 @@
     let unsubscribeSaldo = null;
     let unsubscribeRedemptions = null;
     let unsubscribeCatalog = null;
+    let unsubscribeCatalogAdmin = null;
     let usuarioSelecionado = null;
-    let valorPonto = 1.00; // Valor padrão: R$ 1,00 = 1 ponto
+    let valorPonto = 1.00;
 
     // ===== AUTENTICAÇÃO =====
     auth.onAuthStateChanged(async (user) => {
@@ -552,7 +661,6 @@
         if (docSnap.exists) {
           valorPonto = docSnap.data().valorPonto || 1.00;
         } else {
-          // Cria configuração padrão
           await db.collection('config').doc('cashback').set({
             valorPonto: 1.00,
             atualizadoEm: new Date().toISOString()
@@ -594,12 +702,12 @@
 
     // ===== INICIAR LISTENERS =====
     function iniciarListeners(uid) {
+      // Saldo
       if (unsubscribeSaldo) unsubscribeSaldo();
       unsubscribeSaldo = db.collection('users').doc(uid)
         .onSnapshot((doc) => {
           if (doc.exists) {
-            const data = doc.data();
-            saldoAtual = data.points || 0;
+            saldoAtual = doc.data().points || 0;
             saldoPontos.textContent = saldoAtual;
             atualizarBotoesResgate();
           } else {
@@ -612,6 +720,7 @@
           }
         }, (err) => console.warn('⚠️ Erro no saldo:', err));
 
+      // Histórico do usuário
       if (unsubscribeRedemptions) unsubscribeRedemptions();
       unsubscribeRedemptions = db.collection('redemptions')
         .where('usuarioId', '==', uid)
@@ -645,6 +754,7 @@
           historicoUsuario.innerHTML = `<p class="historico-vazio" style="color:#ff8a8a;">❌ Erro ao carregar histórico</p>`;
         });
 
+      // Catálogo para o cliente
       if (unsubscribeCatalog) unsubscribeCatalog();
       unsubscribeCatalog = db.collection('rewards_catalog')
         .orderBy('custo', 'asc')
@@ -683,6 +793,43 @@
           console.error('❌ Erro vitrine:', err);
           vitrineItens.innerHTML = `<div class="produto-padrao"><p>❌ Erro: ${err.message}</p></div>`;
         });
+
+      // Lista de produtos para o admin (se for admin)
+      if (usuarioEhAdmin) {
+        if (unsubscribeCatalogAdmin) unsubscribeCatalogAdmin();
+        unsubscribeCatalogAdmin = db.collection('rewards_catalog')
+          .orderBy('custo', 'asc')
+          .onSnapshot((snapshot) => {
+            listaProdutosAdmin.innerHTML = '';
+            if (snapshot.empty) {
+              listaProdutosAdmin.innerHTML = '<p style="color:#666;padding:8px;">📦 Nenhum produto cadastrado.</p>';
+              return;
+            }
+            snapshot.forEach(doc => {
+              const data = doc.data();
+              listaProdutosAdmin.innerHTML += `
+                <div class="produto-list-item">
+                  <div class="produto-info">
+                    <div class="nome">${data.nome}</div>
+                    <div class="custo">⭐ ${data.custo} pts</div>
+                    <div style="color:#666;font-size:0.7rem;">ID: ${doc.id.substring(0,8)}...</div>
+                  </div>
+                  <div class="produto-actions">
+                    <button class="btn warning sm" onclick="abrirModalEditar('${doc.id}', '${data.nome}', ${data.custo})">
+                      ✏️ Editar
+                    </button>
+                    <button class="btn danger sm" onclick="removerProduto('${doc.id}', '${data.nome}')">
+                      🗑️ Remover
+                    </button>
+                  </div>
+                </div>
+              `;
+            });
+          }, (err) => {
+            console.error('❌ Erro ao carregar produtos para admin:', err);
+            listaProdutosAdmin.innerHTML = `<p style="color:#ff8a8a;">❌ Erro: ${err.message}</p>`;
+          });
+      }
     }
 
     // ===== BUSCAR USUÁRIO (ADMIN) =====
@@ -724,7 +871,6 @@
           `Telefone: ${data.telefone || '-'} | Email: ${data.email || '-'}`;
         document.getElementById('adminUserPoints').textContent = `${data.points || 0} pts`;
         
-        // Mostra o restante acumulado
         const restante = data.restante || 0;
         document.getElementById('restanteValor').textContent = `R$ ${restante.toFixed(2)}`;
         document.getElementById('restanteBox').style.display = 'block';
@@ -767,15 +913,10 @@
           
           const data = doc.data();
           const restanteAtual = data.restante || 0;
-          
-          // Soma o valor gasto ao restante acumulado
           const total = restanteAtual + valorGasto;
-          
-          // Calcula quantos pontos inteiros podem ser gerados
           pontosAdicionados = Math.floor(total / valorPonto);
           restanteNovo = total % valorPonto;
           
-          // Atualiza o usuário
           t.update(userRef, {
             points: (data.points || 0) + pontosAdicionados,
             restante: restanteNovo,
@@ -783,7 +924,6 @@
           });
         });
 
-        // Registra no histórico de pontos
         if (pontosAdicionados > 0) {
           await db.collection('historico_pontos').add({
             usuarioId: usuarioSelecionado.id,
@@ -796,7 +936,6 @@
           });
         }
 
-        // Atualiza a exibição
         usuarioSelecionado.points = (usuarioSelecionado.points || 0) + pontosAdicionados;
         usuarioSelecionado.restante = restanteNovo;
         
@@ -811,7 +950,6 @@
         document.getElementById('adminValorGasto').value = '';
         document.getElementById('adminMotivoCashback').value = '';
 
-        // Se for o próprio usuário, atualiza o saldo na tela
         if (usuarioSelecionado.id === currentUserUid) {
           saldoAtual = usuarioSelecionado.points;
           saldoPontos.textContent = saldoAtual;
@@ -920,6 +1058,67 @@
       }
     }
 
+    // ===== EDITAR PRODUTO =====
+    function abrirModalEditar(id, nome, custo) {
+      document.getElementById('editProdutoId').value = id;
+      document.getElementById('editNome').value = nome;
+      document.getElementById('editCusto').value = custo;
+      document.getElementById('editStatus').innerHTML = '';
+      document.getElementById('modalEditarProduto').classList.add('active');
+    }
+
+    function fecharModalEditar() {
+      document.getElementById('modalEditarProduto').classList.remove('active');
+    }
+
+    async function salvarEdicaoProduto(e) {
+      e.preventDefault();
+      if (!usuarioEhAdmin) return alert("Apenas administradores podem editar produtos.");
+
+      const id = document.getElementById('editProdutoId').value;
+      const nome = document.getElementById('editNome').value.trim();
+      const custo = Number(document.getElementById('editCusto').value);
+
+      if (!nome || custo <= 0) {
+        document.getElementById('editStatus').innerHTML = '<p class="warn">⚠️ Preencha todos os campos corretamente.</p>';
+        return;
+      }
+
+      try {
+        await db.collection('rewards_catalog').doc(id).update({
+          nome: nome,
+          custo: custo,
+          atualizadoEm: new Date().toISOString(),
+          atualizadoPor: currentUserUid
+        });
+
+        document.getElementById('editStatus').innerHTML = '<p class="sucesso">✅ Produto atualizado com sucesso!</p>';
+        setTimeout(() => {
+          fecharModalEditar();
+        }, 1500);
+      } catch (error) {
+        console.error('❌ Erro ao editar produto:', error);
+        document.getElementById('editStatus').innerHTML = `<p class="erro">❌ ${error.message}</p>`;
+      }
+    }
+
+    // ===== REMOVER PRODUTO =====
+    async function removerProduto(id, nome) {
+      if (!usuarioEhAdmin) return alert("Apenas administradores podem remover produtos.");
+      
+      if (!confirm(`Tem certeza que deseja remover o produto "${nome}"?\n\nEsta ação não pode ser desfeita.`)) {
+        return;
+      }
+
+      try {
+        await db.collection('rewards_catalog').doc(id).delete();
+        alert(`✅ Produto "${nome}" removido com sucesso!`);
+      } catch (error) {
+        console.error('❌ Erro ao remover produto:', error);
+        alert('❌ Erro ao remover produto: ' + error.message);
+      }
+    }
+
     // ===== RECARREGAR FUNÇÕES =====
     function recarregarSaldo() {
       if (currentUserUid) {
@@ -1016,6 +1215,8 @@
           adminPanel.style.display = 'block';
           console.log('👑 Usuário é ADMIN');
           ouvirTodosOsResgatesAdmin();
+          // Inicia o listener de produtos para admin
+          iniciarListeners(uid);
           return;
         }
         console.log('👤 Usuário é CLIENTE');
@@ -1061,6 +1262,7 @@
       if (unsubscribeSaldo) unsubscribeSaldo();
       if (unsubscribeRedemptions) unsubscribeRedemptions();
       if (unsubscribeCatalog) unsubscribeCatalog();
+      if (unsubscribeCatalogAdmin) unsubscribeCatalogAdmin();
       auth.signOut().then(() => window.location.reload());
     }
 
@@ -1260,6 +1462,13 @@
           logsGlobaisAdmin.innerHTML = `<p style="color:#ff8a8a;">❌ ${err.message}</p>`;
         });
     }
+
+    // Fechar modal ao clicar fora
+    document.getElementById('modalEditarProduto').addEventListener('click', function(e) {
+      if (e.target === this) {
+        fecharModalEditar();
+      }
+    });
 
     console.log('🚀 App carregado! Sistema de Cashback ativo.');
   </script>
