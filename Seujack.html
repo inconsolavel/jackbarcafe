@@ -182,6 +182,7 @@
     .btn.purple { background: #9b59b6; border-color: #9b59b6; }
     .btn.pink { background: #e84393; border-color: #e84393; }
     .btn.sec { background: rgba(255,255,255,0.08); }
+    .btn.gold { background: #d4a017; border-color: #d4a017; color: #fff; }
 
     .log-container {
       background: rgba(0,0,0,0.3);
@@ -196,6 +197,7 @@
     .log-container .log-entry .good { color: #2ecc71; }
     .log-container .log-entry .bad { color: #e74c3c; }
     .log-container .log-entry .info { color: #3498db; }
+    .log-container .log-entry .warn { color: #f39c12; }
 
     .toast {
       position: fixed;
@@ -245,6 +247,7 @@
       <div class="menu-buttons">
         <button class="menu-btn primary" id="btnNewGame" disabled>🚀 Novo Jogo</button>
         <button class="menu-btn success" id="btnContinue" disabled>📂 Continuar</button>
+        <button class="menu-btn" id="btnMenuSair" style="background:#e74c3c;border-color:#e74c3c;">🏠 Voltar ao Site</button>
       </div>
       <div class="save-info" id="saveInfo"><span id="saveStatus">🔑 Aguardando login...</span></div>
       <div class="loading-text" id="loadingText"></div>
@@ -262,6 +265,7 @@
       <div class="stat-card"><div class="value" id="statClients">0</div><div class="label">👥 Atendidos</div></div>
       <div class="stat-card"><div class="value rating" id="statRating">⭐ 3.0</div><div class="label">📊 Avaliação</div></div>
       <div class="stat-card"><div class="value day" id="statDay">Dia 1</div><div class="label">📅</div></div>
+      <div class="stat-card"><div class="value" id="statStaff">0</div><div class="label">👨‍🍳 Func.</div></div>
     </div>
 
     <!-- CANVAS -->
@@ -274,14 +278,15 @@
       <div class="btn-group">
         <button class="btn primary" id="btnUp">⬆️ Andar <span class="key">W</span></button>
         <button class="btn success" id="btnInteract">📋 Atender <span class="key">E</span></button>
-        <button class="btn warning" id="btnServe">🍽️ Servir <span class="key">R</span></button>
-        <button class="btn info" id="btnPegarComida">🍳 Pegar Comida <span class="key">F</span></button>
+        <button class="btn warning" id="btnPegarComida">🍳 Pegar Comida <span class="key">F</span></button>
+        <button class="btn info" id="btnServe">🍽️ Servir <span class="key">R</span></button>
         <button class="btn purple" id="btnCobrar">💰 Cobrar <span class="key">C</span></button>
       </div>
       <div class="btn-group">
         <button class="btn sec" id="btnNextDay">⏭️ Próx. Dia <span class="key">N</span></button>
-        <button class="btn pink" id="btnUpgrade">⬆️ Melhorar <span class="key">U</span></button>
+        <button class="btn gold" id="btnUpgrade">⬆️ Melhorar <span class="key">U</span></button>
         <button class="btn danger" id="btnReset">🔄 Reiniciar</button>
+        <button class="btn sec" id="btnSair" style="background:#c0392b;border-color:#c0392b;">🚪 Sair</button>
       </div>
     </div>
 
@@ -314,6 +319,7 @@
     const menuOverlay = document.getElementById('menuOverlay');
     const btnNewGame = document.getElementById('btnNewGame');
     const btnContinue = document.getElementById('btnContinue');
+    const btnMenuSair = document.getElementById('btnMenuSair');
     const saveStatus = document.getElementById('saveStatus');
     const loadingText = document.getElementById('loadingText');
 
@@ -325,6 +331,7 @@
     const statClients = document.getElementById('statClients');
     const statRating = document.getElementById('statRating');
     const statDay = document.getElementById('statDay');
+    const statStaff = document.getElementById('statStaff');
     const logContainer = document.getElementById('logContainer');
     const playerNameEl = document.getElementById('playerName');
 
@@ -334,7 +341,12 @@
       clients: 0,
       rating: 3.0,
       day: 1,
-      upgrades: { speed: 0, service: 0, marketing: 0 }
+      upgrades: {
+        speed: 0,
+        service: 0,
+        marketing: 0,
+        staff: 0      // nível de funcionários contratados
+      }
     };
 
     let player = {
@@ -361,6 +373,8 @@
     let saveData = null;
     let spawnTimer = 0;
     const SPAWN_INTERVAL = 10; // segundos
+    let staffTimer = 0;
+    const STAFF_INTERVAL = 8; // segundos para o funcionário ajudar
 
     // ===== FUNÇÕES AUXILIARES =====
 
@@ -386,6 +400,7 @@
       statClients.textContent = state.clients;
       statRating.textContent = '⭐ ' + state.rating.toFixed(1);
       statDay.textContent = 'Dia ' + state.day;
+      statStaff.textContent = state.upgrades.staff || 0;
     }
 
     function salvarEstado() {
@@ -393,9 +408,11 @@
       const data = {
         ...state,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        userId, userName
+        userId: userId,
+        userName: userName
       };
       db.collection('cafeManager').doc(userId).set(data, { merge: true })
+        .then(() => console.log('💾 Jogo salvo'))
         .catch(err => console.error('❌ Erro ao salvar:', err));
     }
 
@@ -405,7 +422,7 @@
         clients: dados.clients || 0,
         rating: dados.rating || 3.0,
         day: dados.day || 1,
-        upgrades: dados.upgrades || { speed: 0, service: 0, marketing: 0 }
+        upgrades: dados.upgrades || { speed: 0, service: 0, marketing: 0, staff: 0 }
       };
       atualizarUI();
       addLog('📂 Progresso carregado! Dia ' + state.day, 'info');
@@ -447,7 +464,13 @@
 
     function iniciarJogo(novoJogo) {
       if (novoJogo) {
-        state = { money: 100, clients: 0, rating: 3.0, day: 1, upgrades: { speed: 0, service: 0, marketing: 0 } };
+        state = {
+          money: 100,
+          clients: 0,
+          rating: 3.0,
+          day: 1,
+          upgrades: { speed: 0, service: 0, marketing: 0, staff: 0 }
+        };
         player.x = 400; player.y = 250;
         player.targetX = 400; player.targetY = 250;
         initTables();
@@ -463,7 +486,10 @@
           initTables();
           addLog('📂 Jogo continuado!', 'info');
           showToast('📂 Save carregado!', 'info');
-        } else { iniciarJogo(true); return; }
+        } else {
+          iniciarJogo(true);
+          return;
+        }
       }
 
       gameStarted = true;
@@ -481,7 +507,6 @@
     // ===== CLIENTES =====
 
     function spawnCliente() {
-      // Procura mesa vazia
       let mesaVazia = -1;
       for (let i = 0; i < tables.length; i++) {
         if (!tables[i].client) { mesaVazia = i; break; }
@@ -490,11 +515,11 @@
 
       const nomes = ['João', 'Maria', 'Pedro', 'Ana', 'Carlos', 'Julia', 'Rafael', 'Fernanda', 'Lucas', 'Mariana'];
       const pedidos = ['Café', 'Cappuccino', 'Pão de Queijo', 'Bolo', 'Sanduíche', 'Suco', 'Chá', 'Torta', 'Croissant', 'Misto'];
-      
+
       const cliente = {
         nome: nomes[Math.floor(Math.random() * nomes.length)],
         pedido: pedidos[Math.floor(Math.random() * pedidos.length)],
-        estado: 'esperando', // esperando, atendido, servido, comendo, indo_cobrar, pagando
+        estado: 'esperando',
         tempo: 30 + Math.floor(Math.random() * 20),
         pagamento: 10 + Math.floor(Math.random() * 20),
         satisfacao: 0.6 + Math.random() * 0.4,
@@ -514,8 +539,60 @@
         x: pos.x, y: pos.y,
         client: null,
         timer: 0,
-        _pagouTimer: 0
+        _pagouTimer: 0,
+        _cobrarTimer: 0
       }));
+    }
+
+    // ===== FUNÇÃO DE AJUDA DO FUNCIONÁRIO =====
+
+    function staffHelp() {
+      const staffLevel = state.upgrades.staff || 0;
+      if (staffLevel === 0) return;
+
+      // Funcionário atende automaticamente clientes em estado 'esperando'
+      let atendidos = 0;
+      for (const table of tables) {
+        if (table.client && table.client.estado === 'esperando' && atendidos < staffLevel) {
+          table.client.estado = 'atendido';
+          atendidos++;
+          addLog(`👨‍🍳 Funcionário atendeu ${table.client.nome} automaticamente!`, 'good');
+        }
+      }
+      if (atendidos > 0) {
+        showToast(`👨‍🍳 Funcionário atendeu ${atendidos} cliente(s)!`, 'info');
+      }
+
+      // Funcionário também pode pegar comida e servir (nível mais alto)
+      if (staffLevel >= 2) {
+        let servidos = 0;
+        for (const table of tables) {
+          if (table.client && table.client.estado === 'atendido' && servidos < staffLevel - 1) {
+            table.client.estado = 'servido';
+            servidos++;
+            addLog(`👨‍🍳 Funcionário preparou a comida de ${table.client.nome}!`, 'good');
+          }
+        }
+        if (servidos > 0) {
+          showToast(`👨‍🍳 Funcionário preparou ${servidos} pedidos!`, 'info');
+        }
+      }
+
+      // Nível 3+ serve a comida na mesa
+      if (staffLevel >= 3) {
+        let entregues = 0;
+        for (const table of tables) {
+          if (table.client && table.client.estado === 'servido' && entregues < staffLevel - 2) {
+            table.client.estado = 'comendo';
+            table.client.timerComendo = table.client.tempoComer;
+            entregues++;
+            addLog(`👨‍🍳 Funcionário serviu ${table.client.nome}!`, 'good');
+          }
+        }
+        if (entregues > 0) {
+          showToast(`👨‍🍳 Funcionário entregou ${entregues} pedidos!`, 'info');
+        }
+      }
     }
 
     // ===== DESENHO =====
@@ -523,10 +600,10 @@
     function desenharCenario() {
       ctx.fillStyle = '#1a1a2e';
       ctx.fillRect(0, 0, W, H);
-      
+
       ctx.fillStyle = '#1e1e3a';
       ctx.fillRect(0, 80, W, H - 80);
-      
+
       ctx.strokeStyle = 'rgba(255,255,255,0.03)';
       ctx.lineWidth = 1;
       for (let x = 0; x < W; x += 40) {
@@ -555,17 +632,37 @@
       ctx.font = '10px Arial';
       ctx.fillText('BALCÃO', counter.x + counter.w/2, counter.y + 72);
 
-      // Mesas e clientes
+      // Funcionário NPC (se contratado)
+      if (state.upgrades.staff > 0) {
+        const staffX = 120 + state.upgrades.staff * 20;
+        const staffY = 440;
+        ctx.fillStyle = '#2ecc71';
+        ctx.beginPath();
+        ctx.arc(staffX, staffY - 10, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f5cba7';
+        ctx.beginPath();
+        ctx.arc(staffX, staffY - 22, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = '8px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('👨‍🍳 Func.', staffX, staffY - 38);
+        ctx.fillStyle = '#ffd27a';
+        ctx.font = '7px Arial';
+        ctx.fillText('Nv.' + state.upgrades.staff, staffX, staffY + 10);
+      }
+
+      // Mesas
       tables.forEach((table, index) => {
         const x = table.x, y = table.y;
         ctx.fillStyle = '#2d1b0e';
         ctx.fillRect(x - 20, y - 10, 40, 20);
         ctx.fillStyle = '#3d2b1e';
         ctx.fillRect(x - 15, y - 6, 30, 6);
-        
+
         if (table.client) {
           const c = table.client;
-          // Corpo
           ctx.fillStyle = '#4a6fa5';
           ctx.beginPath();
           ctx.arc(x, y - 18, 12, 0, Math.PI * 2);
@@ -574,17 +671,16 @@
           ctx.beginPath();
           ctx.arc(x, y - 28, 8, 0, Math.PI * 2);
           ctx.fill();
-          
+
           ctx.fillStyle = '#fff';
           ctx.font = '9px Arial';
           ctx.textAlign = 'center';
           ctx.fillText(c.nome, x, y - 40);
-          
+
           ctx.fillStyle = '#ffd27a';
           ctx.font = '8px Arial';
           ctx.fillText('📝 ' + c.pedido, x, y + 12);
-          
-          // Estado
+
           let cor = '#f39c12';
           let statusText = '⏳ Esperando';
           if (c.estado === 'atendido') { cor = '#3498db'; statusText = '📋 Atendido'; }
@@ -592,11 +688,11 @@
           else if (c.estado === 'comendo') { cor = '#2ecc71'; statusText = '😋 Comendo'; }
           else if (c.estado === 'indo_cobrar') { cor = '#f39c12'; statusText = '🚶 Indo cobrar'; }
           else if (c.estado === 'pagando') { cor = '#9b59b6'; statusText = '💰 Pagando'; }
-          
+
           ctx.fillStyle = cor;
           ctx.font = '7px Arial';
           ctx.fillText(statusText, x, y + 24);
-          
+
           if (c.estado === 'esperando' || c.estado === 'atendido') {
             ctx.fillStyle = '#e74c3c';
             ctx.font = '8px Arial';
@@ -628,7 +724,7 @@
       ctx.font = '9px Arial';
       ctx.textAlign = 'center';
       ctx.fillText('🧑‍🍳 Você', player.x, player.y - 38);
-      
+
       if (selectedTable !== null && tables[selectedTable]) {
         const t = tables[selectedTable];
         ctx.strokeStyle = '#ffd27a';
@@ -665,12 +761,20 @@
         spawnCliente();
       }
 
+      // Funcionário ajuda (a cada STAFF_INTERVAL segundos)
+      if (state.upgrades.staff > 0) {
+        staffTimer += delta;
+        if (staffTimer >= STAFF_INTERVAL) {
+          staffTimer = 0;
+          staffHelp();
+        }
+      }
+
       // Atualiza timers dos clientes
       tables.forEach((table) => {
         if (!table.client) return;
         const c = table.client;
 
-        // Timer de espera (para estados esperando e atendido)
         if ((c.estado === 'esperando' || c.estado === 'atendido') && table.timer > 0) {
           table.timer -= delta;
           if (table.timer <= 0) {
@@ -684,7 +788,6 @@
           }
         }
 
-        // Cliente comendo
         if (c.estado === 'comendo') {
           c.timerComendo -= delta;
           if (c.timerComendo <= 0) {
@@ -694,9 +797,7 @@
           }
         }
 
-        // Cliente indo cobrar - simula movimento ao balcão
         if (c.estado === 'indo_cobrar') {
-          // Após um pequeno delay, vai para o balcão
           if (!table._cobrarTimer) table._cobrarTimer = 0;
           table._cobrarTimer += delta;
           if (table._cobrarTimer > 2) {
@@ -707,7 +808,6 @@
           }
         }
 
-        // Cliente pagou - desaparece
         if (c.estado === 'pagou') {
           if (!table._pagouTimer) table._pagouTimer = 0;
           table._pagouTimer += delta;
@@ -722,6 +822,7 @@
     }
 
     let lastTime = 0;
+
     function gameLoop(timestamp) {
       const delta = lastTime ? (timestamp - lastTime) / 1000 : 0;
       lastTime = timestamp;
@@ -743,35 +844,46 @@
 
     function andar(direcao) {
       const passo = 80 + state.upgrades.speed * 10;
-      let tx = player.targetX, ty = player.targetY;
-      switch(direcao) {
-        case 'up': ty = Math.max(80+30, player.targetY - passo); break;
-        case 'down': ty = Math.min(H-30, player.targetY + passo); break;
-        case 'left': tx = Math.max(30, player.targetX - passo); break;
-        case 'right': tx = Math.min(W-30, player.targetX + passo); break;
+      let tx = player.targetX,
+        ty = player.targetY;
+      switch (direcao) {
+        case 'up':
+          ty = Math.max(80 + 30, player.targetY - passo);
+          break;
+        case 'down':
+          ty = Math.min(H - 30, player.targetY + passo);
+          break;
+        case 'left':
+          tx = Math.max(30, player.targetX - passo);
+          break;
+        case 'right':
+          tx = Math.min(W - 30, player.targetX + passo);
+          break;
       }
       moverPlayer(tx, ty);
     }
 
     function encontrarMesaMaisProxima() {
-      let maisProxima = null, menorDist = Infinity;
+      let maisProxima = null,
+        menorDist = Infinity;
       tables.forEach((table, index) => {
         if (table.client) {
-          const dx = player.x - table.x, dy = player.y - table.y;
-          const dist = Math.sqrt(dx*dx + dy*dy);
-          if (dist < menorDist) { menorDist = dist; maisProxima = index; }
+          const dx = player.x - table.x,
+            dy = player.y - table.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < menorDist) { menorDist = dist;
+            maisProxima = index; }
         }
       });
       return maisProxima;
     }
 
     function estaNoBalcao() {
-      const dx = player.x - (counter.x + counter.w/2);
-      const dy = player.y - (counter.y + counter.h/2);
-      return Math.sqrt(dx*dx + dy*dy) < 60;
+      const dx = player.x - (counter.x + counter.w / 2);
+      const dy = player.y - (counter.y + counter.h / 2);
+      return Math.sqrt(dx * dx + dy * dy) < 60;
     }
 
-    // Atender cliente na mesa (E)
     function acaoAtender() {
       if (!gameStarted) return;
       const idx = encontrarMesaMaisProxima();
@@ -781,8 +893,9 @@
       if (!c) return;
       if (c.estado !== 'esperando') { showToast(`📋 ${c.nome} já foi atendido.`, 'info'); return; }
 
-      const dx = player.x - table.x, dy = player.y - table.y;
-      if (Math.sqrt(dx*dx + dy*dy) > 80) {
+      const dx = player.x - table.x,
+        dy = player.y - table.y;
+      if (Math.sqrt(dx * dx + dy * dy) > 80) {
         moverPlayer(table.x, table.y - 20);
         setTimeout(() => acaoAtender(), 400);
         return;
@@ -796,17 +909,15 @@
       salvarEstado();
     }
 
-    // Pegar comida no balcão (F)
     function acaoPegarComida() {
       if (!gameStarted) return;
       if (!estaNoBalcao()) {
         showToast('🚶 Vá até o balcão para pegar a comida.', 'info');
-        moverPlayer(counter.x + counter.w/2, counter.y + counter.h/2);
+        moverPlayer(counter.x + counter.w / 2, counter.y + counter.h / 2);
         setTimeout(() => acaoPegarComida(), 400);
         return;
       }
 
-      // Verifica se tem algum cliente atendido esperando comida
       let encontrou = false;
       for (const table of tables) {
         if (table.client && table.client.estado === 'atendido') {
@@ -819,7 +930,6 @@
         return;
       }
 
-      // Marca o primeiro cliente atendido como servido (comida pronta)
       for (const table of tables) {
         if (table.client && table.client.estado === 'atendido') {
           table.client.estado = 'servido';
@@ -831,7 +941,6 @@
       salvarEstado();
     }
 
-    // Servir comida na mesa (R)
     function acaoServir() {
       if (!gameStarted) return;
       const idx = encontrarMesaMaisProxima();
@@ -844,8 +953,9 @@
         return;
       }
 
-      const dx = player.x - table.x, dy = player.y - table.y;
-      if (Math.sqrt(dx*dx + dy*dy) > 80) {
+      const dx = player.x - table.x,
+        dy = player.y - table.y;
+      if (Math.sqrt(dx * dx + dy * dy) > 80) {
         moverPlayer(table.x, table.y - 20);
         setTimeout(() => acaoServir(), 400);
         return;
@@ -860,17 +970,15 @@
       salvarEstado();
     }
 
-    // Cobrar cliente no balcão (C)
     function acaoCobrar() {
       if (!gameStarted) return;
       if (!estaNoBalcao()) {
         showToast('🚶 Vá até o balcão para cobrar.', 'info');
-        moverPlayer(counter.x + counter.w/2, counter.y + counter.h/2);
+        moverPlayer(counter.x + counter.w / 2, counter.y + counter.h / 2);
         setTimeout(() => acaoCobrar(), 400);
         return;
       }
 
-      // Procura cliente no balcão aguardando pagamento
       let encontrou = false;
       for (const table of tables) {
         if (table.client && table.client.estado === 'pagando') {
@@ -933,25 +1041,27 @@
     function acaoUpgrade() {
       if (!gameStarted) return;
       const opcoes = [
-        { id: 'speed', nome: '🏃 Velocidade', desc: 'Anda mais rápido', custo: 80 + (state.upgrades.speed||0)*50 },
-        { id: 'service', nome: '🤝 Atendimento', desc: 'Clientes pagam mais', custo: 100 + (state.upgrades.service||0)*60 },
-        { id: 'marketing', nome: '📢 Marketing', desc: '+ clientes por dia', custo: 120 + (state.upgrades.marketing||0)*70 }
+        { id: 'speed', nome: '🏃 Velocidade', desc: 'Anda mais rápido', custo: 80 + (state.upgrades.speed || 0) * 50 },
+        { id: 'service', nome: '🤝 Atendimento', desc: 'Clientes pagam mais', custo: 100 + (state.upgrades.service || 0) * 60 },
+        { id: 'marketing', nome: '📢 Marketing', desc: '+ clientes por dia', custo: 120 + (state.upgrades.marketing || 0) * 70 },
+        { id: 'staff', nome: '👨‍🍳 Contratar Func.', desc: 'Ajuda automática (nivel 1-5)', custo: 150 + (state.upgrades.staff || 0) * 100 }
       ];
       let msg = '⬆️ MELHORIAS:\n\n';
       opcoes.forEach(o => {
         const level = state.upgrades[o.id] || 0;
-        msg += `${o.nome} (Nv.${level}/5)\n  ${o.desc}\n  ${level>=5 ? '✅ MAX' : '💰 R$ '+o.custo}\n\n`;
+        const maxed = level >= 5;
+        msg += `${o.nome} (Nv.${level}/5)\n  ${o.desc}\n  ${maxed ? '✅ MAX' : '💰 R$ ' + o.custo}\n\n`;
       });
-      msg += 'Digite o número:\n1 - Velocidade\n2 - Atendimento\n3 - Marketing';
+      msg += 'Digite o número:\n1 - Velocidade\n2 - Atendimento\n3 - Marketing\n4 - Contratar Func.';
       const escolha = prompt(msg);
       if (!escolha) return;
-      const idx = parseInt(escolha)-1;
-      if (idx<0 || idx>2) { showToast('❌ Opção inválida!', 'bad'); return; }
+      const idx = parseInt(escolha) - 1;
+      if (idx < 0 || idx > 3) { showToast('❌ Opção inválida!', 'bad'); return; }
       const op = opcoes[idx];
       if (state.upgrades[op.id] >= 5) { showToast('✅ Já está no nível máximo!', 'info'); return; }
       if (state.money < op.custo) { showToast(`❌ R$ ${op.custo} necessário!`, 'bad'); return; }
       state.money -= op.custo;
-      state.upgrades[op.id] = (state.upgrades[op.id]||0) + 1;
+      state.upgrades[op.id] = (state.upgrades[op.id] || 0) + 1;
       atualizarUI();
       salvarEstado();
       showToast(`⬆️ ${op.nome} melhorado!`, 'good');
@@ -960,8 +1070,25 @@
 
     function acaoReset() {
       if (!gameStarted) return;
-      if (!confirm('Tem certeza que deseja reiniciar?')) return;
+      if (!confirm('Tem certeza que deseja reiniciar? Todo progresso será perdido!')) return;
       iniciarJogo(true);
+    }
+
+    function sairJogo() {
+      if (!gameStarted) return;
+      if (confirm('Deseja sair do jogo? Seu progresso será salvo.')) {
+        salvarEstado();
+        gameStarted = false;
+        menuOverlay.classList.remove('hidden');
+        // Mostra o menu com as opções atualizadas
+        verificarSave();
+        addLog('🚪 Saindo do jogo...', 'info');
+        showToast('👋 Até logo!', 'info');
+      }
+    }
+
+    function voltarSite() {
+      window.location.href = 'index.html';
     }
 
     // ===== CONTROLES =====
@@ -969,16 +1096,17 @@
     document.addEventListener('keydown', (e) => {
       if (!gameStarted) return;
       const key = e.key.toLowerCase();
-      if (key === 'w') { andar('up'); e.preventDefault(); }
-      else if (key === 's') { andar('down'); e.preventDefault(); }
-      else if (key === 'a') { andar('left'); e.preventDefault(); }
-      else if (key === 'd') { andar('right'); e.preventDefault(); }
-      else if (key === 'e') { acaoAtender(); e.preventDefault(); }
-      else if (key === 'f') { acaoPegarComida(); e.preventDefault(); }
-      else if (key === 'r') { acaoServir(); e.preventDefault(); }
-      else if (key === 'c') { acaoCobrar(); e.preventDefault(); }
-      else if (key === 'n') { acaoProximoDia(); e.preventDefault(); }
-      else if (key === 'u') { acaoUpgrade(); e.preventDefault(); }
+      if (key === 'w') { andar('up');
+        e.preventDefault(); } else if (key === 's') { andar('down');
+        e.preventDefault(); } else if (key === 'a') { andar('left');
+        e.preventDefault(); } else if (key === 'd') { andar('right');
+        e.preventDefault(); } else if (key === 'e') { acaoAtender();
+        e.preventDefault(); } else if (key === 'f') { acaoPegarComida();
+        e.preventDefault(); } else if (key === 'r') { acaoServir();
+        e.preventDefault(); } else if (key === 'c') { acaoCobrar();
+        e.preventDefault(); } else if (key === 'n') { acaoProximoDia();
+        e.preventDefault(); } else if (key === 'u') { acaoUpgrade();
+        e.preventDefault(); }
     });
 
     document.getElementById('btnUp').addEventListener('click', () => andar('up'));
@@ -989,6 +1117,8 @@
     document.getElementById('btnNextDay').addEventListener('click', acaoProximoDia);
     document.getElementById('btnUpgrade').addEventListener('click', acaoUpgrade);
     document.getElementById('btnReset').addEventListener('click', acaoReset);
+    document.getElementById('btnSair').addEventListener('click', sairJogo);
+    btnMenuSair.addEventListener('click', voltarSite);
 
     canvas.addEventListener('click', (e) => {
       if (!gameStarted) return;
@@ -999,7 +1129,8 @@
       const y = (e.clientY - rect.top) * scaleY;
       moverPlayer(x, y);
       tables.forEach((table, index) => {
-        const dx = x - table.x, dy = y - table.y;
+        const dx = x - table.x,
+          dy = y - table.y;
         if (Math.abs(dx) < 30 && Math.abs(dy) < 30) {
           selectedTable = selectedTable === index ? null : index;
         }
@@ -1040,7 +1171,7 @@
     atualizarUI();
     gameLoopId = requestAnimationFrame(gameLoop);
 
-    console.log('☕ Café Runner - Nova versão com fluxo completo!');
+    console.log('☕ Café Runner - Versão Final com Funcionário e Save!');
   </script>
 </body>
 </html>
