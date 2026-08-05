@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Resgatar Produto - Jack Bar Café</title>
+  <title>Resgate de Prêmios - Jack Bar Café</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -12,102 +12,278 @@
       background: linear-gradient(180deg, #111 0%, #1b1b1b 100%);
       color: #fff;
       min-height: 100svh;
-      display: grid;
-      place-items: center;
       padding: 16px;
     }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
     .card {
-      width: min(560px, 100%);
       background: #202020;
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 14px;
       padding: 20px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      margin-bottom: 20px;
     }
-    h1 {
-      text-align: center;
+    h1, h2, h3 {
       margin: 0 0 10px;
       color: #ff3b3b;
-      font-size: clamp(1.3rem, 4.5vw, 1.8rem);
     }
+    h1 { text-align: center; font-size: clamp(1.3rem, 4.5vw, 1.8rem); }
     .sub { text-align: center; color: #bbb; margin-bottom: 16px; }
-    .status {
+    
+    /* Alternador de Abas (Admin / Usuário) */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      background: #252525;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #aaa;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 8px;
+      transition: 0.2s;
+    }
+    .tab-btn.active {
+      background: #ff3b3b;
+      color: #fff;
+      border-color: #ff3b3b;
+    }
+
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+
+    /* Formulários e Inputs */
+    .form-group {
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #ccc;
+      font-size: 0.9rem;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 11px;
+      background: #151515;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #ff3b3b;
+    }
+
+    /* Listas e Itens */
+    .grid-itens {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .item-card {
+      background: #151515;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .item-nome { font-weight: bold; font-size: 1.1rem; margin-bottom: 4px; }
+    .item-custo { color: #ffd27a; font-size: 0.9rem; margin-bottom: 10px; }
+
+    /* Feedback de Status */
+    .status-box {
       background: #151515;
       border-radius: 10px;
       padding: 14px;
       border: 1px solid rgba(255,255,255,0.05);
       margin-bottom: 12px;
-      word-break: break-word;
-      line-height: 1.55;
+      text-align: center;
     }
-    .resposta { margin-top: 10px; font-size: 1rem; line-height: 1.55; word-break: break-word; }
     .erro { color: #ff8a8a; }
     .sucesso { color: #85ff9f; }
     .warn { color: #ffd27a; }
-    .meta {
-      margin-top: 14px;
-      padding: 12px;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.03);
-      color: #ccc;
-      font-size: 0.92rem;
-      line-height: 1.45;
+
+    /* Histórico e Listas Gerenciais */
+    .lista-logs {
+      max-height: 300px;
+      overflow-y: auto;
+      background: #151515;
+      border-radius: 8px;
+      padding: 10px;
     }
-    .acoes {
+    .log-item {
+      padding: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.85rem;
       display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 16px;
+      justify-content: space-between;
+      align-items: center;
     }
+    .log-item:last-child { border: 0; }
+    .badge {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+    .badge.pendente { background: #ffd27a; color: #000; }
+    .badge.validado { background: #85ff9f; color: #000; }
+
+    /* Botões */
+    .acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      text-decoration: none;
       border: 0;
       border-radius: 10px;
       padding: 11px 14px;
       cursor: pointer;
       font-weight: 700;
-      background: #ff0000;
+      background: #ff3b3b;
       color: #fff;
-      flex: 1 1 180px;
+      flex: 1 1 140px;
       min-height: 44px;
+      text-decoration: none;
+      text-align: center;
     }
     .btn.sec { background: #323232; }
+    .btn.sm { min-height: 30px; padding: 6px 10px; font-size: 0.8rem; flex: none; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .token-display {
+      font-family: monospace;
+      font-size: 1.4rem;
+      background: #111;
+      padding: 10px;
+      letter-spacing: 2px;
+      border: 1px dashed #ff3b3b;
+      margin: 10px 0;
+      display: inline-block;
+    }
+
     @media (max-width: 480px) {
-      .card { padding: 16px; }
       .acoes { flex-direction: column; }
       .btn { width: 100%; }
     }
   </style>
 </head>
 <body>
-  <main class="card">
-    <h1>Resgatar Produto</h1>
-    <p class="sub">Validação de QR Code do Jack Bar Café</p>
 
-    <div class="status" id="status">Validando resgate...</div>
-    <div class="resposta" id="resposta"></div>
-    <div class="meta" id="meta"></div>
+  <div class="container">
+    <!-- Abas de Navegação -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('user')">Área do Cliente</button>
+      <button class="tab-btn" id="adminTabBtn" onclick="switchTab('admin')">Área do Admin</button>
+    </div>
+
+    <!-- ================= VISÃO DO USUÁRIO ================= -->
+    <section id="userView" class="view-section active">
+      <main class="card">
+        <h1>Resgatar Prêmios</h1>
+        <p class="sub">Troque seus pontos por recompensas exclusivas</p>
+
+        <div id="userStatus" class="status-box warn">Carregando catálogo de prêmios...</div>
+
+        <h3>Itens Disponíveis</h3>
+        <div class="grid-itens" id="vitrineItens">
+          <!-- Inserido dinamicamente via JS -->
+        </div>
+
+        <!-- Feedback de Geração de Token -->
+        <div id="tokenResultado" style="display:none; margin-top:20px; border-top:1px solid #333; padding-top:15px;">
+          <h3 class="sucesso">Token Gerado com Sucesso!</h3>
+          <p>Mostre o código abaixo ao atendente para receber seu prêmio:</p>
+          <center><div class="token-display" id="tokenGerado">------</div></center>
+          <p style="font-size:0.85rem; color:#aaa;">*Este token foi salvo no seu histórico e mudará de status assim que validado pelo caixa.</p>
+        </div>
+
+        <h3 style="margin-top:25px;">Meu Histórico de Resgates</h3>
+        <div class="lista-logs" id="historicoUsuario">
+          <p style="color:#666; padding:8px;">Nenhum resgate encontrado.</p>
+        </div>
+      </main>
+    </section>
+
+    <!-- ================= VISÃO DO ADMINISTRADOR ================= -->
+    <section id="adminView" class="view-section">
+      <!-- Painel de Login Rápido / Proteção Simples -->
+      <div class="card" id="adminAuthBox">
+        <h2>Acesso Administrativo</h2>
+        <p class="sub">Insira o e-mail cadastrado como admin para liberar o painel.</p>
+        <div class="form-group">
+          <input type="email" id="adminEmailVerify" placeholder="Ex: admin@jackbarcafe.com">
+        </div>
+        <button class="btn" onclick="verificarAcessoAdmin()">Entrar no Panel</button>
+      </div>
+
+      <div id="adminPanel" style="display: none;">
+        <!-- Validar Token do Cliente -->
+        <div class="card">
+          <h2>Validar Token de Resgate</h2>
+          <p class="sub">Insira o token apresentado pelo cliente no balcão</p>
+          <div class="form-group" style="display:flex; gap:10px;">
+            <input type="text" id="tokenInput" placeholder="Ex: JK-123456" style="text-transform: uppercase;">
+            <button class="btn" id="btnValidar" onclick="validarTokenCliente()">Validar</button>
+          </div>
+          <div id="adminValidarStatus"></div>
+        </div>
+
+        <!-- Adicionar Novos Itens -->
+        <div class="card">
+          <h2>Adicionar Item para Resgate</h2>
+          <form id="formAdicionarItem" onsubmit="adicionarNovoItem(event)">
+            <div class="form-group">
+              <label>Nome do Produto/Prêmio</label>
+              <input type="text" id="nomeItem" required placeholder="Ex: Caneca Jack Bar Café">
+            </div>
+            <div class="form-group">
+              <label>Custo em Pontos</label>
+              <input type="number" id="custoItem" required placeholder="Ex: 50">
+            </div>
+            <button class="btn" type="submit">Cadastrar Produto</button>
+          </form>
+        </div>
+
+        <!-- Logs Globais de Resgate -->
+        <div class="card">
+          <h2>Todos os Pedidos de Resgate</h2>
+          <div class="lista-logs" id="logsGlobaisAdmin">
+            <!-- Inserido dinamicamente via JS -->
+          </div>
+        </div>
+      </div>
+    </section>
 
     <div class="acoes">
-      <a class="btn sec" href="index.html">Voltar ao início</a>
-      <button class="btn" id="retryBtn" type="button">Tentar novamente</button>
+      <a class="btn sec" href="index.html">Voltar ao Início</a>
     </div>
-  </main>
+  </div>
 
   <!-- Firebase SDK (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
+  <script src="https://gstatic.com"></script>
+  <script src="https://gstatic.com"></script>
+  <script src="https://gstatic.com"></script>
 
   <script>
+    // Configurações do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
-      authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
+      authDomain: "://firebaseapp.com",
       projectId: "jackbarcafe-b8fa8",
-      storageBucket: "jackbarcafe-b8fa8.appspot.com",
+      storageBucket: "://appspot.com",
       messagingSenderId: "849215333925",
       appId: "1:849215333925:web:e02cb0d11c590af32201cc"
     };
@@ -116,94 +292,189 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
-    const data = params.get('data');
-    const code = params.get('code');
-    const pontos = params.get('pontos');
-    const tipo = params.get('tipo') || 'produto';
+    // Definição fictícia de e-mail administrador de segurança básica do app front-end
+    const EMAIL_ADMIN_CONFIG = "admin@jackbarcafe.com";
 
-    const statusEl = document.getElementById('status');
-    const respostaEl = document.getElementById('resposta');
-    const metaEl = document.getElementById('meta');
-    const retryBtn = document.getElementById('retryBtn');
+    // Elementos do DOM
+    const userStatus = document.getElementById('userStatus');
+    const vitrineItens = document.getElementById('vitrineItens');
+    const tokenResultado = document.getElementById('tokenResultado');
+    const tokenGerado = document.getElementById('tokenGerado');
+    const historicoUsuario = document.getElementById('historicoUsuario');
+    const logsGlobaisAdmin = document.getElementById('logsGlobaisAdmin');
 
-    retryBtn.addEventListener('click', () => window.location.reload());
-
-    function setStatus(text, cls) {
-      statusEl.textContent = text;
-      respostaEl.className = 'resposta';
-      if (cls) respostaEl.classList.add(cls);
-    }
-
-    function setResposta(text, cls) {
-      respostaEl.textContent = text;
-      respostaEl.className = 'resposta';
-      if (cls) respostaEl.classList.add(cls);
-    }
-
-    function renderMeta(info) {
-      metaEl.textContent = info;
-    }
-
-    function getPayloadFromUrl() {
-      // Suporta vários formatos: ?code=ABC, ?id=1&data=2 ou QR contendo valor em "data"
-      if (code) return String(code);
-      if (id && data) return `${id}-${data}`;
-      if (id) return String(id);
-      if (data) return String(data);
-      return '';
-    }
-
-    async function ensureAnonymousAuth() {
-      if (auth.currentUser) return auth.currentUser;
-      const cred = await auth.signInAnonymously();
-      return cred.user;
-    }
-
-    async function validarResgate() {
-      const payload = getPayloadFromUrl();
-      renderMeta(`Parâmetros recebidos: tipo=${tipo}${payload ? ` | código=${payload}` : ''}${pontos ? ` | pontos=${pontos}` : ''}`);
-
-      if (!payload) {
-        setStatus('QR Code inválido.', 'erro');
-        setResposta('A URL não possui parâmetros suficientes para validar o resgate.', 'erro');
-        return;
-      }
-
-      // Coleção separada para resgates (evita conflito com used_qrcodes de pontos)
-      const docId = encodeURIComponent(payload);
-      const docRef = db.collection('redemptions').doc(docId);
-
+    // Inicialização da Autenticação Anônima para usuários normais
+    async function inicializarUsuario() {
       try {
-        await ensureAnonymousAuth();
 
-        const snap = await docRef.get();
-        if (snap.exists) {
-          const d = snap.data() || {};
-          setStatus('Este QR Code já foi utilizado.', 'erro');
-          setResposta(`Resgate já efetuado${d.resgatadoEm ? ` em ${new Date(d.resgatadoEm).toLocaleString('pt-BR')}` : ''}.`, 'erro');
-          return;
-        }
+if (!auth.currentUser) {
+await auth.signInAnonymously();
+}
+userStatus.textContent = "Selecione o item que deseja resgatar.";
+userStatus.className = "status-box sucesso";
+ouvirItensDisponiveis();
+ouvirHistoricoUsuario(auth.currentUser.uid);
+} catch (err) {
+console.error(err);
+userStatus.textContent = "Erro ao conectar-se ao servidor de autenticação.";
+userStatus.className = "status-box erro";
+}
+}
+// Controlar troca de abas da página
+function switchTab(target) {
+document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+if (target === 'user') {
+document.querySelector('.tab-btn[onclick="switchTab('user')"]').classList.add('active');
+document.getElementById('userView').classList.add('active');
+} else {
+document.getElementById('adminTabBtn').classList.add('active');
+document.getElementById('adminView').classList.add('active');
+ouvirTodosOsResgatesAdmin();
+}
+}
+// Controle simples de liberação da aba admin
+function verificarAcessoAdmin() {
+const emailDigitado = document.getElementById('adminEmailVerify').value.trim();
+if(emailDigitado.toLowerCase() === EMAIL_ADMIN_CONFIG.toLowerCase()) {
+document.getElementById('adminAuthBox').style.display = 'none';
+document.getElementById('adminPanel').style.display = 'block';
+} else {
+alert("Acesso negado. Apenas e-mails administradores autorizados.");
+}
+}
+/* ================= CADASTRAR PRODUTOS (ADMIN) ================= */
+async function adicionarNovoItem(e) {
+e.preventDefault();
+const nome = document.getElementById('nomeItem').value.trim();
+const custo = Number(document.getElementById('custoItem').value);
+try {
+await db.collection('rewards_catalog').add({
+nome: nome,
+custo: custo,
+criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+});
+alert('Produto cadastrado com sucesso!');
+document.getElementById('formAdicionarItem').reset();
+} catch (error) {
+console.error(error);
+alert('Erro ao cadastrar produto: ' + error.message);
+}
+}
+/* ================= BUSCAR PRODUTOS DA VITRINE (USUÁRIO) ================= */
+function ouvirItensDisponiveis() {
+db.collection('rewards_catalog').orderBy('custo', 'asc')
+.onSnapshot(snapshot => {
+vitrineItens.innerHTML = '';
+if (snapshot.empty) {
+vitrineItens.innerHTML = 'Nenhum produto cadastrado no catálogo.';
+return;
+}
+snapshot.forEach(doc => {
+const data = doc.data();
+vitrineItens.innerHTML += <div class="item-card"> <div> <div class="item-nome">${data.nome}</div> <div class="item-custo">${data.custo} Pontos</div> </div> <button class="btn sm" onclick="solicitarResgate('${doc.id}', '${data.nome}', ${data.custo})">Resgatar</button> </div>;
+});
+});
+}
+/* ================= PROCESSO DE RESGATE (USUÁRIO) ================= */
+async function solicitarResgate(idItem, nomeItem, custoItem) {
+if(!confirm(Deseja confirmar o resgate de "${nomeItem}" por ${custoItem} pontos?)) return;
+const uid = auth.currentUser ? auth.currentUser.uid : 'anonimo';
+// Gera um token curto randômico legível humano (Ex: JK-57291)
+const tokenGeradoString = 'JK-' + Math.floor(100000 + Math.random() * 900000);
+try {
+userStatus.textContent = "Processando seu token de resgate...";
+userStatus.className = "status-box warn";
+// Salva a requisição de resgate no Firebase
+await db.collection('redemptions_history').doc(tokenGeradoString).set({
+token: tokenGeradoString,
+usuarioId: uid,
+itemId: idItem,
+itemNome: nomeItem,
+custoPontos: custoItem,
+status: 'PENDENTE',
+solicitadoEm: new Date().toISOString(),
+validadoEm: null
+});
+// Mostra o token na tela para o usuário
+userStatus.textContent = "Token gerado! Apresente-o no balcão.";
+userStatus.className = "status-box sucesso";
+tokenResultado.style.display = 'block';
+tokenGerado.textContent = tokenGeradoString;
+} catch (error) {
+console.error(error);
+userStatus.textContent = "Falha ao solicitar resgate: " + error.message;
+userStatus.className = "status-box erro";
+}
+}
+/* ================= HISTÓRICO INDIVIDUAL (USUÁRIO) ================= */
+function ouvirHistoricoUsuario(uid) {
+db.collection('redemptions_history')
+.where('usuarioId', '==', uid)
+.onSnapshot(snapshot => {
+historicoUsuario.innerHTML = '';
+if(snapshot.empty) {
+historicoUsuario.innerHTML = 'Você ainda não realizou resgates.';
+return;
+}
+snapshot.forEach(doc => {
+const data = doc.data();
+const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
+const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
+historicoUsuario.innerHTML += <div class="log-item"> <div> <strong>${data.itemNome}</strong> <span style="color:#aaa;">(${data.token})</span><br> <small style="color:#888;">${dataFormatada} - ${data.custoPontos} pts</small> </div> <span class="badge ${statusClass}">${data.status}</span> </div>;
+});
+});
+}
+/* ================= VALIDAR TOKEN DO CLIENTE (ADMIN) ================= */
+async function validarTokenCliente() {
+const token = document.getElementById('tokenInput').value.trim().toUpperCase();
+const statusDiv = document.getElementById('adminValidarStatus');
+if(!token) {
+statusDiv.innerHTML = 'Por favor, digite um token.';
+return;
+}
+try {
+const docRef = db.collection('redemptions_history').doc(token);
+const docSnap = await docRef.get();
+if(!docSnap.exists) {
+statusDiv.innerHTML = 'Token não encontrado ou inválido!';
+return;
+}
+const dadosResgate = docSnap.data();
+if(dadosResgate.status === 'VALIDADO') {
+statusDiv.innerHTML = <p class="warn">Este token já foi validado anteriormente em: ${new Date(dadosResgate.validadoEm).toLocaleString('pt-BR')}</p>;
+return;
+}
+// Atualizar status para VALIDADO
+await docRef.update({
+status: 'VALIDADO',
+validadoEm: new Date().toISOString()
+});
+statusDiv.innerHTML = <p class="sucesso"><strong>Sucesso!</strong> Token validado para o cliente.</p> <p style="font-size:0.9rem; margin-top:2px;">Prêmio: ${dadosResgate.itemNome} (${dadosResgate.custoPontos} pts)</p>;
+document.getElementById('tokenInput').value = '';
+} catch (error) {
+console.error(error);
+statusDiv.innerHTML = 'Erro ao processar validação: ' + error.message + '';
+}
+}
+/* ================= HISTÓRICO GLOBAL (ADMIN) ================= */
+function ouvirTodosOsResgatesAdmin() {
+db.collection('redemptions_history').orderBy('solicitadoEm', 'desc')
+.onSnapshot(snapshot => {
+logsGlobaisAdmin.innerHTML = '';
+if(snapshot.empty) {
+logsGlobaisAdmin.innerHTML = 'Nenhum pedido de resgate no sistema.';
+return;
+}
+snapshot.forEach(doc => {
+const data = doc.data();
+const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
+logsGlobaisAdmin.innerHTML += <div class="log-item"> <div> <strong>Token: ${data.token}</strong> - ${data.itemNome}<br> <small style="color:#888;">Custo: ${data.custoPontos} pts | ID Usuário: ${data.usuarioId.substring(0,6)}...</small> </div> <span class="badge ${statusClass}">${data.status}</span> </div>;
+});
+});
+}
+// Inicializa a aplicação carregando os dados do Usuário
+inicializarUsuario();
 
-        await docRef.set({
-          codigo: payload,
-          tipo,
-          pontos: pontos ? Number(pontos) || null : null,
-          resgatadoEm: new Date().toISOString(),
-          userAgent: navigator.userAgent
-        });
 
-        setStatus('Resgate concluído com sucesso!', 'sucesso');
-        setResposta('Obrigado por resgatar seu produto no Jack Bar Café.', 'sucesso');
-      } catch (error) {
-        console.error(error);
-        setStatus('Erro ao validar o resgate.', 'erro');
-        setResposta(error && error.message ? error.message : String(error), 'erro');
-      }
-    }
 
-    validarResgate();
-  </script>
-</body>
-</html>
