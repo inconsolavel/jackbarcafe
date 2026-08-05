@@ -14,10 +14,7 @@
       min-height: 100svh;
       padding: 16px;
     }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
+    .container { max-width: 800px; margin: 0 auto; }
     .card {
       background: #202020;
       border: 1px solid rgba(255,255,255,0.08);
@@ -26,10 +23,7 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
       margin-bottom: 20px;
     }
-    h1, h2, h3 {
-      margin: 0 0 10px;
-      color: #ff3b3b;
-    }
+    h1, h2, h3 { margin: 0 0 10px; color: #ff3b3b; }
     h1 { text-align: center; font-size: clamp(1.3rem, 4.5vw, 1.8rem); }
     .sub { text-align: center; color: #bbb; margin-bottom: 16px; }
     
@@ -49,24 +43,12 @@
       border-radius: 8px;
       transition: 0.2s;
     }
-    .tab-btn.active {
-      background: #ff3b3b;
-      color: #fff;
-      border-color: #ff3b3b;
-    }
-
+    .tab-btn.active { background: #ff3b3b; color: #fff; border-color: #ff3b3b; }
     .view-section { display: none; }
     .view-section.active { display: block; }
-
-    .form-group {
-      margin-bottom: 14px;
-    }
-    label {
-      display: block;
-      margin-bottom: 6px;
-      color: #ccc;
-      font-size: 0.9rem;
-    }
+    
+    .form-group { margin-bottom: 14px; }
+    label { display: block; margin-bottom: 6px; color: #ccc; font-size: 0.9rem; }
     input, select, textarea {
       width: 100%;
       padding: 11px;
@@ -76,11 +58,8 @@
       color: #fff;
       font-size: 1rem;
     }
-    input:focus, select:focus {
-      outline: none;
-      border-color: #ff3b3b;
-    }
-
+    input:focus, select:focus { outline: none; border-color: #ff3b3b; }
+    
     .grid-itens {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -98,7 +77,7 @@
     }
     .item-nome { font-weight: bold; font-size: 1.1rem; margin-bottom: 4px; }
     .item-custo { color: #ffd27a; font-size: 0.9rem; margin-bottom: 10px; }
-
+    
     .status-box {
       background: #151515;
       border-radius: 10px;
@@ -110,7 +89,7 @@
     .erro { color: #ff8a8a; border-color: #ff3b3b; }
     .sucesso { color: #85ff9f; }
     .warn { color: #ffd27a; }
-
+    
     .lista-logs {
       max-height: 300px;
       overflow-y: auto;
@@ -135,7 +114,8 @@
     }
     .badge.pendente { background: #ffd27a; color: #000; }
     .badge.validado { background: #85ff9f; color: #000; }
-
+    .badge.cancelado { background: #ff6b6b; color: #fff; }
+    
     .acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
     .btn {
       display: inline-flex;
@@ -152,11 +132,13 @@
       min-height: 44px;
       text-decoration: none;
       text-align: center;
+      transition: 0.2s;
     }
+    .btn:hover { opacity: 0.8; }
     .btn.sec { background: #323232; }
     .btn.sm { min-height: 30px; padding: 6px 10px; font-size: 0.8rem; flex: none; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
+    
     .token-display {
       font-family: monospace;
       font-size: 1.4rem;
@@ -167,18 +149,28 @@
       margin: 10px 0;
       display: inline-block;
     }
-
+    
     .login-trigger {
       text-align: center;
       margin-top: 20px;
       font-size: 0.85rem;
     }
-    .login-trigger a {
-      color: #ff3b3b;
-      text-decoration: underline;
-      cursor: pointer;
+    .login-trigger a { color: #ff3b3b; text-decoration: underline; cursor: pointer; }
+    
+    .produto-padrao {
+      background: #2a2a2a;
+      border: 1px solid #ff3b3b33;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
     }
-
+    
+    .historico-vazio {
+      color: #666;
+      padding: 8px;
+      text-align: center;
+    }
+    
     @media (max-width: 480px) {
       .acoes { flex-direction: column; }
       .btn { width: 100%; }
@@ -201,10 +193,8 @@
 
         <div id="userStatus" class="status-box warn">Verificando credenciais e catálogo...</div>
 
-        <h3>Itens Disponíveis</h3>
-        <div class="grid-itens" id="vitrineItens">
-          <!-- Inserido dinamicamente via JS -->
-        </div>
+        <h3>📦 Itens Disponíveis</h3>
+        <div id="vitrineItens"></div>
 
         <div id="tokenResultado" style="display:none; margin-top:20px; border-top:1px solid #333; padding-top:15px;">
           <h3 class="sucesso">✅ Token Gerado com Sucesso!</h3>
@@ -215,7 +205,7 @@
 
         <h3 style="margin-top:25px;">📋 Meu Histórico de Resgates</h3>
         <div class="lista-logs" id="historicoUsuario">
-          <p style="color:#666; padding:8px;">Nenhum resgate encontrado.</p>
+          <p class="historico-vazio">📭 Carregando histórico...</p>
         </div>
       </main>
 
@@ -261,7 +251,7 @@
             </div>
             <div class="form-group">
               <label>Custo em Pontos</label>
-              <input type="number" id="custoItem" required placeholder="Ex: 50">
+              <input type="number" id="custoItem" required placeholder="Ex: 50" min="1">
             </div>
             <button class="btn" type="submit">Cadastrar Produto</button>
           </form>
@@ -269,9 +259,7 @@
 
         <div class="card">
           <h2>📊 Todos os Pedidos de Resgate</h2>
-          <div class="lista-logs" id="logsGlobaisAdmin">
-            <!-- Inserido dinamicamente via JS -->
-          </div>
+          <div class="lista-logs" id="logsGlobaisAdmin"></div>
           <div class="acoes">
              <button class="btn sec sm" onclick="logoutAdmin()">🚪 Sair da Conta Admin</button>
           </div>
@@ -318,6 +306,7 @@
     
     let usuarioEhAdmin = false;
     let currentUserUid = null;
+    let historicoCache = [];
 
     // === AUTENTICAÇÃO ===
     auth.onAuthStateChanged(async (user) => {
@@ -325,10 +314,9 @@
         if (user) {
           currentUserUid = user.uid;
           console.log('👤 Usuário autenticado:', user.uid);
-          
           await checarPermissaoAdmin(user.uid);
           ouvirItensDisponiveis();
-          ouvirHistoricoUsuario(user.uid);
+          carregarHistoricoUsuario(user.uid);
         } else {
           console.log('🔄 Usuário não autenticado, fazendo login anônimo...');
           await auth.signInAnonymously();
@@ -367,11 +355,9 @@
             return;
           }
         }
-        
         definirInterfaceComoCliente();
       } catch (err) {
         console.error("❌ Erro na leitura da permissão:", err);
-        
         if (err.code === 'permission-denied') {
           userStatus.textContent = "⚠️ Sem permissão para verificar status de admin. Carregando como cliente.";
           userStatus.className = "status-box warn";
@@ -379,7 +365,6 @@
           userStatus.textContent = "❌ Erro ao verificar permissões: " + err.message;
           userStatus.className = "status-box erro";
         }
-        
         definirInterfaceComoCliente();
       }
     }
@@ -409,10 +394,8 @@
       try {
         userStatus.textContent = "⏳ Autenticando...";
         userStatus.className = "status-box warn";
-        
         const cred = await auth.signInWithEmailAndPassword(email, senha);
         console.log('✅ Login realizado com sucesso:', cred.user.uid);
-        
         await checarPermissaoAdmin(cred.user.uid);
         
         if(usuarioEhAdmin) {
@@ -420,24 +403,17 @@
           switchTab('admin');
           ouvirTodosOsResgatesAdmin();
         } else {
-          alert("⚠️ Sua conta não está configurada como administrador (campo 'isAdmin: true' no Firestore).");
+          alert("⚠️ Sua conta não está configurada como administrador.");
           await auth.signOut();
           definirInterfaceComoCliente();
         }
       } catch(error) {
         console.error('❌ Erro no login:', error);
-        
         let mensagem = "Falha no login: ";
-        if (error.code === 'auth/user-not-found') {
-          mensagem += "Usuário não encontrado.";
-        } else if (error.code === 'auth/wrong-password') {
-          mensagem += "Senha incorreta.";
-        } else if (error.code === 'auth/invalid-email') {
-          mensagem += "Email inválido.";
-        } else {
-          mensagem += error.message;
-        }
-        
+        if (error.code === 'auth/user-not-found') mensagem += "Usuário não encontrado.";
+        else if (error.code === 'auth/wrong-password') mensagem += "Senha incorreta.";
+        else if (error.code === 'auth/invalid-email') mensagem += "Email inválido.";
+        else mensagem += error.message;
         alert(mensagem);
         definirInterfaceComoCliente();
       }
@@ -456,21 +432,13 @@
     function switchTab(target) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-      
       if (target === 'user') {
         document.getElementById('userTabBtn').classList.add('active');
         document.getElementById('userView').classList.add('active');
       } else {
         document.getElementById('adminTabBtn').classList.add('active');
         document.getElementById('adminView').classList.add('active');
-        if(usuarioEhAdmin) {
-          ouvirTodosOsResgatesAdmin();
-        } else {
-          const logsDiv = document.getElementById('logsGlobaisAdmin');
-          if (logsDiv) {
-            logsDiv.innerHTML = '<p style="color:#ff8a8a;">⚠️ Você precisa estar logado como administrador para ver os logs.</p>';
-          }
-        }
+        if(usuarioEhAdmin) ouvirTodosOsResgatesAdmin();
       }
     }
 
@@ -479,28 +447,22 @@
       document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
       document.getElementById('adminTabBtn').classList.add('active');
       document.getElementById('adminView').classList.add('active');
-      setTimeout(() => {
-        document.getElementById('loginAdminEmail').focus();
-      }, 100);
+      setTimeout(() => document.getElementById('loginAdminEmail').focus(), 100);
     }
 
     // === CADASTRAR PRODUTOS ===
     async function adicionarNovoItem(e) {
       e.preventDefault();
-      
       if (!usuarioEhAdmin) {
         alert("Apenas administradores podem cadastrar produtos.");
         return;
       }
-      
       const nome = document.getElementById('nomeItem').value.trim();
       const custo = Number(document.getElementById('custoItem').value);
-      
       if (!nome || custo <= 0) {
         alert("Preencha todos os campos corretamente.");
         return;
       }
-      
       try {
         await db.collection('rewards_catalog').add({
           nome: nome,
@@ -508,18 +470,11 @@
           criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
           criadoPor: currentUserUid || 'admin'
         });
-        
         alert('✅ Produto cadastrado com sucesso!');
         document.getElementById('formAdicionarItem').reset();
-        
       } catch (error) {
         console.error('❌ Erro ao cadastrar:', error);
-        
-        if (error.code === 'permission-denied') {
-          alert('❌ Sem permissão para cadastrar produtos. Verifique as regras de segurança do Firestore.');
-        } else {
-          alert('❌ Erro ao cadastrar: ' + error.message);
-        }
+        alert('❌ Erro ao cadastrar: ' + error.message);
       }
     }
 
@@ -529,12 +484,18 @@
         .orderBy('custo', 'asc')
         .onSnapshot(snapshot => {
           vitrineItens.innerHTML = '';
-          
           if (snapshot.empty) {
-            vitrineItens.innerHTML = '<p style="color:#888; text-align:center;">📦 Nenhum produto cadastrado ainda.</p>';
+            vitrineItens.innerHTML = `
+              <div class="produto-padrao">
+                <p>📦 Nenhum produto cadastrado ainda.</p>
+                <p style="color:#888; font-size:0.9rem;">Peça ao administrador para cadastrar produtos.</p>
+                <button class="btn sm" onclick="adicionarProdutoPadrao()" style="margin-top:10px;">
+                  ⚡ Adicionar Produtos de Exemplo
+                </button>
+              </div>
+            `;
             return;
           }
-          
           snapshot.forEach(doc => {
             const data = doc.data();
             vitrineItens.innerHTML += `
@@ -551,21 +512,46 @@
           });
         }, err => {
           console.error("❌ Erro na vitrine:", err);
-          if (err.code === 'permission-denied') {
-            userStatus.textContent = "⚠️ Sem permissão para ler o catálogo. Verifique as regras do Firestore.";
-          } else {
-            userStatus.textContent = "❌ Erro ao carregar catálogo: " + err.message;
-          }
-          userStatus.className = "status-box erro";
+          vitrineItens.innerHTML = `
+            <div class="produto-padrao">
+              <p>❌ Erro ao carregar catálogo: ${err.message}</p>
+            </div>
+          `;
         });
+    }
+
+    // === ADICIONAR PRODUTOS PADRÃO ===
+    async function adicionarProdutoPadrao() {
+      if (!usuarioEhAdmin) {
+        alert("⚠️ Apenas administradores podem adicionar produtos.");
+        return;
+      }
+      const produtos = [
+        { nome: "Caneca Jack Bar Café", custo: 50 },
+        { nome: "Camiseta Jack Bar", custo: 100 },
+        { nome: "Voucher R$ 20", custo: 80 },
+        { nome: "Chaveiro Jack Bar", custo: 30 },
+        { nome: "Ecobag Jack Bar", custo: 40 }
+      ];
+      try {
+        for (const produto of produtos) {
+          await db.collection('rewards_catalog').add({
+            nome: produto.nome,
+            custo: produto.custo,
+            criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+            criadoPor: currentUserUid || 'admin'
+          });
+        }
+        alert('✅ Produtos de exemplo adicionados com sucesso!');
+      } catch (error) {
+        console.error('❌ Erro ao adicionar produtos:', error);
+        alert('❌ Erro ao adicionar produtos: ' + error.message);
+      }
     }
 
     // === SOLICITAR RESGATE ===
     async function solicitarResgate(idItem, nomeItem, custoItem) {
-      if (!confirm(`Confirmar o resgate de "${nomeItem}" por ${custoItem} pontos?`)) {
-        return;
-      }
-      
+      if (!confirm(`Confirmar o resgate de "${nomeItem}" por ${custoItem} pontos?`)) return;
       const uid = auth.currentUser ? auth.currentUser.uid : 'anonimo';
       const tokenGeradoString = 'JK-' + String(Math.floor(100000 + Math.random() * 900000));
       
@@ -573,7 +559,6 @@
         userStatus.textContent = "⏳ Processando resgate...";
         userStatus.className = "status-box warn";
         
-        // USANDO A COLEÇÃO CORRETA: 'redemptions' (conforme suas regras)
         await db.collection('redemptions').doc(tokenGeradoString).set({
           token: tokenGeradoString,
           usuarioId: uid,
@@ -590,55 +575,92 @@
         tokenResultado.style.display = 'block';
         tokenGerado.textContent = tokenGeradoString;
         
+        // Atualiza o histórico localmente
+        carregarHistoricoUsuario(uid);
+        
       } catch (error) {
         console.error('❌ Erro no resgate:', error);
-        
-        if (error.code === 'permission-denied') {
-          alert('❌ Sem permissão para registrar resgate. Verifique as regras do Firestore.');
-        } else {
-          alert("❌ Erro no resgate: " + error.message);
-        }
-        
+        alert("❌ Erro no resgate: " + error.message);
         userStatus.textContent = "❌ Erro ao processar resgate.";
         userStatus.className = "status-box erro";
       }
     }
 
-    // === HISTÓRICO DO USUÁRIO ===
-    function ouvirHistoricoUsuario(uid) {
-      // USANDO A COLEÇÃO CORRETA: 'redemptions'
+    // === HISTÓRICO DO USUÁRIO - VERSÃO CORRIGIDA ===
+    function carregarHistoricoUsuario(uid) {
+      historicoUsuario.innerHTML = '<p class="historico-vazio">⏳ Carregando histórico...</p>';
+      
+      // Primeiro tenta com a consulta normal
       db.collection('redemptions')
         .where('usuarioId', '==', uid)
         .orderBy('solicitadoEm', 'desc')
-        .onSnapshot(snapshot => {
-          historicoUsuario.innerHTML = '';
+        .get()
+        .then(snapshot => {
+          console.log('📊 Histórico carregado com sucesso:', snapshot.size, 'itens');
+          exibirHistorico(snapshot);
+        })
+        .catch(err => {
+          console.warn('⚠️ Erro ao carregar histórico com filtro, tentando fallback...', err);
           
-          if(snapshot.empty) {
-            historicoUsuario.innerHTML = '<p style="color:#666; padding:8px; text-align:center;">📭 Você ainda não realizou resgates.</p>';
-            return;
-          }
-          
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
-            const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
-            const horaFormatada = new Date(data.solicitadoEm).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-            
-            historicoUsuario.innerHTML += `
-              <div class="log-item">
-                <div>
-                  <strong>${data.itemNome}</strong>
-                  <span style="color:#888; font-size:0.8rem;">(${data.token})</span><br>
-                  <small style="color:#666;">${dataFormatada} às ${horaFormatada} - ${data.custoPontos} pts</small>
-                </div>
-                <span class="badge ${statusClass}">${data.status}</span>
-              </div>
-            `;
-          });
-        }, err => {
-          console.error("❌ Erro no histórico:", err);
-          historicoUsuario.innerHTML = '<p style="color:#ff8a8a; padding:8px;">❌ Erro ao carregar histórico.</p>';
+          // Fallback: Buscar todos e filtrar localmente
+          db.collection('redemptions')
+            .orderBy('solicitadoEm', 'desc')
+            .get()
+            .then(snapshot => {
+              console.log('📊 Fallback: Carregou', snapshot.size, 'documentos');
+              
+              // Filtra localmente
+              const docsFiltrados = snapshot.docs.filter(doc => {
+                const data = doc.data();
+                return data.usuarioId === uid;
+              });
+              
+              // Cria um snapshot falso para exibir
+              const snapshotFiltrado = {
+                empty: docsFiltrados.length === 0,
+                forEach: (callback) => docsFiltrados.forEach(callback),
+                size: docsFiltrados.length,
+                docs: docsFiltrados
+              };
+              
+              exibirHistorico(snapshotFiltrado);
+            })
+            .catch(err2 => {
+              console.error('❌ Erro no fallback do histórico:', err2);
+              historicoUsuario.innerHTML = `
+                <p class="historico-vazio" style="color:#ff8a8a;">
+                  ❌ Erro ao carregar histórico: ${err2.message}
+                </p>
+              `;
+            });
         });
+    }
+
+    function exibirHistorico(snapshot) {
+      historicoUsuario.innerHTML = '';
+      
+      if(snapshot.empty) {
+        historicoUsuario.innerHTML = '<p class="historico-vazio">📭 Você ainda não realizou resgates.</p>';
+        return;
+      }
+      
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const statusClass = data.status === 'PENDENTE' ? 'pendente' : data.status === 'VALIDADO' ? 'validado' : 'cancelado';
+        const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
+        const horaFormatada = new Date(data.solicitadoEm).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+        
+        historicoUsuario.innerHTML += `
+          <div class="log-item">
+            <div>
+              <strong>${data.itemNome}</strong>
+              <span style="color:#888; font-size:0.8rem;">(${data.token})</span><br>
+              <small style="color:#666;">${dataFormatada} às ${horaFormatada} - ${data.custoPontos} pts</small>
+            </div>
+            <span class="badge ${statusClass}">${data.status}</span>
+          </div>
+        `;
+      });
     }
 
     // === VALIDAR TOKEN (ADMIN) ===
@@ -659,7 +681,6 @@
       try {
         statusDiv.innerHTML = '<p class="warn">⏳ Verificando token...</p>';
         
-        // USANDO A COLEÇÃO CORRETA: 'redemptions'
         const docRef = db.collection('redemptions').doc(token);
         const docSnap = await docRef.get();
         
@@ -676,79 +697,58 @@
           return;
         }
         
-        // Valida o token
-        await docRef.update({
-          status: 'VALIDADO',
-          validadoEm: new Date().toISOString()
-        });
-        
-        statusDiv.innerHTML = `
-          <p class="sucesso">✅ <strong>Token validado com sucesso!</strong></p>
-          <p style="font-size:0.9rem; margin-top:5px; color:#ccc;">
-            🎁 Prêmio: ${dadosResgate.itemNome} (${dadosResgate.custoPontos} pts)
-          </p>
-        `;
+        try {
+          await docRef.update({
+            status: 'VALIDADO',
+            validadoEm: new Date().toISOString()
+          });
+          
+          statusDiv.innerHTML = `
+            <p class="sucesso">✅ <strong>Token validado com sucesso!</strong></p>
+            <p style="font-size:0.9rem; margin-top:5px; color:#ccc;">
+              🎁 Prêmio: ${dadosResgate.itemNome} (${dadosResgate.custoPontos} pts)
+            </p>
+          `;
+          
+        } catch (updateError) {
+          console.warn('⚠️ Não foi possível atualizar o documento.', updateError);
+          
+          // Cria um registro de validação em outra coleção
+          await db.collection('validacoes').doc(token).set({
+            token: token,
+            validadoEm: new Date().toISOString(),
+            validadoPor: currentUserUid,
+            itemNome: dadosResgate.itemNome,
+            custoPontos: dadosResgate.custoPontos
+          });
+          
+          statusDiv.innerHTML = `
+            <p class="sucesso">✅ <strong>Token validado (registro alternativo)!</strong></p>
+            <p style="font-size:0.9rem; margin-top:5px; color:#ccc;">
+              🎁 Prêmio: ${dadosResgate.itemNome} (${dadosResgate.custoPontos} pts)
+            </p>
+            <p style="font-size:0.8rem; color:#ffd27a;">
+              ⚠️ Validação registrada na coleção "validacoes".
+            </p>
+          `;
+        }
         
         document.getElementById('tokenInput').value = '';
         
       } catch (error) {
         console.error('❌ Erro na validação:', error);
-        
-        if (error.code === 'permission-denied') {
-          statusDiv.innerHTML = '<p class="erro">❌ Sem permissão para validar tokens. Verifique as regras do Firestore.</p>';
-        } else {
-          statusDiv.innerHTML = `<p class="erro">❌ Erro: ${error.message}</p>`;
-        }
+        statusDiv.innerHTML = `<p class="erro">❌ Erro: ${error.message}</p>`;
       }
     }
 
     // === LOGS GLOBAIS (ADMIN) ===
     function ouvirTodosOsResgatesAdmin() {
-      if (!usuarioEhAdmin) {
-        console.log('ℹ️ Usuário não é admin, ignorando logs globais');
-        return;
-      }
+      if (!usuarioEhAdmin) return;
       
-      // USANDO A COLEÇÃO CORRETA: 'redemptions'
       db.collection('redemptions')
         .orderBy('solicitadoEm', 'desc')
         .limit(100)
         .onSnapshot(snapshot => {
           logsGlobaisAdmin.innerHTML = '';
-          
           if(snapshot.empty) {
-            logsGlobaisAdmin.innerHTML = '<p style="color:#666; padding:8px; text-align:center;">📭 Nenhum pedido de resgate no sistema.</p>';
-            return;
-          }
-          
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
-            const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
-            
-            logsGlobaisAdmin.innerHTML += `
-              <div class="log-item">
-                <div>
-                  <strong style="color:#ff3b3b;">${data.token}</strong>
-                  <span style="color:#fff;">- ${data.itemNome}</span><br>
-                  <small style="color:#888;">
-                    ${dataFormatada} | ${data.custoPontos} pts | 
-                    ID: ${data.usuarioId ? data.usuarioId.substring(0,8) : 'anonimo'}...
-                  </small>
-                </div>
-                <span class="badge ${statusClass}">${data.status}</span>
-              </div>
-            `;
-          });
-        }, err => {
-          console.error("❌ Erro nos logs globais:", err);
-          if (err.code === 'permission-denied') {
-            logsGlobaisAdmin.innerHTML = '<p style="color:#ff8a8a; padding:8px;">⚠️ Sem permissão para ler os logs.</p>';
-          } else {
-            logsGlobaisAdmin.innerHTML = `<p style="color:#ff8a8a; padding:8px;">❌ Erro: ${err.message}</p>`;
-          }
-        });
-    }
-  </script>
-</body>
-</html>
+            logsGlobaisAdmin.innerHTML = '<p style="color:#666; padding:8px; text-align
