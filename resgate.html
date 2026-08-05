@@ -33,7 +33,6 @@
     h1 { text-align: center; font-size: clamp(1.3rem, 4.5vw, 1.8rem); }
     .sub { text-align: center; color: #bbb; margin-bottom: 16px; }
     
-    /* Abas de Navegação */
     .tabs {
       display: none;
       gap: 10px;
@@ -59,7 +58,6 @@
     .view-section { display: none; }
     .view-section.active { display: block; }
 
-    /* Formulários e Inputs */
     .form-group {
       margin-bottom: 14px;
     }
@@ -83,7 +81,6 @@
       border-color: #ff3b3b;
     }
 
-    /* Listas e Itens */
     .grid-itens {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -102,7 +99,6 @@
     .item-nome { font-weight: bold; font-size: 1.1rem; margin-bottom: 4px; }
     .item-custo { color: #ffd27a; font-size: 0.9rem; margin-bottom: 10px; }
 
-    /* Feedback de Status */
     .status-box {
       background: #151515;
       border-radius: 10px;
@@ -115,7 +111,6 @@
     .sucesso { color: #85ff9f; }
     .warn { color: #ffd27a; }
 
-    /* Histórico e Listas Gerenciais */
     .lista-logs {
       max-height: 300px;
       overflow-y: auto;
@@ -141,7 +136,6 @@
     .badge.pendente { background: #ffd27a; color: #000; }
     .badge.validado { background: #85ff9f; color: #000; }
 
-    /* Botões */
     .acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
     .btn {
       display: inline-flex;
@@ -194,16 +188,15 @@
 <body>
 
   <div class="container">
-    <!-- Abas de Navegação -->
     <div class="tabs" id="adminTabsHeader">
       <button class="tab-btn active" id="userTabBtn" onclick="switchTab('user')">Área do Cliente</button>
       <button class="tab-btn" id="adminTabBtn" onclick="switchTab('admin')">Área do Admin</button>
     </div>
 
-    <!-- ================= VISÃO DO USUÁRIO ================= -->
+    <!-- VISÃO DO USUÁRIO -->
     <section id="userView" class="view-section active">
       <main class="card">
-        <h1>Resgatar Prêmios</h1>
+        <h1>🎁 Resgatar Prêmios</h1>
         <p class="sub">Troque seus pontos por recompensas exclusivas</p>
 
         <div id="userStatus" class="status-box warn">Verificando credenciais e catálogo...</div>
@@ -213,15 +206,14 @@
           <!-- Inserido dinamicamente via JS -->
         </div>
 
-        <!-- Feedback de Geração de Token -->
         <div id="tokenResultado" style="display:none; margin-top:20px; border-top:1px solid #333; padding-top:15px;">
-          <h3 class="sucesso">Token Gerado com Sucesso!</h3>
+          <h3 class="sucesso">✅ Token Gerado com Sucesso!</h3>
           <p>Mostre o código abaixo ao atendente para receber seu prêmio:</p>
           <center><div class="token-display" id="tokenGerado">------</div></center>
           <p style="font-size:0.85rem; color:#aaa;">*Este token foi salvo no seu histórico e mudará de status assim que validado pelo caixa.</p>
         </div>
 
-        <h3 style="margin-top:25px;">Meu Histórico de Resgates</h3>
+        <h3 style="margin-top:25px;">📋 Meu Histórico de Resgates</h3>
         <div class="lista-logs" id="historicoUsuario">
           <p style="color:#666; padding:8px;">Nenhum resgate encontrado.</p>
         </div>
@@ -232,11 +224,10 @@
       </div>
     </section>
 
-    <!-- ================= VISÃO DO ADMINISTRADOR ================= -->
+    <!-- VISÃO DO ADMIN -->
     <section id="adminView" class="view-section">
-      <!-- Painel de Autenticação de Admin -->
       <div class="card" id="adminLoginBox">
-        <h2>Acesso Administrativo</h2>
+        <h2>🔐 Acesso Administrativo</h2>
         <p class="sub">Faça login com sua conta corporativa cadastrada como administrador.</p>
         <div class="form-group">
           <label>E-mail do Administrador</label>
@@ -250,22 +241,19 @@
         <button class="btn sec sm" style="width:100%; margin-top:10px;" onclick="switchTab('user')">Voltar para a Vitrine</button>
       </div>
 
-      <!-- Painel de Gerenciamento do Admin -->
       <div id="adminPanel" style="display: none;">
-        <!-- Validar Token do Cliente -->
         <div class="card">
-          <h2>Validar Token de Resgate</h2>
+          <h2>✅ Validar Token de Resgate</h2>
           <p class="sub">Insira o token apresentado pelo cliente no balcão</p>
           <div class="form-group" style="display:flex; gap:10px;">
             <input type="text" id="tokenInput" placeholder="Ex: JK-123456" style="text-transform: uppercase;">
-            <button class="btn" id="btnValidar" onclick="validarTokenCliente()">Validar</button>
+            <button class="btn" onclick="validarTokenCliente()">Validar</button>
           </div>
           <div id="adminValidarStatus"></div>
         </div>
 
-        <!-- Adicionar Novos Itens -->
         <div class="card">
-          <h2>Adicionar Item para Resgate</h2>
+          <h2>➕ Adicionar Item para Resgate</h2>
           <form id="formAdicionarItem" onsubmit="adicionarNovoItem(event)">
             <div class="form-group">
               <label>Nome do Produto/Prêmio</label>
@@ -279,21 +267,20 @@
           </form>
         </div>
 
-        <!-- Logs Globais de Resgate -->
         <div class="card">
-          <h2>Todos os Pedidos de Resgate</h2>
+          <h2>📊 Todos os Pedidos de Resgate</h2>
           <div class="lista-logs" id="logsGlobaisAdmin">
             <!-- Inserido dinamicamente via JS -->
           </div>
           <div class="acoes">
-             <button class="btn sec sm" onclick="logoutAdmin()">Sair da Conta Admin</button>
+             <button class="btn sec sm" onclick="logoutAdmin()">🚪 Sair da Conta Admin</button>
           </div>
         </div>
       </div>
     </section>
 
     <div class="acoes">
-      <a class="btn sec" href="index.html">Voltar ao Início</a>
+      <a class="btn sec" href="index.html">🏠 Voltar ao Início</a>
     </div>
   </div>
 
@@ -303,7 +290,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // Configurações do Firebase
+    // Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
       authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
@@ -317,7 +304,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     
-    // Referências aos elementos DOM
+    // Elementos DOM
     const userStatus = document.getElementById('userStatus');
     const vitrineItens = document.getElementById('vitrineItens');
     const tokenResultado = document.getElementById('tokenResultado');
@@ -328,50 +315,46 @@
     const adminPanel = document.getElementById('adminPanel');
     const adminTabsHeader = document.getElementById('adminTabsHeader');
     const linkLoginAdminContainer = document.getElementById('linkLoginAdminContainer');
+    
     let usuarioEhAdmin = false;
     let currentUserUid = null;
 
-    // Monitora o estado da autenticação
+    // === AUTENTICAÇÃO ===
     auth.onAuthStateChanged(async (user) => {
       try {
         if (user) {
           currentUserUid = user.uid;
-          console.log('Usuário autenticado:', user.uid);
+          console.log('👤 Usuário autenticado:', user.uid);
           
-          // Tenta verificar se é admin
           await checarPermissaoAdmin(user.uid);
-          
-          // Carrega dados mesmo se não for admin
           ouvirItensDisponiveis();
           ouvirHistoricoUsuario(user.uid);
         } else {
-          // Se não há usuário logado, tenta autenticar anonimamente
-          console.log('Usuário não autenticado, fazendo login anônimo...');
+          console.log('🔄 Usuário não autenticado, fazendo login anônimo...');
           await auth.signInAnonymously();
         }
       } catch (err) {
-        console.error("Erro no AuthStateChanged:", err);
-        userStatus.textContent = "Erro de autenticação: " + err.message;
+        console.error("❌ Erro no AuthStateChanged:", err);
+        userStatus.textContent = "❌ Erro de autenticação: " + err.message;
         userStatus.className = "status-box erro";
-        // Tenta reconectar anonimamente
         try {
           await auth.signInAnonymously();
         } catch (e) {
-          console.error('Falha no login anônimo:', e);
+          console.error('❌ Falha no login anônimo:', e);
         }
       }
     });
 
+    // === VERIFICAÇÃO DE ADMIN ===
     async function checarPermissaoAdmin(uid) {
       try {
-        console.log('Verificando permissão para UID:', uid);
+        console.log('🔍 Verificando permissão para UID:', uid);
         const docSnap = await db.collection('users').doc(uid).get();
         
         if (docSnap.exists) {
           const userData = docSnap.data();
-          console.log('Dados do usuário:', userData);
+          console.log('📄 Dados do usuário:', userData);
           
-          // Verifica se o campo isAdmin é true
           if (userData.isAdmin === true) {
             usuarioEhAdmin = true;
             adminTabsHeader.style.display = 'flex';
@@ -385,12 +368,10 @@
           }
         }
         
-        // Se não for admin ou não existir
         definirInterfaceComoCliente();
       } catch (err) {
-        console.error("Erro na leitura da permissão:", err);
+        console.error("❌ Erro na leitura da permissão:", err);
         
-        // Se o erro for de permissão, pode ser que o usuário não tenha acesso à coleção 'users'
         if (err.code === 'permission-denied') {
           userStatus.textContent = "⚠️ Sem permissão para verificar status de admin. Carregando como cliente.";
           userStatus.className = "status-box warn";
@@ -415,18 +396,7 @@
       }
     }
 
-    function forcarExibicaoLoginAdmin() {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-      document.getElementById('adminTabBtn').classList.add('active');
-      document.getElementById('adminView').classList.add('active');
-      
-      // Foca no campo de email
-      setTimeout(() => {
-        document.getElementById('loginAdminEmail').focus();
-      }, 100);
-    }
-
+    // === LOGIN ADMIN ===
     async function realizarLoginAdmin() {
       const email = document.getElementById('loginAdminEmail').value.trim();
       const senha = document.getElementById('loginAdminSenha').value;
@@ -441,15 +411,13 @@
         userStatus.className = "status-box warn";
         
         const cred = await auth.signInWithEmailAndPassword(email, senha);
-        console.log('Login realizado com sucesso:', cred.user.uid);
+        console.log('✅ Login realizado com sucesso:', cred.user.uid);
         
-        // Aguarda a verificação de admin
         await checarPermissaoAdmin(cred.user.uid);
         
         if(usuarioEhAdmin) {
           alert("✅ Acesso confirmado como Administrador!");
           switchTab('admin');
-          // Recarrega os logs administrativos
           ouvirTodosOsResgatesAdmin();
         } else {
           alert("⚠️ Sua conta não está configurada como administrador (campo 'isAdmin: true' no Firestore).");
@@ -457,7 +425,7 @@
           definirInterfaceComoCliente();
         }
       } catch(error) {
-        console.error('Erro no login:', error);
+        console.error('❌ Erro no login:', error);
         
         let mensagem = "Falha no login: ";
         if (error.code === 'auth/user-not-found') {
@@ -477,10 +445,10 @@
 
     function logoutAdmin() {
       auth.signOut().then(() => {
-        console.log('Logout realizado');
+        console.log('🚪 Logout realizado');
         window.location.reload();
       }).catch(err => {
-        console.error('Erro no logout:', err);
+        console.error('❌ Erro no logout:', err);
         window.location.reload();
       });
     }
@@ -498,16 +466,25 @@
         if(usuarioEhAdmin) {
           ouvirTodosOsResgatesAdmin();
         } else {
-          // Se não for admin, mostra mensagem
           const logsDiv = document.getElementById('logsGlobaisAdmin');
           if (logsDiv) {
-            logsDiv.innerHTML = '<p style="color:#ff8a8a;">Você precisa estar logado como administrador para ver os logs.</p>';
+            logsDiv.innerHTML = '<p style="color:#ff8a8a;">⚠️ Você precisa estar logado como administrador para ver os logs.</p>';
           }
         }
       }
     }
 
-    /* ================= CADASTRAR PRODUTOS (ADMIN) ================= */
+    function forcarExibicaoLoginAdmin() {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('adminTabBtn').classList.add('active');
+      document.getElementById('adminView').classList.add('active');
+      setTimeout(() => {
+        document.getElementById('loginAdminEmail').focus();
+      }, 100);
+    }
+
+    // === CADASTRAR PRODUTOS ===
     async function adicionarNovoItem(e) {
       e.preventDefault();
       
@@ -536,7 +513,7 @@
         document.getElementById('formAdicionarItem').reset();
         
       } catch (error) {
-        console.error('Erro ao cadastrar:', error);
+        console.error('❌ Erro ao cadastrar:', error);
         
         if (error.code === 'permission-denied') {
           alert('❌ Sem permissão para cadastrar produtos. Verifique as regras de segurança do Firestore.');
@@ -546,7 +523,7 @@
       }
     }
 
-    /* ================= BUSCAR PRODUTOS DA VITRINE ================= */
+    // === VITRINE DE PRODUTOS ===
     function ouvirItensDisponiveis() {
       db.collection('rewards_catalog')
         .orderBy('custo', 'asc')
@@ -554,7 +531,7 @@
           vitrineItens.innerHTML = '';
           
           if (snapshot.empty) {
-            vitrineItens.innerHTML = '<p style="color:#888; text-align:center;">Nenhum produto cadastrado ainda.</p>';
+            vitrineItens.innerHTML = '<p style="color:#888; text-align:center;">📦 Nenhum produto cadastrado ainda.</p>';
             return;
           }
           
@@ -567,13 +544,13 @@
                   <div class="item-custo">⭐ ${data.custo} Pontos</div>
                 </div>
                 <button class="btn sm" onclick="solicitarResgate('${doc.id}', '${data.nome}', ${data.custo})">
-                  Resgatar
+                  🎯 Resgatar
                 </button>
               </div>
             `;
           });
         }, err => {
-          console.error("Erro na vitrine:", err);
+          console.error("❌ Erro na vitrine:", err);
           if (err.code === 'permission-denied') {
             userStatus.textContent = "⚠️ Sem permissão para ler o catálogo. Verifique as regras do Firestore.";
           } else {
@@ -583,7 +560,7 @@
         });
     }
 
-    /* ================= PROCESSO DE RESGATE ================= */
+    // === SOLICITAR RESGATE ===
     async function solicitarResgate(idItem, nomeItem, custoItem) {
       if (!confirm(`Confirmar o resgate de "${nomeItem}" por ${custoItem} pontos?`)) {
         return;
@@ -596,8 +573,8 @@
         userStatus.textContent = "⏳ Processando resgate...";
         userStatus.className = "status-box warn";
         
-        // Usa o token como ID do documento
-        await db.collection('redemptions_history').doc(tokenGeradoString).set({
+        // USANDO A COLEÇÃO CORRETA: 'redemptions' (conforme suas regras)
+        await db.collection('redemptions').doc(tokenGeradoString).set({
           token: tokenGeradoString,
           usuarioId: uid,
           itemId: idItem,
@@ -614,7 +591,7 @@
         tokenGerado.textContent = tokenGeradoString;
         
       } catch (error) {
-        console.error('Erro no resgate:', error);
+        console.error('❌ Erro no resgate:', error);
         
         if (error.code === 'permission-denied') {
           alert('❌ Sem permissão para registrar resgate. Verifique as regras do Firestore.');
@@ -627,16 +604,17 @@
       }
     }
 
-    /* ================= HISTÓRICO INDIVIDUAL ================= */
+    // === HISTÓRICO DO USUÁRIO ===
     function ouvirHistoricoUsuario(uid) {
-      db.collection('redemptions_history')
+      // USANDO A COLEÇÃO CORRETA: 'redemptions'
+      db.collection('redemptions')
         .where('usuarioId', '==', uid)
         .orderBy('solicitadoEm', 'desc')
         .onSnapshot(snapshot => {
           historicoUsuario.innerHTML = '';
           
           if(snapshot.empty) {
-            historicoUsuario.innerHTML = '<p style="color:#666; padding:8px; text-align:center;">Você ainda não realizou resgates.</p>';
+            historicoUsuario.innerHTML = '<p style="color:#666; padding:8px; text-align:center;">📭 Você ainda não realizou resgates.</p>';
             return;
           }
           
@@ -658,12 +636,12 @@
             `;
           });
         }, err => {
-          console.error("Erro no histórico:", err);
-          historicoUsuario.innerHTML = '<p style="color:#ff8a8a; padding:8px;">Erro ao carregar histórico.</p>';
+          console.error("❌ Erro no histórico:", err);
+          historicoUsuario.innerHTML = '<p style="color:#ff8a8a; padding:8px;">❌ Erro ao carregar histórico.</p>';
         });
     }
 
-    /* ================= VALIDAR TOKEN (ADMIN) ================= */
+    // === VALIDAR TOKEN (ADMIN) ===
     async function validarTokenCliente() {
       if (!usuarioEhAdmin) {
         alert("Apenas administradores podem validar tokens.");
@@ -681,7 +659,8 @@
       try {
         statusDiv.innerHTML = '<p class="warn">⏳ Verificando token...</p>';
         
-        const docRef = db.collection('redemptions_history').doc(token);
+        // USANDO A COLEÇÃO CORRETA: 'redemptions'
+        const docRef = db.collection('redemptions').doc(token);
         const docSnap = await docRef.get();
         
         if(!docSnap.exists) {
@@ -706,14 +685,14 @@
         statusDiv.innerHTML = `
           <p class="sucesso">✅ <strong>Token validado com sucesso!</strong></p>
           <p style="font-size:0.9rem; margin-top:5px; color:#ccc;">
-            Prêmio: ${dadosResgate.itemNome} (${dadosResgate.custoPontos} pts)
+            🎁 Prêmio: ${dadosResgate.itemNome} (${dadosResgate.custoPontos} pts)
           </p>
         `;
         
         document.getElementById('tokenInput').value = '';
         
       } catch (error) {
-        console.error('Erro na validação:', error);
+        console.error('❌ Erro na validação:', error);
         
         if (error.code === 'permission-denied') {
           statusDiv.innerHTML = '<p class="erro">❌ Sem permissão para validar tokens. Verifique as regras do Firestore.</p>';
@@ -723,21 +702,22 @@
       }
     }
 
-    /* ================= HISTÓRICO GLOBAL (ADMIN) ================= */
+    // === LOGS GLOBAIS (ADMIN) ===
     function ouvirTodosOsResgatesAdmin() {
       if (!usuarioEhAdmin) {
-        console.log('Usuário não é admin, ignorando logs globais');
+        console.log('ℹ️ Usuário não é admin, ignorando logs globais');
         return;
       }
       
-      db.collection('redemptions_history')
+      // USANDO A COLEÇÃO CORRETA: 'redemptions'
+      db.collection('redemptions')
         .orderBy('solicitadoEm', 'desc')
-        .limit(100) // Limita a 100 registros para performance
+        .limit(100)
         .onSnapshot(snapshot => {
           logsGlobaisAdmin.innerHTML = '';
           
           if(snapshot.empty) {
-            logsGlobaisAdmin.innerHTML = '<p style="color:#666; padding:8px; text-align:center;">Nenhum pedido de resgate no sistema.</p>';
+            logsGlobaisAdmin.innerHTML = '<p style="color:#666; padding:8px; text-align:center;">📭 Nenhum pedido de resgate no sistema.</p>';
             return;
           }
           
@@ -761,7 +741,7 @@
             `;
           });
         }, err => {
-          console.error("Erro nos logs globais:", err);
+          console.error("❌ Erro nos logs globais:", err);
           if (err.code === 'permission-denied') {
             logsGlobaisAdmin.innerHTML = '<p style="color:#ff8a8a; padding:8px;">⚠️ Sem permissão para ler os logs.</p>';
           } else {
