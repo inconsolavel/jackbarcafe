@@ -63,8 +63,58 @@
     }
 
     #ranking h3 { margin: 0 0 8px; font-size: 1rem; }
-    #ranking ol { margin: 0; padding-left: 20px; }
-    #ranking li { margin-bottom: 4px; }
+    #ranking ol { 
+      margin: 0; 
+      padding-left: 20px;
+      list-style: none;
+      counter-reset: ranking-counter;
+    }
+    #ranking li { 
+      margin-bottom: 4px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      counter-increment: ranking-counter;
+      position: relative;
+      padding-left: 30px;
+    }
+    #ranking li::before {
+      content: counter(ranking-counter);
+      position: absolute;
+      left: 4px;
+      color: #ffd27a;
+      font-weight: bold;
+      font-size: 0.8rem;
+      min-width: 20px;
+    }
+    #ranking li:nth-child(1) { 
+      background: rgba(255, 215, 0, 0.15); 
+      border-left: 3px solid #ffd700;
+    }
+    #ranking li:nth-child(2) { 
+      background: rgba(192, 192, 192, 0.12); 
+      border-left: 3px solid #c0c0c0;
+    }
+    #ranking li:nth-child(3) { 
+      background: rgba(205, 127, 50, 0.12); 
+      border-left: 3px solid #cd7f32;
+    }
+    #ranking .rank-score {
+      font-weight: bold;
+      color: #ffd27a;
+    }
+    #ranking .rank-player {
+      color: #fff;
+    }
+    #ranking .rank-empty {
+      color: #888;
+      text-align: center;
+      padding: 10px;
+      font-style: italic;
+    }
 
     .game-shell {
       position: fixed;
@@ -164,6 +214,7 @@
     @media (max-width: 900px) {
       #ranking { max-width: 180px; font-size: 0.9rem; }
       #ranking h3 { font-size: 0.95rem; }
+      #ranking li { font-size: 0.8rem; padding-left: 26px; }
       .controls { display: flex; }
       canvas { width: min(96vw, 420px); max-height: 72svh; }
     }
@@ -177,6 +228,7 @@
         max-width: none;
         max-height: 120px;
       }
+      #ranking li { font-size: 0.75rem; padding: 2px 6px 2px 26px; }
       #score { top: 54px; right: 10px; font-size: 15px; }
       .top-actions { top: 8px; }
       .controls { bottom: 10px; }
@@ -191,14 +243,16 @@
   <div class="hud">
     <div id="score">Score: 0</div>
     <div id="ranking">
-      <h3>Top 10</h3>
-      <ol id="rankingList"></ol>
+      <h3>🏆 Top 10</h3>
+      <ol id="rankingList">
+        <li class="rank-empty">Carregando ranking...</li>
+      </ol>
     </div>
   </div>
 
   <div class="top-actions">
-    <button class="btn" id="pauseBtn" type="button">Pausar</button>
-    <a class="btn" href="index.html" style="text-decoration:none;">Voltar</a>
+    <button class="btn" id="pauseBtn" type="button">⏸ Pausar</button>
+    <a class="btn" href="index.html" style="text-decoration:none;">🏠 Voltar</a>
   </div>
 
   <div class="game-shell">
@@ -212,9 +266,9 @@
 
   <div class="gameover" id="gameOverPanel">
     <div class="gameover-card">
-      <h2>Fim de jogo</h2>
+      <h2>💀 Fim de jogo</h2>
       <p id="finalScoreText">Sua pontuação: 0</p>
-      <button class="btn" id="restartBtn" type="button">Jogar novamente</button>
+      <button class="btn" id="restartBtn" type="button">🔄 Jogar novamente</button>
     </div>
   </div>
 
@@ -236,10 +290,24 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    auth.signInAnonymously().catch(console.error);
-
     let userId = null;
-    auth.onAuthStateChanged(user => { if (user) userId = user.uid; });
+    let userEmail = 'Anônimo';
+
+    // Autenticação - Tenta pegar o nome do usuário se estiver logado
+    auth.onAuthStateChanged(user => { 
+      if (user) {
+        userId = user.uid;
+        // Tenta buscar o nome do usuário no Firestore
+        db.collection('users').doc(user.uid).get()
+          .then(doc => {
+            if (doc.exists) {
+              const data = doc.data();
+              userEmail = data.nome || data.email || 'Anônimo';
+            }
+          })
+          .catch(() => {});
+      }
+    });
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -275,7 +343,7 @@
       player.y = 520;
       scoreEl.innerText = 'Score: 0';
       gameOverPanel.style.display = 'none';
-      pauseBtn.textContent = 'Pausar';
+      pauseBtn.textContent = '⏸ Pausar';
       requestAnimationFrame(loop);
     }
 
@@ -366,7 +434,7 @@
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 28px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('PAUSADO', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('⏸ PAUSADO', canvas.width / 2, canvas.height / 2);
       }
     }
 
@@ -437,12 +505,13 @@
     function togglePause() {
       if (gameOver) return;
       paused = !paused;
-      pauseBtn.textContent = paused ? 'Continuar' : 'Pausar';
+      pauseBtn.textContent = paused ? '▶ Continuar' : '⏸ Pausar';
     }
 
     pauseBtn.addEventListener('click', togglePause);
     restartBtn.addEventListener('click', resetGame);
 
+    // ===== SALVAR PONTUAÇÃO COM NOME DO USUÁRIO =====
     function saveScore(scoreValue) {
       if (!userId) {
         loadRanking();
@@ -450,32 +519,132 @@
       }
 
       const ref = db.collection('gameScores').doc(userId);
+      
+      // Primeiro verifica se já existe uma pontuação maior
       ref.get().then(doc => {
-        if (!doc.exists || (doc.data() && doc.data().score < scoreValue)) {
-          return ref.set({ score: scoreValue, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+        const currentScore = doc.exists ? doc.data().score : 0;
+        
+        // Só salva se a nova pontuação for maior
+        if (scoreValue > currentScore) {
+          return ref.set({ 
+            score: scoreValue, 
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            nome: userEmail || 'Anônimo'
+          }, { merge: true });
         }
-      }).catch(console.error).finally(loadRanking);
+        return Promise.resolve();
+      }).catch(console.error).finally(() => {
+        // Recarrega o ranking após salvar
+        loadRanking();
+      });
     }
 
+    // ===== CARREGAR RANKING =====
     function loadRanking() {
-      db.collection('gameScores').orderBy('score', 'desc').limit(10).get()
+      db.collection('gameScores')
+        .orderBy('score', 'desc')
+        .limit(10)
+        .get()
         .then(snapshot => {
           rankingList.innerHTML = '';
+          
+          if (snapshot.empty) {
+            rankingList.innerHTML = '<li class="rank-empty">Nenhuma pontuação ainda. Seja o primeiro! 🎮</li>';
+            return;
+          }
+          
+          let pos = 1;
           snapshot.forEach(doc => {
-            const li = document.createElement('li');
             const data = doc.data() || {};
-            li.textContent = `Score: ${data.score ?? 0}`;
+            const nome = data.nome || 'Anônimo';
+            const score = data.score || 0;
+            const li = document.createElement('li');
+            
+            // Ícones para os top 3
+            let medal = '';
+            if (pos === 1) medal = '🥇 ';
+            else if (pos === 2) medal = '🥈 ';
+            else if (pos === 3) medal = '🥉 ';
+            
+            li.innerHTML = `
+              <span class="rank-player">${medal}${nome}</span>
+              <span class="rank-score">${score} pts</span>
+            `;
             rankingList.appendChild(li);
+            pos++;
           });
         })
         .catch(err => {
-          console.error(err);
-          rankingList.innerHTML = '<li>Erro ao carregar ranking</li>';
+          console.error('Erro ao carregar ranking:', err);
+          rankingList.innerHTML = '<li class="rank-empty">❌ Erro ao carregar ranking</li>';
         });
     }
 
+    // ===== LISTENER EM TEMPO REAL PARA O RANKING =====
+    function ouvirRanking() {
+      db.collection('gameScores')
+        .orderBy('score', 'desc')
+        .limit(10)
+        .onSnapshot(snapshot => {
+          rankingList.innerHTML = '';
+          
+          if (snapshot.empty) {
+            rankingList.innerHTML = '<li class="rank-empty">Nenhuma pontuação ainda. Seja o primeiro! 🎮</li>';
+            return;
+          }
+          
+          let pos = 1;
+          snapshot.forEach(doc => {
+            const data = doc.data() || {};
+            const nome = data.nome || 'Anônimo';
+            const score = data.score || 0;
+            const li = document.createElement('li');
+            
+            let medal = '';
+            if (pos === 1) medal = '🥇 ';
+            else if (pos === 2) medal = '🥈 ';
+            else if (pos === 3) medal = '🥉 ';
+            
+            li.innerHTML = `
+              <span class="rank-player">${medal}${nome}</span>
+              <span class="rank-score">${score} pts</span>
+            `;
+            rankingList.appendChild(li);
+            pos++;
+          });
+        }, err => {
+          console.error('Erro no listener do ranking:', err);
+        });
+    }
+
+    // ===== INICIALIZAR =====
+    // Carrega o ranking uma vez
     loadRanking();
+    
+    // Depois de 2 segundos, ativa o listener em tempo real
+    setTimeout(() => {
+      ouvirRanking();
+    }, 2000);
+    
+    // Inicia o jogo
     requestAnimationFrame(loop);
+
+    // Se o usuário fizer login depois, atualiza o nome
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        db.collection('users').doc(user.uid).get()
+          .then(doc => {
+            if (doc.exists) {
+              const data = doc.data();
+              userEmail = data.nome || data.email || 'Anônimo';
+            }
+          })
+          .catch(() => {});
+      }
+    });
+
+    console.log('🏎️ Jack Ride - Corrida de Carros!');
+    console.log('📊 Ranking atualizado em tempo real!');
   </script>
 </body>
 </html>
