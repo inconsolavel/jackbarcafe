@@ -211,25 +211,102 @@
       border-radius: 10px;
     }
 
-    .som-e-mapa {
+    /* Seção Mapa + Sistema de Pontos */
+    .info-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0,1fr));
       gap: 28px;
-      align-items: start;
+      align-items: stretch;
     }
 
-    .som-e-mapa .sub-section {
-      min-width: 0;
+    .info-grid .info-card {
       background: rgba(255,255,255,0.02);
       border: 1px solid rgba(255,255,255,0.05);
       border-radius: 14px;
-      padding: 18px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
     }
 
-    .som-e-mapa iframe {
+    .info-grid .info-card h2 {
+      color: var(--accent);
+      margin-bottom: 12px;
+      font-size: clamp(1.2rem, 2vw, 1.6rem);
+    }
+
+    .info-grid .info-card p {
+      color: #e0e0e0;
+      line-height: 1.8;
+      font-size: 0.98rem;
+    }
+
+    .info-grid .info-card .destaque {
+      color: #ffd27a;
+      font-weight: bold;
+    }
+
+    .info-grid .info-card .btn-resgate {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 18px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: background 0.2s ease, transform 0.2s ease;
+      align-self: flex-start;
+      font-weight: bold;
+    }
+
+    .info-grid .info-card .btn-resgate:hover {
+      background-color: var(--accent-2);
+      transform: translateY(-1px);
+    }
+
+    .info-grid .info-card .icone-pontos {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .info-grid .info-card .passos {
+      margin-top: 12px;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .info-grid .info-card .passos li {
+      padding: 6px 0;
+      padding-left: 28px;
+      position: relative;
+      color: #d0d0d0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .info-grid .info-card .passos li:last-child {
+      border-bottom: none;
+    }
+
+    .info-grid .info-card .passos li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: #2ecc71;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .info-grid .info-card iframe {
       width: 100%;
       border-radius: 12px;
-      margin-top: 12px;
+      margin-top: 8px;
+      flex: 1;
+      min-height: 320px;
     }
 
     .btn {
@@ -359,9 +436,13 @@
 
       .section { padding: 42px 18px; }
 
-      .som-e-mapa {
+      .info-grid {
         grid-template-columns: 1fr;
         gap: 18px;
+      }
+
+      .info-grid .info-card iframe {
+        min-height: 260px;
       }
 
       .galeria {
@@ -382,6 +463,8 @@
       .galeria img { height: 210px; }
       .modal-content { padding: 18px 14px; }
       .modal-content button { font-size: 0.95rem; }
+      .info-grid .info-card { padding: 18px 14px; }
+      .info-grid .info-card .btn-resgate { align-self: stretch; text-align: center; }
     }
   </style>
 </head>
@@ -396,6 +479,7 @@
       <a href="#historia">História</a>
       <a href="resgate.html">Resgate seus pontos</a>
       <a href="jackride.html">Jack Ride</a>
+      <a href="#info">Sistema de Pontos</a>
       <a href="#mapa">Localização</a>
       <a href="#contato">Contato</a>
       <span id="user-info" class="user-pill" style="display:none"></span>
@@ -425,20 +509,48 @@
     </p>
   </section>
 
-<section class="section" id="eventos">
-  <h2>Eventos</h2>
-  <p>Confira o que está rolando no Jack Bar Café</p>
+  <section class="section" id="eventos">
+    <h2>Eventos</h2>
+    <p>Confira o que está rolando no Jack Bar Café</p>
+    <div class="elfsight-app-53d4d852-ce23-40c7-9f71-9dcf96522a7e"></div>
+  </section>
 
-  <div class="elfsight-app-53d4d852-ce23-40c7-9f71-9dcf96522a7e"></div>
-</section>
-  
+  <!-- SEÇÃO: SISTEMA DE PONTOS + MAPA (LADO A LADO) -->
+  <section class="section" id="info">
+    <div class="info-grid">
+      
+      <!-- CARD: SISTEMA DE PONTOS -->
+      <div class="info-card">
+        <div class="icone-pontos">🎯</div>
+        <h2>Sistema de Pontos</h2>
+        <p>
+          No <strong>Jack Bar Café</strong>, cada compra gera pontos que você pode trocar por produtos exclusivos!
+        </p>
+        <p style="margin-top: 10px;">
+          <span class="destaque">A cada R$ 0,10 (dez centavos) gastos, você ganha 1 ponto</span> na sua conta.
+          Quanto mais você consome, mais pontos acumula!
+        </p>
+        
+        <ul class="passos">
+          <li><strong>Acumule:</strong> Compre no Jack Bar Café e veja seus pontos crescendo.</li>
+          <li><strong>Resgate:</strong> Acesse a <a href="resgate.html" style="color:#ffd27a; text-decoration:underline;">página de resgates</a> e escolha seu prêmio.</li>
+          <li><strong>Apresente:</strong> Mostre o código gerado no caixa para validar e receber seu produto.</li>
+        </ul>
+        
+        <p style="margin-top: 12px; color: #ffd27a; font-weight: bold;">
+          Junte vários pontos e venha aproveitar no Jack! 🍻🎸
+        </p>
+        
+        <a href="resgate.html" class="btn-resgate">🎁 Ver Produtos para Resgate</a>
+      </div>
 
-  <section class="section som-e-mapa">
-  
-    <div class="sub-section" id="mapa">
-      <h2>Onde Estamos</h2>
-      <p>Venha nos visitar! Estamos te esperando com rock e café!</p>
-      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.7663818938013!2d-45.56104708502066!3d-23.50642506592968!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ccc5b390aeb15d%3A0x31b7c4a52db8adad!2sPra%C3%A7a%20Bar%C3%A3o%20do%20Rio%20Branco%2C%2017%20-%20Centro%2C%20Taubat%C3%A9%20-%20SP!5e0!3m2!1spt-BR!2sbr!4v1714594051021!5m2!1spt-BR!2sbr" height="380" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <!-- CARD: MAPA -->
+      <div class="info-card" id="mapa">
+        <h2>📍 Onde Estamos</h2>
+        <p>Venha nos visitar! Estamos te esperando com rock, café e bons momentos!</p>
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.7663818938013!2d-45.56104708502066!3d-23.50642506592968!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ccc5b390aeb15d%3A0x31b7c4a52db8adad!2sPra%C3%A7a%20Bar%C3%A3o%20do%20Rio%20Branco%2C%2017%20-%20Centro%2C%20Taubat%C3%A9%20-%20SP!5e0!3m2!1spt-BR!2sbr!4v1714594051021!5m2!1spt-BR!2sbr" height="380" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+
     </div>
   </section>
 
@@ -504,7 +616,6 @@
       const loginError = document.getElementById('loginError');
       const userInfo = document.getElementById('user-info');
       const pointsInfo = document.getElementById('points-info');
-      const adminNavLink = document.getElementById('adminNavLink');
 
       function setMenu(open) {
         siteNav.classList.toggle('open', open);
@@ -614,7 +725,6 @@
               email: (res.user.email || '').toLowerCase()
             }, { merge: true });
           } else if (!doc.data().email && res.user.email) {
-            // Contas Google antigas que ainda não tinham o email espelhado no Firestore.
             await ref.set({ email: res.user.email.toLowerCase() }, { merge: true });
           }
           closeLoginModal();
@@ -638,16 +748,6 @@
           loginLink.style.display = 'none';
           logoutLink.style.display = 'inline-block';
           await updatePoints(user.uid);
-
-          // O link ADMIN só aparece para quem realmente é administrador
-          // (mesma checagem usada em admin.html/auth.js).
-          try {
-            const adminDoc = await db.collection('users').doc(user.uid).get();
-            adminNavLink.style.display = (adminDoc.exists && adminDoc.data().isAdmin) ? 'inline-block' : 'none';
-          } catch (err) {
-            console.warn('Não foi possível verificar permissão de administrador:', err);
-            adminNavLink.style.display = 'none';
-          }
         } else {
           userInfo.textContent = '';
           pointsInfo.textContent = '';
@@ -655,7 +755,6 @@
           pointsInfo.style.display = 'none';
           loginLink.style.display = 'inline-block';
           logoutLink.style.display = 'none';
-          adminNavLink.style.display = 'none';
         }
       });
     });
