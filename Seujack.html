@@ -350,10 +350,11 @@
       esquerda: new Image(),
       direita: new Image()
     };
-    // Certifique-se de que os arquivos estão na raiz do site
-    playerImg.frente.src = 'jack_frente.png';
+    
+    // 👇 AQUI ESTÁ A CORREÇÃO DO NOME DO ARQUIVO 👇
+    playerImg.frente.src = 'jack_frente.png'; // Verifique a extensão (pode ser .jpg)
     playerImg.esquerda.src = 'jack_esquerda.png';
-    playerImg.direita.src = 'jack_direita.png';
+    playerImg.direita.src = 'jack_lado_direito.png'; // CORRIGIDO DE 'jack_direita.png' PARA 'jack_lado_direito.png'
 
     // Log para depuração - verificar se as imagens carregaram
     playerImg.frente.onload = () => console.log('✅ Sprite frente carregado');
@@ -361,7 +362,7 @@
     playerImg.direita.onload = () => console.log('✅ Sprite direita carregado');
     playerImg.frente.onerror = () => console.warn('⚠️ Erro ao carregar frente.png');
     playerImg.esquerda.onerror = () => console.warn('⚠️ Erro ao carregar esquerda.png');
-    playerImg.direita.onerror = () => console.warn('⚠️ Erro ao carregar direita.png');
+    playerImg.direita.onerror = () => console.warn('⚠️ Erro ao carregar jack_lado_direito.png');
 
     let playerDirection = 'frente';
 
@@ -659,7 +660,7 @@
       }
     }
 
-    // ===== DESENHO (COM LÓGICA DE DIREÇÃO CORRIGIDA) =====
+    // ===== DESENHO =====
 
     function desenharCenario() {
       ctx.fillStyle = '#1a1a2e';
@@ -768,13 +769,12 @@
         }
       });
 
-      // ===== JOGADOR COM SPRITE (LÓGICA CORRIGIDA POR ÂNGULO) =====
+      // ===== JOGADOR COM SPRITE =====
       const dx = player.targetX - player.x;
       const dy = player.targetY - player.y;
       const moving = Math.abs(dx) > 1 || Math.abs(dy) > 1;
 
       if (moving) {
-        // Calcula o ângulo exato para decidir a direção
         let angle = Math.atan2(dy, dx) * (180 / Math.PI);
         if (angle < 0) angle += 360;
 
@@ -789,30 +789,26 @@
         }
       }
 
-      // Seleciona a imagem
       let img = playerImg.frente;
       let useFallback = false;
       if (playerDirection === 'esquerda') {
         img = playerImg.esquerda;
         if (!img.complete || img.naturalWidth === 0) useFallback = true;
       } else if (playerDirection === 'direita') {
-        img = playerImg.direita;
+        img = playerImg.direita; // Agora vai buscar o jack_lado_direito.png
         if (!img.complete || img.naturalWidth === 0) useFallback = true;
       } else {
         img = playerImg.frente;
         if (!img.complete || img.naturalWidth === 0) useFallback = true;
       }
 
-      // Tamanho do sprite
       const spriteSize = 32;
       const drawX = player.x - spriteSize/2;
       const drawY = player.y - spriteSize/2;
 
-      // Se a imagem estiver carregada, desenha o sprite, senão desenha fallback
       if (!useFallback && img.complete && img.naturalWidth > 0) {
         ctx.drawImage(img, drawX, drawY, spriteSize, spriteSize);
       } else {
-        // Fallback: círculo colorido
         ctx.shadowColor = 'rgba(255,107,53,0.3)';
         ctx.shadowBlur = 20;
         ctx.fillStyle = '#ff6b35';
@@ -826,13 +822,11 @@
         ctx.shadowBlur = 0;
       }
 
-      // Nome do jogador
       ctx.fillStyle = '#fff';
       ctx.font = '9px Arial';
       ctx.textAlign = 'center';
       ctx.fillText('🧑‍🍳 Você', player.x, player.y - 38);
 
-      // Seleção da mesa
       if (selectedTable !== null && tables[selectedTable]) {
         const t = tables[selectedTable];
         ctx.strokeStyle = '#ffd27a';
@@ -1274,7 +1268,6 @@
     playerImg.esquerda.onload = checkImagesLoaded;
     playerImg.direita.onload = checkImagesLoaded;
 
-    // Fallback: se as imagens demorarem muito, inicia mesmo assim
     setTimeout(() => {
       if (imagesLoaded < totalImages) {
         console.warn('⚠️ Algumas imagens não carregaram, iniciando jogo mesmo assim.');
