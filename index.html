@@ -580,13 +580,17 @@
         loginError.textContent = '';
         const nome = nomeInput.value.trim();
         const telefone = normalizePhone(telefoneInput.value);
+        const email = emailInput.value.trim();
         if (!nome || !telefone) {
           loginError.textContent = 'Preencha nome e telefone para criar a conta.';
           return;
         }
         try {
-          const cred = await auth.createUserWithEmailAndPassword(emailInput.value.trim(), passInput.value);
-          await db.collection('users').doc(cred.user.uid).set({ points: 0, nome, telefone }, { merge: true });
+          const cred = await auth.createUserWithEmailAndPassword(email, passInput.value);
+          await db.collection('users').doc(cred.user.uid).set(
+            { points: 0, nome, telefone, email: email.toLowerCase() },
+            { merge: true }
+          );
           closeLoginModal();
         } catch (e) {
           loginError.textContent = safeErrorMessage(e);
@@ -607,8 +611,12 @@
             await ref.set({
               points: 0,
               nome: res.user.displayName || nomeInput.value.trim() || '',
-              telefone
+              telefone,
+              email: (res.user.email || '').toLowerCase()
             }, { merge: true });
+          } else if (!doc.data().email && res.user.email) {
+            // Contas Google antigas que ainda não tinham o email espelhado no Firestore.
+            await ref.set({ email: res.user.email.toLowerCase() }, { merge: true });
           }
           closeLoginModal();
         } catch (e) {

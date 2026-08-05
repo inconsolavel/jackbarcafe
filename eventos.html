@@ -538,13 +538,17 @@
         els.loginError.textContent = '';
         const nome = els.nomeInput.value.trim();
         const telefone = normalizePhone(els.telefoneInput.value);
+        const email = els.emailInput.value.trim();
         if (!nome || !telefone) {
           els.loginError.textContent = 'Preencha nome e telefone para criar a conta.';
           return;
         }
         try {
-          const cred = await auth.createUserWithEmailAndPassword(els.emailInput.value.trim(), els.passwordInput.value);
-          await db.collection('users').doc(cred.user.uid).set({ points: 0, nome, telefone }, { merge: true });
+          const cred = await auth.createUserWithEmailAndPassword(email, els.passwordInput.value);
+          await db.collection('users').doc(cred.user.uid).set(
+            { points: 0, nome, telefone, email: email.toLowerCase() },
+            { merge: true }
+          );
           closeLoginModal();
         } catch (err) {
           els.loginError.textContent = safeError(err);
@@ -565,8 +569,11 @@
             await ref.set({
               points: 0,
               nome: res.user.displayName || els.nomeInput.value.trim() || '',
-              telefone
+              telefone,
+              email: (res.user.email || '').toLowerCase()
             }, { merge: true });
+          } else if (!doc.data().email && res.user.email) {
+            await ref.set({ email: res.user.email.toLowerCase() }, { merge: true });
           }
           closeLoginModal();
         } catch (err) {

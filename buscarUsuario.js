@@ -1,26 +1,39 @@
 async function buscarUsuario() {
 
-    let telefone = document
+    const valorDigitado = document
         .getElementById("telefone")
         .value
-        .replace(/\D/g, "");
+        .trim();
 
-    // Remove o DDI 55 (Brasil) se foi digitado, pra não divergir do que
-    // foi salvo no cadastro sem DDI.
-    if (telefone.length > 11 && telefone.startsWith("55")) {
-        telefone = telefone.slice(2);
+    if (!valorDigitado) {
+        alert("Digite um telefone ou email para buscar.");
+        return;
     }
 
-    if (!telefone) {
-        alert("Digite um telefone para buscar.");
-        return;
+    const ehEmail = valorDigitado.includes("@");
+
+    let campo;
+    let valorBusca;
+
+    if (ehEmail) {
+        campo = "email";
+        valorBusca = valorDigitado.toLowerCase();
+    } else {
+        campo = "telefone";
+        valorBusca = valorDigitado.replace(/\D/g, "");
+
+        // Remove o DDI 55 (Brasil) se foi digitado, pra não divergir do que
+        // foi salvo no cadastro sem DDI.
+        if (valorBusca.length > 11 && valorBusca.startsWith("55")) {
+            valorBusca = valorBusca.slice(2);
+        }
     }
 
     let snap;
     try {
         snap = await db
             .collection("users")
-            .where("telefone", "==", telefone)
+            .where(campo, "==", valorBusca)
             .limit(1)
             .get();
     } catch (err) {
@@ -44,10 +57,13 @@ async function buscarUsuario() {
     });
 
     document.getElementById("nome").innerHTML =
-        dadosUsuario.nome;
+        dadosUsuario.nome || "(sem nome)";
 
     document.getElementById("tel").innerHTML =
-        dadosUsuario.telefone;
+        dadosUsuario.telefone || "-";
+
+    document.getElementById("email").innerHTML =
+        dadosUsuario.email || "-";
 
     document.getElementById("points").innerHTML =
         dadosUsuario.points;
