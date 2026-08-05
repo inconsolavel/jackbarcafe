@@ -75,10 +75,7 @@
       flex-direction: column;
       justify-content: space-between;
     }
-    .item-card.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    .item-card.disabled { opacity: 0.5; cursor: not-allowed; }
     .item-nome { font-weight: bold; font-size: 1.1rem; margin-bottom: 4px; }
     .item-custo { color: #ffd27a; font-size: 0.9rem; margin-bottom: 10px; }
     .item-custo.sem-pontos { color: #ff6b6b; }
@@ -108,10 +105,7 @@
       font-weight: bold;
       color: #ffd27a;
     }
-    .saldo-box .saldo-label {
-      color: #888;
-      font-size: 0.9rem;
-    }
+    .saldo-box .saldo-label { color: #888; font-size: 0.9rem; }
     
     .lista-logs {
       max-height: 300px;
@@ -137,7 +131,6 @@
     }
     .badge.pendente { background: #ffd27a; color: #000; }
     .badge.validado { background: #85ff9f; color: #000; }
-    .badge.cancelado { background: #ff6b6b; color: #fff; }
     .badge.credito { background: #2ecc71; color: #000; }
     .badge.debito { background: #ff6b6b; color: #fff; }
     
@@ -192,18 +185,18 @@
       text-align: center;
     }
     
-    .historico-vazio {
-      color: #666;
-      padding: 8px;
-      text-align: center;
-    }
-    
     .loading {
       color: #888;
       text-align: center;
       padding: 20px;
     }
     
+    .historico-vazio {
+      color: #666;
+      padding: 8px;
+      text-align: center;
+    }
+
     @media (max-width: 480px) {
       .acoes { flex-direction: column; }
       .btn { width: 100%; }
@@ -224,10 +217,9 @@
         <h1>🎁 Resgatar Prêmios</h1>
         <p class="sub">Troque seus pontos por recompensas exclusivas</p>
 
-        <div id="userStatus" class="status-box warn">Verificando credenciais e catálogo...</div>
+        <div id="userStatus" class="status-box warn">Carregando...</div>
 
-        <!-- SALDO DE PONTOS -->
-        <div class="saldo-box" id="saldoBox">
+        <div class="saldo-box">
           <div class="saldo-label">💰 Seus Pontos</div>
           <div class="saldo-valor" id="saldoPontos">0</div>
         </div>
@@ -238,25 +230,19 @@
         </div>
 
         <div id="tokenResultado" style="display:none; margin-top:20px; border-top:1px solid #333; padding-top:15px;">
-          <h3 class="sucesso">✅ Token Gerado com Sucesso!</h3>
-          <p>Mostre o código abaixo ao atendente para receber seu prêmio:</p>
+          <h3 class="sucesso">✅ Token Gerado!</h3>
+          <p>Mostre o código abaixo ao atendente:</p>
           <center><div class="token-display" id="tokenGerado">------</div></center>
-          <p style="font-size:0.85rem; color:#aaa;">*Este token foi salvo no seu histórico e mudará de status assim que validado pelo caixa.</p>
         </div>
 
-        <h3 style="margin-top:25px;">📋 Meu Histórico de Resgates</h3>
+        <h3 style="margin-top:25px;">📋 Meu Histórico</h3>
         <div class="lista-logs" id="historicoUsuario">
-          <div class="loading">⏳ Carregando histórico...</div>
-        </div>
-
-        <h3 style="margin-top:25px;">📊 Histórico de Pontos</h3>
-        <div class="lista-logs" id="historicoPontos">
           <div class="loading">⏳ Carregando histórico...</div>
         </div>
       </main>
 
       <div class="login-trigger" id="linkLoginAdminContainer">
-        Área restrita? <a onclick="forcarExibicaoLoginAdmin()">Fazer Login como Administrador</a>
+        Área restrita? <a onclick="forcarExibicaoLoginAdmin()">Login Administrador</a>
       </div>
     </section>
 
@@ -264,33 +250,30 @@
     <section id="adminView" class="view-section">
       <div class="card" id="adminLoginBox">
         <h2>🔐 Acesso Administrativo</h2>
-        <p class="sub">Faça login com sua conta corporativa cadastrada como administrador.</p>
         <div class="form-group">
-          <label>E-mail do Administrador</label>
-          <input type="email" id="loginAdminEmail" placeholder="Ex: admin@jackbarcafe.com">
+          <label>E-mail</label>
+          <input type="email" id="loginAdminEmail" placeholder="admin@jackbarcafe.com">
         </div>
         <div class="form-group">
           <label>Senha</label>
           <input type="password" id="loginAdminSenha" placeholder="******">
         </div>
-        <button class="btn" onclick="realizarLoginAdmin()">Efetuar Login Admin</button>
-        <button class="btn sec sm" style="width:100%; margin-top:10px;" onclick="switchTab('user')">Voltar para a Vitrine</button>
+        <button class="btn" onclick="realizarLoginAdmin()">Login</button>
+        <button class="btn sec sm" style="width:100%; margin-top:10px;" onclick="switchTab('user')">Voltar</button>
       </div>
 
       <div id="adminPanel" style="display: none;">
         <div class="card">
-          <h2>✅ Validar Token de Resgate</h2>
-          <p class="sub">Insira o token apresentado pelo cliente no balcão</p>
+          <h2>✅ Validar Token</h2>
           <div class="form-group" style="display:flex; gap:10px;">
-            <input type="text" id="tokenInput" placeholder="Ex: JK-123456" style="text-transform: uppercase;">
+            <input type="text" id="tokenInput" placeholder="JK-123456" style="text-transform: uppercase;">
             <button class="btn" onclick="validarTokenCliente()">Validar</button>
           </div>
           <div id="adminValidarStatus"></div>
         </div>
 
         <div class="card">
-          <h2>➕ Adicionar/Remover Pontos</h2>
-          <p class="sub">Gerencie os pontos dos clientes manualmente</p>
+          <h2>➕ Gerenciar Pontos</h2>
           <div class="form-group">
             <label>ID do Usuário</label>
             <input type="text" id="adminUserId" placeholder="UID do usuário">
@@ -304,33 +287,29 @@
         </div>
 
         <div class="card">
-          <h2>➕ Adicionar Item para Resgate</h2>
+          <h2>➕ Adicionar Produto</h2>
           <form id="formAdicionarItem" onsubmit="adicionarNovoItem(event)">
             <div class="form-group">
-              <label>Nome do Produto/Prêmio</label>
-              <input type="text" id="nomeItem" required placeholder="Ex: Caneca Jack Bar Café">
+              <label>Nome</label>
+              <input type="text" id="nomeItem" required placeholder="Ex: Caneca">
             </div>
             <div class="form-group">
               <label>Custo em Pontos</label>
-              <input type="number" id="custoItem" required placeholder="Ex: 50" min="1">
+              <input type="number" id="custoItem" required placeholder="50" min="1">
             </div>
-            <button class="btn" type="submit">Cadastrar Produto</button>
+            <button class="btn" type="submit">Cadastrar</button>
           </form>
         </div>
 
         <div class="card">
-          <h2>📊 Todos os Pedidos de Resgate</h2>
+          <h2>📊 Todos os Resgates</h2>
           <div class="lista-logs" id="logsGlobaisAdmin"></div>
           <div class="acoes">
-             <button class="btn sec sm" onclick="logoutAdmin()">🚪 Sair da Conta Admin</button>
+             <button class="btn sec sm" onclick="logoutAdmin()">🚪 Sair</button>
           </div>
         </div>
       </div>
     </section>
-
-    <div class="acoes">
-      <a class="btn sec" href="index.html">🏠 Voltar ao Início</a>
-    </div>
   </div>
 
   <!-- Firebase SDK -->
@@ -339,7 +318,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
       authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
@@ -353,13 +331,12 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     
-    // Elementos DOM
+    // Elementos
     const userStatus = document.getElementById('userStatus');
     const vitrineItens = document.getElementById('vitrineItens');
     const tokenResultado = document.getElementById('tokenResultado');
     const tokenGerado = document.getElementById('tokenGerado');
     const historicoUsuario = document.getElementById('historicoUsuario');
-    const historicoPontos = document.getElementById('historicoPontos');
     const logsGlobaisAdmin = document.getElementById('logsGlobaisAdmin');
     const adminLoginBox = document.getElementById('adminLoginBox');
     const adminPanel = document.getElementById('adminPanel');
@@ -370,176 +347,110 @@
     let usuarioEhAdmin = false;
     let currentUserUid = null;
     let saldoAtual = 0;
+    let meusResgates = [];
 
     // === AUTENTICAÇÃO ===
     auth.onAuthStateChanged(async (user) => {
       try {
         if (user) {
           currentUserUid = user.uid;
-          console.log('👤 Usuário autenticado:', user.uid);
+          console.log('👤 Usuário:', user.uid);
           
-          // Carrega tudo em paralelo
           await Promise.all([
             checarPermissaoAdmin(user.uid),
             carregarSaldoUsuario(user.uid)
           ]);
           
-          // Inicia listeners depois que o saldo foi carregado
           ouvirItensDisponiveis();
-          carregarHistoricoUsuario(user.uid);
-          carregarHistoricoPontos(user.uid);
+          carregarHistoricoLocal();
           
         } else {
-          console.log('🔄 Usuário não autenticado, fazendo login anônimo...');
+          console.log('🔄 Login anônimo...');
           await auth.signInAnonymously();
         }
       } catch (err) {
-        console.error("❌ Erro no AuthStateChanged:", err);
-        userStatus.textContent = "❌ Erro de autenticação: " + err.message;
+        console.error("❌ Erro:", err);
+        userStatus.textContent = "❌ Erro: " + err.message;
         userStatus.className = "status-box erro";
-        try {
-          await auth.signInAnonymously();
-        } catch (e) {
-          console.error('❌ Falha no login anônimo:', e);
-          userStatus.textContent = "❌ Falha na autenticação. Recarregue a página.";
-        }
       }
     });
 
-    // === CARREGAR SALDO DO USUÁRIO ===
+    // === CARREGAR SALDO ===
     async function carregarSaldoUsuario(uid) {
       try {
         const docSnap = await db.collection('users').doc(uid).get();
         if (docSnap.exists) {
-          const data = docSnap.data();
-          saldoAtual = data.pontos || 0;
-          saldoPontos.textContent = saldoAtual;
-          console.log('💰 Saldo carregado:', saldoAtual);
+          saldoAtual = docSnap.data().pontos || 0;
         } else {
-          // Cria o documento do usuário se não existir
-          await db.collection('users').doc(uid).set({
-            pontos: 0,
-            criadoEm: new Date().toISOString()
-          });
+          await db.collection('users').doc(uid).set({ pontos: 0, criadoEm: new Date().toISOString() });
           saldoAtual = 0;
-          saldoPontos.textContent = '0';
-          console.log('💰 Novo usuário criado com saldo 0');
         }
+        saldoPontos.textContent = saldoAtual;
+        console.log('💰 Saldo:', saldoAtual);
       } catch (err) {
         console.error('❌ Erro ao carregar saldo:', err);
-        // Se der erro de permissão, tenta criar o documento com transação
-        if (err.code === 'permission-denied') {
-          try {
-            const docSnap = await db.collection('users').doc(uid).get();
-            if (!docSnap.exists) {
-              await db.collection('users').doc(uid).set({
-                pontos: 0,
-                criadoEm: new Date().toISOString()
-              });
-              saldoAtual = 0;
-              saldoPontos.textContent = '0';
-            }
-          } catch (e) {
-            console.error('❌ Falha ao criar usuário:', e);
-          }
-        }
+        saldoAtual = 0;
+        saldoPontos.textContent = '0';
       }
     }
 
-    // === VERIFICAÇÃO DE ADMIN ===
+    // === VERIFICAR ADMIN ===
     async function checarPermissaoAdmin(uid) {
       try {
-        console.log('🔍 Verificando permissão para UID:', uid);
         const docSnap = await db.collection('users').doc(uid).get();
-        
-        if (docSnap.exists) {
-          const userData = docSnap.data();
-          console.log('📄 Dados do usuário:', userData);
-          
-          if (userData.isAdmin === true) {
-            usuarioEhAdmin = true;
-            adminTabsHeader.style.display = 'flex';
-            linkLoginAdminContainer.style.display = 'none';
-            adminLoginBox.style.display = 'none';
-            adminPanel.style.display = 'block';
-            userStatus.textContent = "👋 Olá Administrador! Painel carregado.";
-            userStatus.className = "status-box sucesso";
-            ouvirTodosOsResgatesAdmin();
-            return;
-          }
+        if (docSnap.exists && docSnap.data().isAdmin === true) {
+          usuarioEhAdmin = true;
+          adminTabsHeader.style.display = 'flex';
+          linkLoginAdminContainer.style.display = 'none';
+          adminLoginBox.style.display = 'none';
+          adminPanel.style.display = 'block';
+          userStatus.textContent = "👋 Admin logado!";
+          userStatus.className = "status-box sucesso";
+          ouvirTodosOsResgatesAdmin();
+          return;
         }
-        definirInterfaceComoCliente();
+        definirInterfaceCliente();
       } catch (err) {
-        console.error("❌ Erro na leitura da permissão:", err);
-        if (err.code === 'permission-denied') {
-          userStatus.textContent = "⚠️ Sem permissão para verificar status de admin. Carregando como cliente.";
-          userStatus.className = "status-box warn";
-        } else {
-          userStatus.textContent = "❌ Erro ao verificar permissões: " + err.message;
-          userStatus.className = "status-box erro";
-        }
-        definirInterfaceComoCliente();
+        console.error('❌ Erro admin:', err);
+        definirInterfaceCliente();
       }
     }
 
-    function definirInterfaceComoCliente() {
+    function definirInterfaceCliente() {
       usuarioEhAdmin = false;
       adminTabsHeader.style.display = 'none';
       linkLoginAdminContainer.style.display = 'block';
       adminLoginBox.style.display = 'block';
       adminPanel.style.display = 'none';
-      if (!userStatus.classList.contains('erro') && !userStatus.classList.contains('warn')) {
-        userStatus.textContent = "🎯 Selecione o item que deseja resgatar.";
-        userStatus.className = "status-box sucesso";
-      }
+      userStatus.textContent = "🎯 Escolha um item para resgatar.";
+      userStatus.className = "status-box sucesso";
     }
 
     // === LOGIN ADMIN ===
     async function realizarLoginAdmin() {
       const email = document.getElementById('loginAdminEmail').value.trim();
       const senha = document.getElementById('loginAdminSenha').value;
-      
-      if(!email || !senha) {
-        alert("Preencha todos os campos.");
-        return;
-      }
+      if (!email || !senha) return alert("Preencha todos os campos.");
       
       try {
         userStatus.textContent = "⏳ Autenticando...";
         userStatus.className = "status-box warn";
         const cred = await auth.signInWithEmailAndPassword(email, senha);
-        console.log('✅ Login realizado com sucesso:', cred.user.uid);
         await checarPermissaoAdmin(cred.user.uid);
-        
-        if(usuarioEhAdmin) {
-          alert("✅ Acesso confirmado como Administrador!");
+        if (usuarioEhAdmin) {
+          alert("✅ Acesso Admin!");
           switchTab('admin');
-          ouvirTodosOsResgatesAdmin();
         } else {
-          alert("⚠️ Sua conta não está configurada como administrador.");
+          alert("⚠️ Conta não é admin.");
           await auth.signOut();
-          definirInterfaceComoCliente();
         }
-      } catch(error) {
-        console.error('❌ Erro no login:', error);
-        let mensagem = "Falha no login: ";
-        if (error.code === 'auth/user-not-found') mensagem += "Usuário não encontrado.";
-        else if (error.code === 'auth/wrong-password') mensagem += "Senha incorreta.";
-        else if (error.code === 'auth/invalid-email') mensagem += "Email inválido.";
-        else mensagem += error.message;
-        alert(mensagem);
-        definirInterfaceComoCliente();
+      } catch (error) {
+        alert("❌ " + error.message);
       }
     }
 
     function logoutAdmin() {
-      auth.signOut().then(() => {
-        console.log('🚪 Logout realizado');
-        window.location.reload();
-      }).catch(err => {
-        console.error('❌ Erro no logout:', err);
-        window.location.reload();
-      });
+      auth.signOut().then(() => window.location.reload());
     }
 
     function switchTab(target) {
@@ -551,7 +462,7 @@
       } else {
         document.getElementById('adminTabBtn').classList.add('active');
         document.getElementById('adminView').classList.add('active');
-        if(usuarioEhAdmin) ouvirTodosOsResgatesAdmin();
+        if (usuarioEhAdmin) ouvirTodosOsResgatesAdmin();
       }
     }
 
@@ -563,131 +474,75 @@
       setTimeout(() => document.getElementById('loginAdminEmail').focus(), 100);
     }
 
-    // === ADMIN: GERENCIAR PONTOS ===
+    // === ADMIN: PONTOS ===
     async function adminAdicionarPontos() {
-      if (!usuarioEhAdmin) {
-        alert("Apenas administradores podem gerenciar pontos.");
-        return;
-      }
+      if (!usuarioEhAdmin) return alert("Apenas admin.");
       const userId = document.getElementById('adminUserId').value.trim();
       const pontos = Number(document.getElementById('adminPontos').value);
       const statusDiv = document.getElementById('adminPontosStatus');
-      
       if (!userId || pontos <= 0) {
-        statusDiv.innerHTML = '<p class="warn">⚠️ Preencha todos os campos corretamente.</p>';
+        statusDiv.innerHTML = '<p class="warn">⚠️ Preencha todos os campos.</p>';
         return;
       }
-      
       try {
         const userRef = db.collection('users').doc(userId);
-        await db.runTransaction(async (transaction) => {
-          const doc = await transaction.get(userRef);
-          if (!doc.exists) {
-            throw new Error('Usuário não encontrado.');
-          }
-          const pontosAtuais = doc.data().pontos || 0;
-          transaction.update(userRef, { pontos: pontosAtuais + pontos });
+        await db.runTransaction(async (t) => {
+          const doc = await t.get(userRef);
+          if (!doc.exists) throw new Error('Usuário não encontrado.');
+          t.update(userRef, { pontos: (doc.data().pontos || 0) + pontos });
         });
-        
-        await db.collection('historico_pontos').add({
-          usuarioId: userId,
-          tipo: 'CREDITO',
-          quantidade: pontos,
-          descricao: 'Adicionado pelo administrador',
-          data: new Date().toISOString(),
-          adminId: currentUserUid
-        });
-        
-        statusDiv.innerHTML = `<p class="sucesso">✅ ${pontos} pontos adicionados ao usuário ${userId.substring(0,8)}...</p>`;
-        document.getElementById('adminPontos').value = '';
-        
-        if (userId === currentUserUid) {
-          await carregarSaldoUsuario(userId);
-        }
+        statusDiv.innerHTML = `<p class="sucesso">✅ +${pontos} pontos para ${userId.substring(0,8)}...</p>`;
+        if (userId === currentUserUid) await carregarSaldoUsuario(userId);
       } catch (error) {
-        console.error('❌ Erro ao adicionar pontos:', error);
-        statusDiv.innerHTML = `<p class="erro">❌ Erro: ${error.message}</p>`;
+        statusDiv.innerHTML = `<p class="erro">❌ ${error.message}</p>`;
       }
     }
 
     async function adminRemoverPontos() {
-      if (!usuarioEhAdmin) {
-        alert("Apenas administradores podem gerenciar pontos.");
-        return;
-      }
+      if (!usuarioEhAdmin) return alert("Apenas admin.");
       const userId = document.getElementById('adminUserId').value.trim();
       const pontos = Number(document.getElementById('adminPontos').value);
       const statusDiv = document.getElementById('adminPontosStatus');
-      
       if (!userId || pontos <= 0) {
-        statusDiv.innerHTML = '<p class="warn">⚠️ Preencha todos os campos corretamente.</p>';
+        statusDiv.innerHTML = '<p class="warn">⚠️ Preencha todos os campos.</p>';
         return;
       }
-      
       try {
         const userRef = db.collection('users').doc(userId);
-        await db.runTransaction(async (transaction) => {
-          const doc = await transaction.get(userRef);
-          if (!doc.exists) {
-            throw new Error('Usuário não encontrado.');
-          }
-          const pontosAtuais = doc.data().pontos || 0;
-          if (pontosAtuais < pontos) {
-            throw new Error('Usuário não tem pontos suficientes.');
-          }
-          transaction.update(userRef, { pontos: pontosAtuais - pontos });
+        await db.runTransaction(async (t) => {
+          const doc = await t.get(userRef);
+          if (!doc.exists) throw new Error('Usuário não encontrado.');
+          const atual = doc.data().pontos || 0;
+          if (atual < pontos) throw new Error('Saldo insuficiente.');
+          t.update(userRef, { pontos: atual - pontos });
         });
-        
-        await db.collection('historico_pontos').add({
-          usuarioId: userId,
-          tipo: 'DEBITO',
-          quantidade: pontos,
-          descricao: 'Removido pelo administrador',
-          data: new Date().toISOString(),
-          adminId: currentUserUid
-        });
-        
-        statusDiv.innerHTML = `<p class="sucesso">✅ ${pontos} pontos removidos do usuário ${userId.substring(0,8)}...</p>`;
-        document.getElementById('adminPontos').value = '';
-        
-        if (userId === currentUserUid) {
-          await carregarSaldoUsuario(userId);
-        }
+        statusDiv.innerHTML = `<p class="sucesso">✅ -${pontos} pontos de ${userId.substring(0,8)}...</p>`;
+        if (userId === currentUserUid) await carregarSaldoUsuario(userId);
       } catch (error) {
-        console.error('❌ Erro ao remover pontos:', error);
-        statusDiv.innerHTML = `<p class="erro">❌ Erro: ${error.message}</p>`;
+        statusDiv.innerHTML = `<p class="erro">❌ ${error.message}</p>`;
       }
     }
 
-    // === CADASTRAR PRODUTOS ===
+    // === ADICIONAR PRODUTO ===
     async function adicionarNovoItem(e) {
       e.preventDefault();
-      if (!usuarioEhAdmin) {
-        alert("Apenas administradores podem cadastrar produtos.");
-        return;
-      }
+      if (!usuarioEhAdmin) return alert("Apenas admin.");
       const nome = document.getElementById('nomeItem').value.trim();
       const custo = Number(document.getElementById('custoItem').value);
-      if (!nome || custo <= 0) {
-        alert("Preencha todos os campos corretamente.");
-        return;
-      }
+      if (!nome || custo <= 0) return alert("Preencha corretamente.");
       try {
         await db.collection('rewards_catalog').add({
-          nome: nome,
-          custo: custo,
-          criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-          criadoPor: currentUserUid || 'admin'
+          nome, custo,
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
         });
-        alert('✅ Produto cadastrado com sucesso!');
+        alert('✅ Produto cadastrado!');
         document.getElementById('formAdicionarItem').reset();
       } catch (error) {
-        console.error('❌ Erro ao cadastrar:', error);
-        alert('❌ Erro ao cadastrar: ' + error.message);
+        alert('❌ ' + error.message);
       }
     }
 
-    // === VITRINE DE PRODUTOS ===
+    // === VITRINE ===
     function ouvirItensDisponiveis() {
       db.collection('rewards_catalog')
         .orderBy('custo', 'asc')
@@ -696,56 +551,236 @@
           if (snapshot.empty) {
             vitrineItens.innerHTML = `
               <div class="produto-padrao">
-                <p>📦 Nenhum produto cadastrado ainda.</p>
-                <p style="color:#888; font-size:0.9rem;">Peça ao administrador para cadastrar produtos.</p>
-                ${usuarioEhAdmin ? `
-                  <button class="btn sm" onclick="adicionarProdutoPadrao()" style="margin-top:10px;">
-                    ⚡ Adicionar Produtos de Exemplo
-                  </button>
-                ` : ''}
+                <p>📦 Nenhum produto cadastrado.</p>
+                ${usuarioEhAdmin ? '<button class="btn sm" onclick="adicionarProdutoPadrao()">⚡ Adicionar Exemplos</button>' : ''}
               </div>
             `;
             return;
           }
           snapshot.forEach(doc => {
             const data = doc.data();
-            const podeResgatar = saldoAtual >= data.custo;
+            const pode = saldoAtual >= data.custo;
             vitrineItens.innerHTML += `
-              <div class="item-card ${!podeResgatar ? 'disabled' : ''}">
+              <div class="item-card ${!pode ? 'disabled' : ''}">
                 <div>
                   <div class="item-nome">${data.nome}</div>
-                  <div class="item-custo ${!podeResgatar ? 'sem-pontos' : ''}">
-                    ⭐ ${data.custo} Pontos ${!podeResgatar ? '(Saldo insuficiente)' : ''}
+                  <div class="item-custo ${!pode ? 'sem-pontos' : ''}">
+                    ⭐ ${data.custo} pts ${!pode ? '(Saldo insuficiente)' : ''}
                   </div>
                 </div>
-                <button class="btn sm" 
-                        onclick="solicitarResgate('${doc.id}', '${data.nome}', ${data.custo})"
-                        ${!podeResgatar ? 'disabled' : ''}>
-                  ${podeResgatar ? '🎯 Resgatar' : '🚫 Sem Pontos'}
+                <button class="btn sm" onclick="solicitarResgate('${doc.id}', '${data.nome}', ${data.custo})" ${!pode ? 'disabled' : ''}>
+                  ${pode ? '🎯 Resgatar' : '🚫 Sem Pontos'}
                 </button>
               </div>
             `;
           });
         }, err => {
-          console.error("❌ Erro na vitrine:", err);
-          vitrineItens.innerHTML = `
-            <div class="produto-padrao">
-              <p>❌ Erro ao carregar catálogo: ${err.message}</p>
-              <p style="color:#888; font-size:0.9rem;">Verifique se a coleção "rewards_catalog" existe no Firestore.</p>
-            </div>
-          `;
+          console.error('❌ Erro vitrine:', err);
+          vitrineItens.innerHTML = `<div class="produto-padrao"><p>❌ Erro: ${err.message}</p></div>`;
         });
     }
 
     // === ADICIONAR PRODUTOS PADRÃO ===
     async function adicionarProdutoPadrao() {
-      if (!usuarioEhAdmin) {
-        alert("⚠️ Apenas administradores podem adicionar produtos.");
-        return;
-      }
+      if (!usuarioEhAdmin) return alert("Apenas admin.");
       const produtos = [
         { nome: "Caneca Jack Bar Café", custo: 50 },
         { nome: "Camiseta Jack Bar", custo: 100 },
         { nome: "Voucher R$ 20", custo: 80 },
         { nome: "Chaveiro Jack Bar", custo: 30 },
-       
+        { nome: "Ecobag Jack Bar", custo: 40 }
+      ];
+      try {
+        for (const p of produtos) {
+          await db.collection('rewards_catalog').add({
+            nome: p.nome, custo: p.custo,
+            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+        alert('✅ Produtos adicionados!');
+      } catch (error) {
+        alert('❌ ' + error.message);
+      }
+    }
+
+    // === SOLICITAR RESGATE ===
+    async function solicitarResgate(idItem, nomeItem, custoItem) {
+      if (saldoAtual < custoItem) {
+        alert(`⚠️ Saldo insuficiente! Você tem ${saldoAtual} pontos.`);
+        return;
+      }
+      if (!confirm(`Resgatar "${nomeItem}" por ${custoItem} pontos?`)) return;
+
+      const uid = auth.currentUser ? auth.currentUser.uid : 'anonimo';
+      const token = 'JK-' + String(Math.floor(100000 + Math.random() * 900000));
+
+      try {
+        userStatus.textContent = "⏳ Processando...";
+        userStatus.className = "status-box warn";
+
+        // Transação: desconta pontos e cria resgate
+        const userRef = db.collection('users').doc(uid);
+        await db.runTransaction(async (t) => {
+          const doc = await t.get(userRef);
+          if (!doc.exists) throw new Error('Usuário não encontrado.');
+          const atual = doc.data().pontos || 0;
+          if (atual < custoItem) throw new Error('Saldo insuficiente.');
+          t.update(userRef, { pontos: atual - custoItem });
+          
+          // Cria o resgate
+          t.set(db.collection('redemptions').doc(token), {
+            token, usuarioId: uid, itemId: idItem,
+            itemNome: nomeItem, custoPontos: custoItem,
+            status: 'PENDENTE',
+            solicitadoEm: new Date().toISOString(),
+            validadoEm: null
+          });
+        });
+
+        // Atualiza saldo local
+        saldoAtual -= custoItem;
+        saldoPontos.textContent = saldoAtual;
+
+        // Salva localmente para o histórico
+        meusResgates.unshift({
+          token, itemNome: nomeItem, custoPontos: custoItem,
+          status: 'PENDENTE',
+          solicitadoEm: new Date().toISOString()
+        });
+        exibirHistoricoLocal();
+
+        userStatus.textContent = "✅ Token gerado!";
+        userStatus.className = "status-box sucesso";
+        tokenResultado.style.display = 'block';
+        tokenGerado.textContent = token;
+
+      } catch (error) {
+        console.error('❌ Erro resgate:', error);
+        alert('❌ ' + error.message);
+        userStatus.textContent = "❌ Erro ao resgatar.";
+        userStatus.className = "status-box erro";
+      }
+    }
+
+    // === HISTÓRICO LOCAL (FUNCIONA SEM PERMISSÃO) ===
+    function carregarHistoricoLocal() {
+      // Busca os resgates do usuário diretamente
+      db.collection('redemptions')
+        .where('usuarioId', '==', currentUserUid)
+        .orderBy('solicitadoEm', 'desc')
+        .get()
+        .then(snapshot => {
+          meusResgates = [];
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            meusResgates.push(data);
+          });
+          exibirHistoricoLocal();
+        })
+        .catch(err => {
+          console.warn('⚠️ Erro ao buscar histórico, usando cache local:', err);
+          // Se não conseguir buscar, mostra os resgates em memória
+          exibirHistoricoLocal();
+        });
+    }
+
+    function exibirHistoricoLocal() {
+      historicoUsuario.innerHTML = '';
+      if (meusResgates.length === 0) {
+        historicoUsuario.innerHTML = '<p class="historico-vazio">📭 Nenhum resgate ainda.</p>';
+        return;
+      }
+      meusResgates.forEach(data => {
+        const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
+        const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
+        const horaFormatada = new Date(data.solicitadoEm).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+        historicoUsuario.innerHTML += `
+          <div class="log-item">
+            <div>
+              <strong>${data.itemNome}</strong>
+              <span style="color:#888;font-size:0.8rem;">(${data.token})</span><br>
+              <small style="color:#666;">${dataFormatada} ${horaFormatada} - ${data.custoPontos} pts</small>
+            </div>
+            <span class="badge ${statusClass}">${data.status}</span>
+          </div>
+        `;
+      });
+    }
+
+    // === VALIDAR TOKEN (ADMIN) ===
+    async function validarTokenCliente() {
+      if (!usuarioEhAdmin) return alert("Apenas admin.");
+      const token = document.getElementById('tokenInput').value.trim().toUpperCase();
+      const statusDiv = document.getElementById('adminValidarStatus');
+      if (!token) {
+        statusDiv.innerHTML = '<p class="warn">⚠️ Digite um token.</p>';
+        return;
+      }
+      try {
+        statusDiv.innerHTML = '<p class="warn">⏳ Verificando...</p>';
+        const docRef = db.collection('redemptions').doc(token);
+        const docSnap = await docRef.get();
+        if (!docSnap.exists) {
+          statusDiv.innerHTML = '<p class="erro">❌ Token inválido.</p>';
+          return;
+        }
+        const data = docSnap.data();
+        if (data.status === 'VALIDADO') {
+          statusDiv.innerHTML = `<p class="warn">⚠️ Já validado em ${new Date(data.validadoEm).toLocaleString('pt-BR')}</p>`;
+          return;
+        }
+        await docRef.update({ status: 'VALIDADO', validadoEm: new Date().toISOString() });
+        statusDiv.innerHTML = `
+          <p class="sucesso">✅ Token validado!</p>
+          <p style="font-size:0.9rem;">🎁 ${data.itemNome} (${data.custoPontos} pts)</p>
+        `;
+        document.getElementById('tokenInput').value = '';
+        
+        // Atualiza histórico local se for do usuário atual
+        if (data.usuarioId === currentUserUid) {
+          const item = meusResgates.find(r => r.token === token);
+          if (item) item.status = 'VALIDADO';
+          exibirHistoricoLocal();
+        }
+      } catch (error) {
+        statusDiv.innerHTML = `<p class="erro">❌ ${error.message}</p>`;
+      }
+    }
+
+    // === LOGS GLOBAIS (ADMIN) ===
+    function ouvirTodosOsResgatesAdmin() {
+      if (!usuarioEhAdmin) return;
+      db.collection('redemptions')
+        .orderBy('solicitadoEm', 'desc')
+        .limit(100)
+        .onSnapshot(snapshot => {
+          logsGlobaisAdmin.innerHTML = '';
+          if (snapshot.empty) {
+            logsGlobaisAdmin.innerHTML = '<p style="color:#666;padding:8px;">📭 Nenhum resgate.</p>';
+            return;
+          }
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
+            const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
+            logsGlobaisAdmin.innerHTML += `
+              <div class="log-item">
+                <div>
+                  <strong style="color:#ff3b3b;">${data.token}</strong>
+                  <span> - ${data.itemNome}</span><br>
+                  <small style="color:#888;">${dataFormatada} | ${data.custoPontos} pts</small>
+                </div>
+                <span class="badge ${statusClass}">${data.status}</span>
+              </div>
+            `;
+          });
+        }, err => {
+          console.error('❌ Erro logs:', err);
+          logsGlobaisAdmin.innerHTML = `<p style="color:#ff8a8a;">❌ ${err.message}</p>`;
+        });
+    }
+
+    console.log('🚀 App carregado!');
+  </script>
+</body>
+</html>
