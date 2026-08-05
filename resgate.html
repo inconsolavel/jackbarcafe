@@ -360,6 +360,23 @@
       gap: 10px;
       margin-top: 20px;
     }
+    
+    .voltar-link {
+      display: inline-block;
+      color: #ff3b3b;
+      text-decoration: none;
+      padding: 8px 16px;
+      border: 1px solid #ff3b3b44;
+      border-radius: 8px;
+      transition: 0.2s;
+      background: transparent;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .voltar-link:hover {
+      background: #ff3b3b22;
+      border-color: #ff3b3b;
+    }
 
     @media (max-width: 480px) {
       .acoes { flex-direction: column; }
@@ -411,11 +428,10 @@
         <div style="text-align:center; margin-top: 8px;">
           <button class="refresh-btn" onclick="recarregarHistorico()">🔄 Atualizar Histórico</button>
         </div>
-        <div style="text-align:center; margin-top: 8px;">
-          <button href="index.html">Voltar ao inicio</button>
+        <div style="text-align:center; margin-top: 15px;">
+          <a href="index.html" class="voltar-link">🏠 Voltar ao Início</a>
         </div>
       </main>
-
     </section>
 
     <!-- VISÃO DO ADMIN -->
@@ -602,19 +618,24 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     
-    // ===== ELEMENTOS DOM =====
-    const userStatus = document.getElementById('userStatus');
-    const vitrineItens = document.getElementById('vitrineItens');
-    const tokenResultado = document.getElementById('tokenResultado');
-    const tokenGerado = document.getElementById('tokenGerado');
-    const historicoUsuario = document.getElementById('historicoUsuario');
-    const logsGlobaisAdmin = document.getElementById('logsGlobaisAdmin');
-    const adminLoginBox = document.getElementById('adminLoginBox');
-    const adminPanel = document.getElementById('adminPanel');
-    const adminTabsHeader = document.getElementById('adminTabsHeader');
-    const linkLoginAdminContainer = document.getElementById('linkLoginAdminContainer');
-    const saldoPontos = document.getElementById('saldoPontos');
-    const listaProdutosAdmin = document.getElementById('listaProdutosAdmin');
+    // ===== ELEMENTOS DOM - COM VERIFICAÇÃO DE SEGURANÇA =====
+    function getElement(id) {
+      const el = document.getElementById(id);
+      if (!el) console.warn(`⚠️ Elemento não encontrado: ${id}`);
+      return el;
+    }
+
+    const userStatus = getElement('userStatus');
+    const vitrineItens = getElement('vitrineItens');
+    const tokenResultado = getElement('tokenResultado');
+    const tokenGerado = getElement('tokenGerado');
+    const historicoUsuario = getElement('historicoUsuario');
+    const logsGlobaisAdmin = getElement('logsGlobaisAdmin');
+    const adminLoginBox = getElement('adminLoginBox');
+    const adminPanel = getElement('adminPanel');
+    const adminTabsHeader = getElement('adminTabsHeader');
+    const saldoPontos = getElement('saldoPontos');
+    const listaProdutosAdmin = getElement('listaProdutosAdmin');
     
     // ===== VARIÁVEIS GLOBAIS =====
     let usuarioEhAdmin = false;
@@ -644,8 +665,10 @@
         }
       } catch (err) {
         console.error("❌ Erro:", err);
-        userStatus.textContent = "❌ Erro: " + err.message;
-        userStatus.className = "status-box erro";
+        if (userStatus) {
+          userStatus.textContent = "❌ Erro: " + err.message;
+          userStatus.className = "status-box erro";
+        }
         try {
           await auth.signInAnonymously();
         } catch (e) {
@@ -667,8 +690,10 @@
           });
           valorPonto = 1.00;
         }
-        document.getElementById('valorPontoDisplay').textContent = valorPonto.toFixed(2);
-        document.getElementById('valorPontoInput').value = valorPonto.toFixed(2);
+        const display = getElement('valorPontoDisplay');
+        const input = getElement('valorPontoInput');
+        if (display) display.textContent = valorPonto.toFixed(2);
+        if (input) input.value = valorPonto.toFixed(2);
       } catch (err) {
         console.warn('⚠️ Erro ao carregar valor do ponto:', err);
       }
@@ -678,7 +703,10 @@
     async function salvarValorPonto() {
       if (!usuarioEhAdmin) return alert("Apenas administradores podem alterar esta configuração.");
       
-      const novoValor = parseFloat(document.getElementById('valorPontoInput').value);
+      const input = getElement('valorPontoInput');
+      if (!input) return;
+      
+      const novoValor = parseFloat(input.value);
       if (!novoValor || novoValor <= 0) {
         alert('Digite um valor válido (ex: 1.00)');
         return;
@@ -692,7 +720,8 @@
         }, { merge: true });
         
         valorPonto = novoValor;
-        document.getElementById('valorPontoDisplay').textContent = novoValor.toFixed(2);
+        const display = getElement('valorPontoDisplay');
+        if (display) display.textContent = novoValor.toFixed(2);
         alert('✅ Valor do ponto atualizado para R$ ' + novoValor.toFixed(2));
       } catch (err) {
         console.error('❌ Erro ao salvar valor do ponto:', err);
@@ -704,98 +733,108 @@
     function iniciarListeners(uid) {
       // Saldo
       if (unsubscribeSaldo) unsubscribeSaldo();
-      unsubscribeSaldo = db.collection('users').doc(uid)
-        .onSnapshot((doc) => {
-          if (doc.exists) {
-            saldoAtual = doc.data().points || 0;
-            saldoPontos.textContent = saldoAtual;
-            atualizarBotoesResgate();
-          } else {
-            db.collection('users').doc(uid).set({
-              points: 0,
-              isAdmin: false,
-              restante: 0,
-              criadoEm: new Date().toISOString()
-            }).catch(e => console.error('❌ Erro ao criar usuário:', e));
-          }
-        }, (err) => console.warn('⚠️ Erro no saldo:', err));
+      if (saldoPontos) {
+        unsubscribeSaldo = db.collection('users').doc(uid)
+          .onSnapshot((doc) => {
+            if (doc.exists) {
+              saldoAtual = doc.data().points || 0;
+              saldoPontos.textContent = saldoAtual;
+              atualizarBotoesResgate();
+            } else {
+              db.collection('users').doc(uid).set({
+                points: 0,
+                isAdmin: false,
+                restante: 0,
+                criadoEm: new Date().toISOString()
+              }).catch(e => console.error('❌ Erro ao criar usuário:', e));
+            }
+          }, (err) => console.warn('⚠️ Erro no saldo:', err));
+      }
 
       // Histórico do usuário
       if (unsubscribeRedemptions) unsubscribeRedemptions();
-      unsubscribeRedemptions = db.collection('redemptions')
-        .where('usuarioId', '==', uid)
-        .onSnapshot((snapshot) => {
-          const itens = [];
-          snapshot.forEach(doc => itens.push(doc.data()));
-          itens.sort((a, b) => new Date(b.solicitadoEm) - new Date(a.solicitadoEm));
-          
-          historicoUsuario.innerHTML = '';
-          if (itens.length === 0) {
-            historicoUsuario.innerHTML = '<p class="historico-vazio">📭 Nenhum resgate ainda.</p>';
-            return;
-          }
-          itens.forEach(data => {
-            const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
-            const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
-            const horaFormatada = new Date(data.solicitadoEm).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-            historicoUsuario.innerHTML += `
-              <div class="log-item">
-                <div>
-                  <strong>${data.itemNome}</strong>
-                  <span style="color:#888;font-size:0.8rem;">(${data.token})</span><br>
-                  <small style="color:#666;">${dataFormatada} ${horaFormatada} - ${data.custoPontos} pts</small>
+      if (historicoUsuario) {
+        unsubscribeRedemptions = db.collection('redemptions')
+          .where('usuarioId', '==', uid)
+          .onSnapshot((snapshot) => {
+            const itens = [];
+            snapshot.forEach(doc => itens.push(doc.data()));
+            itens.sort((a, b) => new Date(b.solicitadoEm) - new Date(a.solicitadoEm));
+            
+            historicoUsuario.innerHTML = '';
+            if (itens.length === 0) {
+              historicoUsuario.innerHTML = '<p class="historico-vazio">📭 Nenhum resgate ainda.</p>';
+              return;
+            }
+            itens.forEach(data => {
+              const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
+              const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
+              const horaFormatada = new Date(data.solicitadoEm).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+              historicoUsuario.innerHTML += `
+                <div class="log-item">
+                  <div>
+                    <strong>${data.itemNome}</strong>
+                    <span style="color:#888;font-size:0.8rem;">(${data.token})</span><br>
+                    <small style="color:#666;">${dataFormatada} ${horaFormatada} - ${data.custoPontos} pts</small>
+                  </div>
+                  <span class="badge ${statusClass}">${data.status}</span>
                 </div>
-                <span class="badge ${statusClass}">${data.status}</span>
-              </div>
-            `;
+              `;
+            });
+          }, (err) => {
+            console.warn('⚠️ Erro no histórico:', err);
+            if (historicoUsuario) {
+              historicoUsuario.innerHTML = `<p class="historico-vazio" style="color:#ff8a8a;">❌ Erro ao carregar histórico</p>`;
+            }
           });
-        }, (err) => {
-          console.warn('⚠️ Erro no histórico:', err);
-          historicoUsuario.innerHTML = `<p class="historico-vazio" style="color:#ff8a8a;">❌ Erro ao carregar histórico</p>`;
-        });
+      }
 
       // Catálogo para o cliente
       if (unsubscribeCatalog) unsubscribeCatalog();
-      unsubscribeCatalog = db.collection('rewards_catalog')
-        .orderBy('custo', 'asc')
-        .onSnapshot((snapshot) => {
-          vitrineItens.innerHTML = '';
-          if (snapshot.empty) {
-            vitrineItens.innerHTML = `
-              <div class="produto-padrao">
-                <p>📦 Nenhum produto cadastrado.</p>
-                ${usuarioEhAdmin ? '<button class="btn sm" onclick="adicionarProdutoPadrao()">⚡ Adicionar Exemplos</button>' : ''}
-              </div>
-            `;
-            return;
-          }
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const pode = saldoAtual >= data.custo;
-            vitrineItens.innerHTML += `
-              <div class="item-card ${!pode ? 'disabled' : ''}">
-                <div>
-                  <div class="item-nome">${data.nome}</div>
-                  <div class="item-custo ${!pode ? 'sem-pontos' : ''}">
-                    ⭐ ${data.custo} pts ${!pode ? '(Saldo insuficiente)' : ''}
-                  </div>
+      if (vitrineItens) {
+        unsubscribeCatalog = db.collection('rewards_catalog')
+          .orderBy('custo', 'asc')
+          .onSnapshot((snapshot) => {
+            vitrineItens.innerHTML = '';
+            if (snapshot.empty) {
+              vitrineItens.innerHTML = `
+                <div class="produto-padrao">
+                  <p>📦 Nenhum produto cadastrado.</p>
+                  ${usuarioEhAdmin ? '<button class="btn sm" onclick="adicionarProdutoPadrao()">⚡ Adicionar Exemplos</button>' : ''}
                 </div>
-                <button class="btn sm btn-resgate" 
-                        data-custo="${data.custo}"
-                        onclick="solicitarResgate('${doc.id}', '${data.nome}', ${data.custo})" 
-                        ${!pode ? 'disabled' : ''}>
-                  ${pode ? '🎯 Resgatar' : '🚫 Sem Pontos'}
-                </button>
-              </div>
-            `;
+              `;
+              return;
+            }
+            snapshot.forEach(doc => {
+              const data = doc.data();
+              const pode = saldoAtual >= data.custo;
+              vitrineItens.innerHTML += `
+                <div class="item-card ${!pode ? 'disabled' : ''}">
+                  <div>
+                    <div class="item-nome">${data.nome}</div>
+                    <div class="item-custo ${!pode ? 'sem-pontos' : ''}">
+                      ⭐ ${data.custo} pts ${!pode ? '(Saldo insuficiente)' : ''}
+                    </div>
+                  </div>
+                  <button class="btn sm btn-resgate" 
+                          data-custo="${data.custo}"
+                          onclick="solicitarResgate('${doc.id}', '${data.nome}', ${data.custo})" 
+                          ${!pode ? 'disabled' : ''}>
+                    ${pode ? '🎯 Resgatar' : '🚫 Sem Pontos'}
+                  </button>
+                </div>
+              `;
+            });
+          }, (err) => {
+            console.error('❌ Erro vitrine:', err);
+            if (vitrineItens) {
+              vitrineItens.innerHTML = `<div class="produto-padrao"><p>❌ Erro: ${err.message}</p></div>`;
+            }
           });
-        }, (err) => {
-          console.error('❌ Erro vitrine:', err);
-          vitrineItens.innerHTML = `<div class="produto-padrao"><p>❌ Erro: ${err.message}</p></div>`;
-        });
+      }
 
-      // Lista de produtos para o admin (se for admin)
-      if (usuarioEhAdmin) {
+      // Lista de produtos para o admin
+      if (usuarioEhAdmin && listaProdutosAdmin) {
         if (unsubscribeCatalogAdmin) unsubscribeCatalogAdmin();
         unsubscribeCatalogAdmin = db.collection('rewards_catalog')
           .orderBy('custo', 'asc')
@@ -827,7 +866,9 @@
             });
           }, (err) => {
             console.error('❌ Erro ao carregar produtos para admin:', err);
-            listaProdutosAdmin.innerHTML = `<p style="color:#ff8a8a;">❌ Erro: ${err.message}</p>`;
+            if (listaProdutosAdmin) {
+              listaProdutosAdmin.innerHTML = `<p style="color:#ff8a8a;">❌ Erro: ${err.message}</p>`;
+            }
           });
       }
     }
@@ -855,33 +896,43 @@
         }
 
         if (querySnapshot.empty) {
-          userInfoDiv.style.display = 'none';
-          notFoundDiv.style.display = 'block';
+          if (userInfoDiv) userInfoDiv.style.display = 'none';
+          if (notFoundDiv) notFoundDiv.style.display = 'block';
           usuarioSelecionado = null;
           return;
         }
 
-        notFoundDiv.style.display = 'none';
+        if (notFoundDiv) notFoundDiv.style.display = 'none';
         const doc = querySnapshot.docs[0];
         const data = doc.data();
         usuarioSelecionado = { id: doc.id, ...data };
         
-        document.getElementById('adminUserName').textContent = data.nome || 'Usuário sem nome';
-        document.getElementById('adminUserDetail').textContent = 
-          `Telefone: ${data.telefone || '-'} | Email: ${data.email || '-'}`;
-        document.getElementById('adminUserPoints').textContent = `${data.points || 0} pts`;
+        const nameEl = document.getElementById('adminUserName');
+        const detailEl = document.getElementById('adminUserDetail');
+        const pointsEl = document.getElementById('adminUserPoints');
+        const restanteEl = document.getElementById('restanteValor');
+        const restanteBox = document.getElementById('restanteBox');
+        
+        if (nameEl) nameEl.textContent = data.nome || 'Usuário sem nome';
+        if (detailEl) detailEl.textContent = `Telefone: ${data.telefone || '-'} | Email: ${data.email || '-'}`;
+        if (pointsEl) pointsEl.textContent = `${data.points || 0} pts`;
         
         const restante = data.restante || 0;
-        document.getElementById('restanteValor').textContent = `R$ ${restante.toFixed(2)}`;
-        document.getElementById('restanteBox').style.display = 'block';
+        if (restanteEl) restanteEl.textContent = `R$ ${restante.toFixed(2)}`;
+        if (restanteBox) restanteBox.style.display = 'block';
         
-        userInfoDiv.style.display = 'block';
-        document.getElementById('adminPontos').value = '';
-        document.getElementById('adminMotivo').value = '';
-        document.getElementById('adminValorGasto').value = '';
-        document.getElementById('adminMotivoCashback').value = '';
-        document.getElementById('adminPontosStatus').innerHTML = '';
-        document.getElementById('adminCashbackStatus').innerHTML = '';
+        if (userInfoDiv) userInfoDiv.style.display = 'block';
+        
+        const inputs = ['adminPontos', 'adminMotivo', 'adminValorGasto', 'adminMotivoCashback'];
+        inputs.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        
+        ['adminPontosStatus', 'adminCashbackStatus'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = '';
+        });
 
       } catch (error) {
         console.error('❌ Erro ao buscar usuário:', error);
@@ -898,7 +949,8 @@
       const motivo = document.getElementById('adminMotivoCashback').value.trim() || 'Cashback por compra';
 
       if (!valorGasto || valorGasto <= 0) {
-        document.getElementById('adminCashbackStatus').innerHTML = '<p class="warn">⚠️ Digite um valor válido.</p>';
+        const statusEl = document.getElementById('adminCashbackStatus');
+        if (statusEl) statusEl.innerHTML = '<p class="warn">⚠️ Digite um valor válido.</p>';
         return;
       }
 
@@ -939,25 +991,32 @@
         usuarioSelecionado.points = (usuarioSelecionado.points || 0) + pontosAdicionados;
         usuarioSelecionado.restante = restanteNovo;
         
-        document.getElementById('adminUserPoints').textContent = `${usuarioSelecionado.points} pts`;
-        document.getElementById('restanteValor').textContent = `R$ ${restanteNovo.toFixed(2)}`;
+        const pointsEl = document.getElementById('adminUserPoints');
+        const restanteEl = document.getElementById('restanteValor');
+        const statusEl = document.getElementById('adminCashbackStatus');
+        const valorInput = document.getElementById('adminValorGasto');
+        const motivoInput = document.getElementById('adminMotivoCashback');
+        
+        if (pointsEl) pointsEl.textContent = `${usuarioSelecionado.points} pts`;
+        if (restanteEl) restanteEl.textContent = `R$ ${restanteNovo.toFixed(2)}`;
         
         let mensagem = `✅ R$ ${valorGasto.toFixed(2)} convertido em ${pontosAdicionados} pontos!`;
         if (restanteNovo > 0) {
           mensagem += ` Restante: R$ ${restanteNovo.toFixed(2)} acumulado.`;
         }
-        document.getElementById('adminCashbackStatus').innerHTML = `<p class="sucesso">${mensagem}</p>`;
-        document.getElementById('adminValorGasto').value = '';
-        document.getElementById('adminMotivoCashback').value = '';
+        if (statusEl) statusEl.innerHTML = `<p class="sucesso">${mensagem}</p>`;
+        if (valorInput) valorInput.value = '';
+        if (motivoInput) motivoInput.value = '';
 
         if (usuarioSelecionado.id === currentUserUid) {
           saldoAtual = usuarioSelecionado.points;
-          saldoPontos.textContent = saldoAtual;
+          if (saldoPontos) saldoPontos.textContent = saldoAtual;
         }
 
       } catch (error) {
         console.error('❌ Erro ao converter valor em pontos:', error);
-        document.getElementById('adminCashbackStatus').innerHTML = `<p class="erro">❌ ${error.message}</p>`;
+        const statusEl = document.getElementById('adminCashbackStatus');
+        if (statusEl) statusEl.innerHTML = `<p class="erro">❌ ${error.message}</p>`;
       }
     }
 
@@ -970,7 +1029,8 @@
       const motivo = document.getElementById('adminMotivo').value.trim() || 'Adicionado pelo administrador';
 
       if (!pontos || pontos <= 0) {
-        document.getElementById('adminPontosStatus').innerHTML = '<p class="warn">⚠️ Digite uma quantidade válida.</p>';
+        const statusEl = document.getElementById('adminPontosStatus');
+        if (statusEl) statusEl.innerHTML = '<p class="warn">⚠️ Digite uma quantidade válida.</p>';
         return;
       }
 
@@ -993,19 +1053,23 @@
         });
 
         usuarioSelecionado.points = (usuarioSelecionado.points || 0) + pontos;
-        document.getElementById('adminUserPoints').textContent = `${usuarioSelecionado.points} pts`;
-        document.getElementById('adminPontosStatus').innerHTML = 
-          `<p class="sucesso">✅ +${pontos} pontos adicionados! Motivo: ${motivo}</p>`;
-        document.getElementById('adminPontos').value = '';
+        const pointsEl = document.getElementById('adminUserPoints');
+        const statusEl = document.getElementById('adminPontosStatus');
+        const inputEl = document.getElementById('adminPontos');
+        
+        if (pointsEl) pointsEl.textContent = `${usuarioSelecionado.points} pts`;
+        if (statusEl) statusEl.innerHTML = `<p class="sucesso">✅ +${pontos} pontos adicionados! Motivo: ${motivo}</p>`;
+        if (inputEl) inputEl.value = '';
 
         if (usuarioSelecionado.id === currentUserUid) {
           saldoAtual = usuarioSelecionado.points;
-          saldoPontos.textContent = saldoAtual;
+          if (saldoPontos) saldoPontos.textContent = saldoAtual;
         }
 
       } catch (error) {
         console.error('❌ Erro ao adicionar pontos:', error);
-        document.getElementById('adminPontosStatus').innerHTML = `<p class="erro">❌ ${error.message}</p>`;
+        const statusEl = document.getElementById('adminPontosStatus');
+        if (statusEl) statusEl.innerHTML = `<p class="erro">❌ ${error.message}</p>`;
       }
     }
 
@@ -1018,7 +1082,8 @@
       const motivo = document.getElementById('adminMotivo').value.trim() || 'Removido pelo administrador';
 
       if (!pontos || pontos <= 0) {
-        document.getElementById('adminPontosStatus').innerHTML = '<p class="warn">⚠️ Digite uma quantidade válida.</p>';
+        const statusEl = document.getElementById('adminPontosStatus');
+        if (statusEl) statusEl.innerHTML = '<p class="warn">⚠️ Digite uma quantidade válida.</p>';
         return;
       }
 
@@ -1042,33 +1107,44 @@
         });
 
         usuarioSelecionado.points = (usuarioSelecionado.points || 0) - pontos;
-        document.getElementById('adminUserPoints').textContent = `${usuarioSelecionado.points} pts`;
-        document.getElementById('adminPontosStatus').innerHTML = 
-          `<p class="sucesso">✅ -${pontos} pontos removidos! Motivo: ${motivo}</p>`;
-        document.getElementById('adminPontos').value = '';
+        const pointsEl = document.getElementById('adminUserPoints');
+        const statusEl = document.getElementById('adminPontosStatus');
+        const inputEl = document.getElementById('adminPontos');
+        
+        if (pointsEl) pointsEl.textContent = `${usuarioSelecionado.points} pts`;
+        if (statusEl) statusEl.innerHTML = `<p class="sucesso">✅ -${pontos} pontos removidos! Motivo: ${motivo}</p>`;
+        if (inputEl) inputEl.value = '';
 
         if (usuarioSelecionado.id === currentUserUid) {
           saldoAtual = usuarioSelecionado.points;
-          saldoPontos.textContent = saldoAtual;
+          if (saldoPontos) saldoPontos.textContent = saldoAtual;
         }
 
       } catch (error) {
         console.error('❌ Erro ao remover pontos:', error);
-        document.getElementById('adminPontosStatus').innerHTML = `<p class="erro">❌ ${error.message}</p>`;
+        const statusEl = document.getElementById('adminPontosStatus');
+        if (statusEl) statusEl.innerHTML = `<p class="erro">❌ ${error.message}</p>`;
       }
     }
 
     // ===== EDITAR PRODUTO =====
     function abrirModalEditar(id, nome, custo) {
-      document.getElementById('editProdutoId').value = id;
-      document.getElementById('editNome').value = nome;
-      document.getElementById('editCusto').value = custo;
-      document.getElementById('editStatus').innerHTML = '';
-      document.getElementById('modalEditarProduto').classList.add('active');
+      const idInput = document.getElementById('editProdutoId');
+      const nomeInput = document.getElementById('editNome');
+      const custoInput = document.getElementById('editCusto');
+      const statusEl = document.getElementById('editStatus');
+      const modal = document.getElementById('modalEditarProduto');
+      
+      if (idInput) idInput.value = id;
+      if (nomeInput) nomeInput.value = nome;
+      if (custoInput) custoInput.value = custo;
+      if (statusEl) statusEl.innerHTML = '';
+      if (modal) modal.classList.add('active');
     }
 
     function fecharModalEditar() {
-      document.getElementById('modalEditarProduto').classList.remove('active');
+      const modal = document.getElementById('modalEditarProduto');
+      if (modal) modal.classList.remove('active');
     }
 
     async function salvarEdicaoProduto(e) {
@@ -1080,7 +1156,8 @@
       const custo = Number(document.getElementById('editCusto').value);
 
       if (!nome || custo <= 0) {
-        document.getElementById('editStatus').innerHTML = '<p class="warn">⚠️ Preencha todos os campos corretamente.</p>';
+        const statusEl = document.getElementById('editStatus');
+        if (statusEl) statusEl.innerHTML = '<p class="warn">⚠️ Preencha todos os campos corretamente.</p>';
         return;
       }
 
@@ -1092,13 +1169,15 @@
           atualizadoPor: currentUserUid
         });
 
-        document.getElementById('editStatus').innerHTML = '<p class="sucesso">✅ Produto atualizado com sucesso!</p>';
+        const statusEl = document.getElementById('editStatus');
+        if (statusEl) statusEl.innerHTML = '<p class="sucesso">✅ Produto atualizado com sucesso!</p>';
         setTimeout(() => {
           fecharModalEditar();
         }, 1500);
       } catch (error) {
         console.error('❌ Erro ao editar produto:', error);
-        document.getElementById('editStatus').innerHTML = `<p class="erro">❌ ${error.message}</p>`;
+        const statusEl = document.getElementById('editStatus');
+        if (statusEl) statusEl.innerHTML = `<p class="erro">❌ ${error.message}</p>`;
       }
     }
 
@@ -1121,13 +1200,13 @@
 
     // ===== RECARREGAR FUNÇÕES =====
     function recarregarSaldo() {
-      if (currentUserUid) {
+      if (currentUserUid && saldoPontos) {
         saldoPontos.textContent = '⏳';
         db.collection('users').doc(currentUserUid).get()
           .then(doc => {
             if (doc.exists) {
               saldoAtual = doc.data().points || 0;
-              saldoPontos.textContent = saldoAtual;
+              if (saldoPontos) saldoPontos.textContent = saldoAtual;
               atualizarBotoesResgate();
             }
           })
@@ -1136,7 +1215,7 @@
     }
 
     function recarregarHistorico() {
-      if (currentUserUid) {
+      if (currentUserUid && historicoUsuario) {
         historicoUsuario.innerHTML = '<div class="loading">⏳ Atualizando...</div>';
         db.collection('redemptions')
           .where('usuarioId', '==', currentUserUid)
@@ -1146,30 +1225,34 @@
             snapshot.forEach(doc => itens.push(doc.data()));
             itens.sort((a, b) => new Date(b.solicitadoEm) - new Date(a.solicitadoEm));
             
-            historicoUsuario.innerHTML = '';
-            if (itens.length === 0) {
-              historicoUsuario.innerHTML = '<p class="historico-vazio">📭 Nenhum resgate ainda.</p>';
-              return;
-            }
-            itens.forEach(data => {
-              const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
-              const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
-              const horaFormatada = new Date(data.solicitadoEm).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-              historicoUsuario.innerHTML += `
-                <div class="log-item">
-                  <div>
-                    <strong>${data.itemNome}</strong>
-                    <span style="color:#888;font-size:0.8rem;">(${data.token})</span><br>
-                    <small style="color:#666;">${dataFormatada} ${horaFormatada} - ${data.custoPontos} pts</small>
+            if (historicoUsuario) {
+              historicoUsuario.innerHTML = '';
+              if (itens.length === 0) {
+                historicoUsuario.innerHTML = '<p class="historico-vazio">📭 Nenhum resgate ainda.</p>';
+                return;
+              }
+              itens.forEach(data => {
+                const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
+                const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
+                const horaFormatada = new Date(data.solicitadoEm).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                historicoUsuario.innerHTML += `
+                  <div class="log-item">
+                    <div>
+                      <strong>${data.itemNome}</strong>
+                      <span style="color:#888;font-size:0.8rem;">(${data.token})</span><br>
+                      <small style="color:#666;">${dataFormatada} ${horaFormatada} - ${data.custoPontos} pts</small>
+                    </div>
+                    <span class="badge ${statusClass}">${data.status}</span>
                   </div>
-                  <span class="badge ${statusClass}">${data.status}</span>
-                </div>
-              `;
-            });
+                `;
+              });
+            }
           })
           .catch(err => {
             console.error('❌ Erro ao recarregar histórico:', err);
-            historicoUsuario.innerHTML = `<p class="historico-vazio" style="color:#ff8a8a;">❌ Erro ao carregar histórico</p>`;
+            if (historicoUsuario) {
+              historicoUsuario.innerHTML = `<p class="historico-vazio" style="color:#ff8a8a;">❌ Erro ao carregar histórico</p>`;
+            }
           });
       }
     }
@@ -1209,10 +1292,13 @@
         const docSnap = await db.collection('users').doc(uid).get();
         if (docSnap.exists && docSnap.data().isAdmin === true) {
           usuarioEhAdmin = true;
-          adminTabsHeader.style.display = 'flex';
-          linkLoginAdminContainer.style.display = 'none';
-          adminLoginBox.style.display = 'none';
-          adminPanel.style.display = 'block';
+          if (adminTabsHeader) adminTabsHeader.style.display = 'flex';
+          if (adminLoginBox) adminLoginBox.style.display = 'none';
+          if (adminPanel) adminPanel.style.display = 'block';
+          if (userStatus) {
+            userStatus.textContent = "👑 Olá Administrador! Painel carregado.";
+            userStatus.className = "status-box sucesso";
+          }
           console.log('👑 Usuário é ADMIN');
           ouvirTodosOsResgatesAdmin();
           // Inicia o listener de produtos para admin
@@ -1229,10 +1315,13 @@
 
     function definirInterfaceCliente() {
       usuarioEhAdmin = false;
-      adminTabsHeader.style.display = 'none';
-      linkLoginAdminContainer.style.display = 'block';
-      adminLoginBox.style.display = 'block';
-      adminPanel.style.display = 'none';
+      if (adminTabsHeader) adminTabsHeader.style.display = 'none';
+      if (adminLoginBox) adminLoginBox.style.display = 'block';
+      if (adminPanel) adminPanel.style.display = 'none';
+      if (userStatus) {
+        userStatus.textContent = "🎯 Selecione o item que deseja resgatar.";
+        userStatus.className = "status-box sucesso";
+      }
     }
 
     // ===== LOGIN ADMIN =====
@@ -1242,8 +1331,10 @@
       if (!email || !senha) return alert("Preencha todos os campos.");
       
       try {
-        userStatus.textContent = "⏳ Autenticando...";
-        userStatus.className = "status-box warn";
+        if (userStatus) {
+          userStatus.textContent = "⏳ Autenticando...";
+          userStatus.className = "status-box warn";
+        }
         const cred = await auth.signInWithEmailAndPassword(email, senha);
         await checarPermissaoAdmin(cred.user.uid);
         if (usuarioEhAdmin) {
@@ -1270,11 +1361,15 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
       if (target === 'user') {
-        document.getElementById('userTabBtn').classList.add('active');
-        document.getElementById('userView').classList.add('active');
+        const tab = document.getElementById('userTabBtn');
+        const view = document.getElementById('userView');
+        if (tab) tab.classList.add('active');
+        if (view) view.classList.add('active');
       } else {
-        document.getElementById('adminTabBtn').classList.add('active');
-        document.getElementById('adminView').classList.add('active');
+        const tab = document.getElementById('adminTabBtn');
+        const view = document.getElementById('adminView');
+        if (tab) tab.classList.add('active');
+        if (view) view.classList.add('active');
         if (usuarioEhAdmin) ouvirTodosOsResgatesAdmin();
       }
     }
@@ -1282,9 +1377,14 @@
     function forcarExibicaoLoginAdmin() {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-      document.getElementById('adminTabBtn').classList.add('active');
-      document.getElementById('adminView').classList.add('active');
-      setTimeout(() => document.getElementById('loginAdminEmail').focus(), 100);
+      const tab = document.getElementById('adminTabBtn');
+      const view = document.getElementById('adminView');
+      if (tab) tab.classList.add('active');
+      if (view) view.classList.add('active');
+      setTimeout(() => {
+        const input = document.getElementById('loginAdminEmail');
+        if (input) input.focus();
+      }, 100);
     }
 
     // ===== ADICIONAR PRODUTO =====
@@ -1341,8 +1441,10 @@
       const token = 'JK-' + String(Math.floor(100000 + Math.random() * 900000));
 
       try {
-        userStatus.textContent = "⏳ Processando...";
-        userStatus.className = "status-box warn";
+        if (userStatus) {
+          userStatus.textContent = "⏳ Processando...";
+          userStatus.className = "status-box warn";
+        }
 
         const userRef = db.collection('users').doc(uid);
         await db.runTransaction(async (t) => {
@@ -1364,16 +1466,20 @@
           });
         });
 
-        userStatus.textContent = "✅ Token gerado! Apresente no balcão.";
-        userStatus.className = "status-box sucesso";
-        tokenResultado.style.display = 'block';
-        tokenGerado.textContent = token;
+        if (userStatus) {
+          userStatus.textContent = "✅ Token gerado! Apresente no balcão.";
+          userStatus.className = "status-box sucesso";
+        }
+        if (tokenResultado) tokenResultado.style.display = 'block';
+        if (tokenGerado) tokenGerado.textContent = token;
 
       } catch (error) {
         console.error('❌ Erro resgate:', error);
         alert('❌ ' + error.message);
-        userStatus.textContent = "❌ Erro ao resgatar.";
-        userStatus.className = "status-box erro";
+        if (userStatus) {
+          userStatus.textContent = "❌ Erro ao resgatar.";
+          userStatus.className = "status-box erro";
+        }
       }
     }
 
@@ -1383,36 +1489,41 @@
       const token = document.getElementById('tokenInput').value.trim().toUpperCase();
       const statusDiv = document.getElementById('adminValidarStatus');
       if (!token) {
-        statusDiv.innerHTML = '<p class="warn">⚠️ Digite um token.</p>';
+        if (statusDiv) statusDiv.innerHTML = '<p class="warn">⚠️ Digite um token.</p>';
         return;
       }
       try {
-        statusDiv.innerHTML = '<p class="warn">⏳ Verificando...</p>';
+        if (statusDiv) statusDiv.innerHTML = '<p class="warn">⏳ Verificando...</p>';
         const docRef = db.collection('redemptions').doc(token);
         const docSnap = await docRef.get();
         if (!docSnap.exists) {
-          statusDiv.innerHTML = '<p class="erro">❌ Token inválido.</p>';
+          if (statusDiv) statusDiv.innerHTML = '<p class="erro">❌ Token inválido.</p>';
           return;
         }
         const data = docSnap.data();
         if (data.status === 'VALIDADO') {
-          statusDiv.innerHTML = `<p class="warn">⚠️ Já validado em ${new Date(data.validadoEm).toLocaleString('pt-BR')}</p>`;
+          if (statusDiv) {
+            statusDiv.innerHTML = `<p class="warn">⚠️ Já validado em ${new Date(data.validadoEm).toLocaleString('pt-BR')}</p>`;
+          }
           return;
         }
         await docRef.update({ status: 'VALIDADO', validadoEm: new Date().toISOString() });
-        statusDiv.innerHTML = `
-          <p class="sucesso">✅ Token validado!</p>
-          <p style="font-size:0.9rem;">🎁 ${data.itemNome} (${data.custoPontos} pts)</p>
-        `;
-        document.getElementById('tokenInput').value = '';
+        if (statusDiv) {
+          statusDiv.innerHTML = `
+            <p class="sucesso">✅ Token validado!</p>
+            <p style="font-size:0.9rem;">🎁 ${data.itemNome} (${data.custoPontos} pts)</p>
+          `;
+        }
+        const input = document.getElementById('tokenInput');
+        if (input) input.value = '';
       } catch (error) {
-        statusDiv.innerHTML = `<p class="erro">❌ ${error.message}</p>`;
+        if (statusDiv) statusDiv.innerHTML = `<p class="erro">❌ ${error.message}</p>`;
       }
     }
 
     // ===== LOGS GLOBAIS (ADMIN) =====
     function ouvirTodosOsResgatesAdmin() {
-      if (!usuarioEhAdmin) return;
+      if (!usuarioEhAdmin || !logsGlobaisAdmin) return;
       
       db.collection('redemptions')
         .orderBy('solicitadoEm', 'desc')
@@ -1459,16 +1570,21 @@
           }
         }, (err) => {
           console.error('❌ Erro logs:', err);
-          logsGlobaisAdmin.innerHTML = `<p style="color:#ff8a8a;">❌ ${err.message}</p>`;
+          if (logsGlobaisAdmin) {
+            logsGlobaisAdmin.innerHTML = `<p style="color:#ff8a8a;">❌ ${err.message}</p>`;
+          }
         });
     }
 
     // Fechar modal ao clicar fora
-    document.getElementById('modalEditarProduto').addEventListener('click', function(e) {
-      if (e.target === this) {
-        fecharModalEditar();
-      }
-    });
+    const modal = document.getElementById('modalEditarProduto');
+    if (modal) {
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+          fecharModalEditar();
+        }
+      });
+    }
 
     console.log('🚀 App carregado! Sistema de Cashback ativo.');
   </script>
