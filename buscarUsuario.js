@@ -5,11 +5,23 @@ async function buscarUsuario() {
         .value
         .replace(/\D/g, "");
 
-    const snap = await db
-        .collection("users")
-        .where("telefone", "==", telefone)
-        .limit(1)
-        .get();
+    if (!telefone) {
+        alert("Digite um telefone para buscar.");
+        return;
+    }
+
+    let snap;
+    try {
+        snap = await db
+            .collection("users")
+            .where("telefone", "==", telefone)
+            .limit(1)
+            .get();
+    } catch (err) {
+        console.error("Erro ao buscar usuário:", err);
+        alert("Erro ao buscar usuário: " + err.message);
+        return;
+    }
 
     if (snap.empty) {
 
