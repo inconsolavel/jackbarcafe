@@ -288,7 +288,6 @@
       font-weight: bold;
     }
 
-    /* Lista de produtos para editar/remover */
     .produto-list-item {
       display: flex;
       justify-content: space-between;
@@ -325,7 +324,6 @@
       flex: none;
     }
 
-    /* Modal de edição */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -376,6 +374,42 @@
     .voltar-link:hover {
       background: #ff3b3b22;
       border-color: #ff3b3b;
+    }
+
+    /* Login Prompt */
+    .login-prompt {
+      text-align: center;
+      padding: 40px 20px;
+      background: #1a1a1a;
+      border-radius: 14px;
+      border: 1px solid #333;
+    }
+    .login-prompt .icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+    .login-prompt h2 {
+      color: #ffd27a;
+      margin-bottom: 8px;
+    }
+    .login-prompt p {
+      color: #aaa;
+      margin-bottom: 20px;
+    }
+    .login-prompt .btn-login {
+      background: #ff3b3b;
+      color: #fff;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .login-prompt .btn-login:hover {
+      background: #cc0000;
+      transform: scale(1.02);
     }
 
     @media (max-width: 480px) {
@@ -484,7 +518,6 @@
               </div>
             </div>
 
-            <!-- CONFIGURAÇÃO DO CASHBACK -->
             <div class="cashback-config">
               <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                 <div>
@@ -499,13 +532,11 @@
               </div>
             </div>
 
-            <!-- RESTANTE ACUMULADO -->
             <div class="restante-box" id="restanteBox">
               <div class="restante-label">💰 Restante acumulado para próximo ponto</div>
               <div class="restante-valor" id="restanteValor">R$ 0,00</div>
             </div>
 
-            <!-- ADICIONAR POR VALOR GASTO (CASHBACK) -->
             <div style="background: #1a1a1a; border: 1px solid #2ecc7144; border-radius: 10px; padding: 15px; margin: 10px 0;">
               <h4 style="color: #2ecc71; margin: 0 0 10px 0;">💳 Adicionar por Valor Gasto</h4>
               <p style="color:#888; font-size:0.85rem; margin-bottom:10px;">
@@ -519,7 +550,6 @@
               <div id="adminCashbackStatus" style="margin-top:10px;"></div>
             </div>
 
-            <!-- ADICIONAR/REMOVER MANUAL -->
             <hr style="border-color:#333; margin:15px 0;">
             <h4 style="color:#888; margin:0 0 10px 0;">🔧 Ajuste Manual</h4>
             <div class="form-group" style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -554,7 +584,7 @@
           </form>
         </div>
 
-        <!-- GERENCIAR PRODUTOS - EDITAR E REMOVER -->
+        <!-- GERENCIAR PRODUTOS -->
         <div class="card">
           <h2>📦 Gerenciar Produtos</h2>
           <p class="sub">Edite ou remova produtos existentes</p>
@@ -618,24 +648,18 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     
-    // ===== ELEMENTOS DOM - COM VERIFICAÇÃO DE SEGURANÇA =====
-    function getElement(id) {
-      const el = document.getElementById(id);
-      if (!el) console.warn(`⚠️ Elemento não encontrado: ${id}`);
-      return el;
-    }
-
-    const userStatus = getElement('userStatus');
-    const vitrineItens = getElement('vitrineItens');
-    const tokenResultado = getElement('tokenResultado');
-    const tokenGerado = getElement('tokenGerado');
-    const historicoUsuario = getElement('historicoUsuario');
-    const logsGlobaisAdmin = getElement('logsGlobaisAdmin');
-    const adminLoginBox = getElement('adminLoginBox');
-    const adminPanel = getElement('adminPanel');
-    const adminTabsHeader = getElement('adminTabsHeader');
-    const saldoPontos = getElement('saldoPontos');
-    const listaProdutosAdmin = getElement('listaProdutosAdmin');
+    // ===== ELEMENTOS DOM =====
+    const userStatus = document.getElementById('userStatus');
+    const vitrineItens = document.getElementById('vitrineItens');
+    const tokenResultado = document.getElementById('tokenResultado');
+    const tokenGerado = document.getElementById('tokenGerado');
+    const historicoUsuario = document.getElementById('historicoUsuario');
+    const logsGlobaisAdmin = document.getElementById('logsGlobaisAdmin');
+    const adminLoginBox = document.getElementById('adminLoginBox');
+    const adminPanel = document.getElementById('adminPanel');
+    const adminTabsHeader = document.getElementById('adminTabsHeader');
+    const saldoPontos = document.getElementById('saldoPontos');
+    const listaProdutosAdmin = document.getElementById('listaProdutosAdmin');
     
     // ===== VARIÁVEIS GLOBAIS =====
     let usuarioEhAdmin = false;
@@ -647,10 +671,13 @@
     let unsubscribeCatalogAdmin = null;
     let usuarioSelecionado = null;
     let valorPonto = 1.00;
+    let autenticacaoInicializada = false;
 
-    // ===== AUTENTICAÇÃO =====
+    // ===== AUTENTICAÇÃO - SEM LOGIN ANÔNIMO =====
     auth.onAuthStateChanged(async (user) => {
       try {
+        autenticacaoInicializada = true;
+        
         if (user) {
           currentUserUid = user.uid;
           console.log('👤 Usuário autenticado:', user.uid);
@@ -659,9 +686,22 @@
           await carregarValorPonto();
           iniciarListeners(user.uid);
           
+          // Mostra a interface do usuário
+          if (userStatus) {
+            userStatus.textContent = "✅ Bem-vindo! Selecione um item para resgatar.";
+            userStatus.className = "status-box sucesso";
+          }
+          
         } else {
-          console.log('🔄 Login anônimo...');
-          await auth.signInAnonymously();
+          console.log('👤 Usuário não autenticado');
+          currentUserUid = null;
+          usuarioEhAdmin = false;
+          
+          // Mostra a tela de login/prompt
+          mostrarPromptLogin();
+          
+          // Ainda carrega o catálogo (leitura pública)
+          carregarCatalogoPublico();
         }
       } catch (err) {
         console.error("❌ Erro:", err);
@@ -669,13 +709,77 @@
           userStatus.textContent = "❌ Erro: " + err.message;
           userStatus.className = "status-box erro";
         }
-        try {
-          await auth.signInAnonymously();
-        } catch (e) {
-          console.error('❌ Falha no login anônimo:', e);
-        }
       }
     });
+
+    // ===== MOSTRAR PROMPT DE LOGIN =====
+    function mostrarPromptLogin() {
+      // Esconde elementos que precisam de login
+      if (saldoPontos) saldoPontos.textContent = '🔒';
+      if (historicoUsuario) {
+        historicoUsuario.innerHTML = `
+          <div class="login-prompt">
+            <div class="icon">🔐</div>
+            <h2>Faça login para ver seu histórico</h2>
+            <p>Entre com sua conta para acompanhar seus resgates e pontos.</p>
+            <button class="btn-login" onclick="redirecionarParaLogin()">🔑 Fazer Login</button>
+          </div>
+        `;
+      }
+      
+      if (userStatus) {
+        userStatus.textContent = "👋 Faça login para resgatar seus prêmios!";
+        userStatus.className = "status-box info";
+      }
+      
+      // Mostra o link de login no admin
+      if (adminLoginBox) adminLoginBox.style.display = 'block';
+      if (adminPanel) adminPanel.style.display = 'none';
+      if (adminTabsHeader) adminTabsHeader.style.display = 'none';
+    }
+
+    // ===== REDIRECIONAR PARA LOGIN =====
+    function redirecionarParaLogin() {
+      window.location.href = 'index.html';
+    }
+
+    // ===== CARREGAR CATÁLOGO PÚBLICO (SEM LOGIN) =====
+    function carregarCatalogoPublico() {
+      if (vitrineItens) {
+        db.collection('rewards_catalog')
+          .orderBy('custo', 'asc')
+          .onSnapshot((snapshot) => {
+            vitrineItens.innerHTML = '';
+            if (snapshot.empty) {
+              vitrineItens.innerHTML = `
+                <div class="produto-padrao">
+                  <p>📦 Nenhum produto cadastrado.</p>
+                </div>
+              `;
+              return;
+            }
+            snapshot.forEach(doc => {
+              const data = doc.data();
+              vitrineItens.innerHTML += `
+                <div class="item-card disabled">
+                  <div>
+                    <div class="item-nome">${data.nome}</div>
+                    <div class="item-custo">⭐ ${data.custo} pts</div>
+                  </div>
+                  <button class="btn sm" disabled style="background:#444; cursor:not-allowed;">
+                    🔒 Faça login
+                  </button>
+                </div>
+              `;
+            });
+          }, (err) => {
+            console.error('❌ Erro vitrine:', err);
+            if (vitrineItens) {
+              vitrineItens.innerHTML = `<div class="produto-padrao"><p>❌ Erro: ${err.message}</p></div>`;
+            }
+          });
+      }
+    }
 
     // ===== CARREGAR VALOR DO PONTO =====
     async function carregarValorPonto() {
@@ -683,15 +787,9 @@
         const docSnap = await db.collection('config').doc('cashback').get();
         if (docSnap.exists) {
           valorPonto = docSnap.data().valorPonto || 1.00;
-        } else {
-          await db.collection('config').doc('cashback').set({
-            valorPonto: 1.00,
-            atualizadoEm: new Date().toISOString()
-          });
-          valorPonto = 1.00;
         }
-        const display = getElement('valorPontoDisplay');
-        const input = getElement('valorPontoInput');
+        const display = document.getElementById('valorPontoDisplay');
+        const input = document.getElementById('valorPontoInput');
         if (display) display.textContent = valorPonto.toFixed(2);
         if (input) input.value = valorPonto.toFixed(2);
       } catch (err) {
@@ -703,7 +801,7 @@
     async function salvarValorPonto() {
       if (!usuarioEhAdmin) return alert("Apenas administradores podem alterar esta configuração.");
       
-      const input = getElement('valorPontoInput');
+      const input = document.getElementById('valorPontoInput');
       if (!input) return;
       
       const novoValor = parseFloat(input.value);
@@ -720,7 +818,7 @@
         }, { merge: true });
         
         valorPonto = novoValor;
-        const display = getElement('valorPontoDisplay');
+        const display = document.getElementById('valorPontoDisplay');
         if (display) display.textContent = novoValor.toFixed(2);
         alert('✅ Valor do ponto atualizado para R$ ' + novoValor.toFixed(2));
       } catch (err) {
@@ -789,7 +887,7 @@
           });
       }
 
-      // Catálogo para o cliente
+      // Catálogo para o cliente (logado)
       if (unsubscribeCatalog) unsubscribeCatalog();
       if (vitrineItens) {
         unsubscribeCatalog = db.collection('rewards_catalog')
@@ -875,6 +973,11 @@
 
     // ===== BUSCAR USUÁRIO (ADMIN) =====
     async function buscarUsuarioAdmin() {
+      if (!usuarioEhAdmin) {
+        alert("Apenas administradores podem buscar usuários.");
+        return;
+      }
+      
       const busca = document.getElementById('adminBuscarUsuario').value.trim();
       const userInfoDiv = document.getElementById('adminUserInfo');
       const notFoundDiv = document.getElementById('adminUserNotFound');
@@ -1211,6 +1314,8 @@
             }
           })
           .catch(err => console.error('❌ Erro ao recarregar saldo:', err));
+      } else {
+        alert('🔒 Faça login para ver seu saldo.');
       }
     }
 
@@ -1254,6 +1359,8 @@
               historicoUsuario.innerHTML = `<p class="historico-vazio" style="color:#ff8a8a;">❌ Erro ao carregar histórico</p>`;
             }
           });
+      } else {
+        alert('🔒 Faça login para ver seu histórico.');
       }
     }
 
@@ -1301,7 +1408,6 @@
           }
           console.log('👑 Usuário é ADMIN');
           ouvirTodosOsResgatesAdmin();
-          // Inicia o listener de produtos para admin
           iniciarListeners(uid);
           return;
         }
@@ -1318,7 +1424,7 @@
       if (adminTabsHeader) adminTabsHeader.style.display = 'none';
       if (adminLoginBox) adminLoginBox.style.display = 'block';
       if (adminPanel) adminPanel.style.display = 'none';
-      if (userStatus) {
+      if (userStatus && currentUserUid) {
         userStatus.textContent = "🎯 Selecione o item que deseja resgatar.";
         userStatus.className = "status-box sucesso";
       }
@@ -1431,13 +1537,19 @@
 
     // ===== SOLICITAR RESGATE =====
     async function solicitarResgate(idItem, nomeItem, custoItem) {
+      if (!currentUserUid) {
+        alert('🔒 Faça login para resgatar prêmios!');
+        redirecionarParaLogin();
+        return;
+      }
+      
       if (saldoAtual < custoItem) {
         alert(`⚠️ Saldo insuficiente! Você tem ${saldoAtual} points.`);
         return;
       }
       if (!confirm(`Resgatar "${nomeItem}" por ${custoItem} points?`)) return;
 
-      const uid = auth.currentUser ? auth.currentUser.uid : 'anonimo';
+      const uid = currentUserUid;
       const token = 'JK-' + String(Math.floor(100000 + Math.random() * 900000));
 
       try {
@@ -1586,7 +1698,7 @@
       });
     }
 
-    console.log('🚀 App carregado! Sistema de Cashback ativo.');
+    console.log('🚀 App carregado!');
   </script>
 </body>
 </html>
