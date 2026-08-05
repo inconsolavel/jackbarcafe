@@ -27,7 +27,6 @@
       position: relative;
     }
 
-    /* Menu Overlay */
     .menu-overlay {
       position: absolute;
       inset: 0;
@@ -42,20 +41,9 @@
       backdrop-filter: blur(6px);
       transition: opacity 0.5s ease;
     }
-    .menu-overlay.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    .menu-overlay h1 {
-      font-size: 2.5rem;
-      color: #ff6b35;
-      margin-bottom: 8px;
-    }
-    .menu-overlay .subtitle {
-      color: #888;
-      font-size: 1rem;
-      margin-bottom: 30px;
-    }
+    .menu-overlay.hidden { opacity: 0; pointer-events: none; }
+    .menu-overlay h1 { font-size: 2.5rem; color: #ff6b35; margin-bottom: 8px; }
+    .menu-overlay .subtitle { color: #888; font-size: 1rem; margin-bottom: 30px; }
     .menu-overlay .menu-buttons {
       display: flex;
       flex-direction: column;
@@ -362,6 +350,7 @@
       esquerda: new Image(),
       direita: new Image()
     };
+    // Certifique-se de que os arquivos estão na raiz do site
     playerImg.frente.src = 'jack_frente.png';
     playerImg.esquerda.src = 'jack_esquerda.png';
     playerImg.direita.src = 'jack_direita.png';
@@ -662,7 +651,7 @@
       }
     }
 
-    // ===== DESENHO =====
+    // ===== DESENHO (COM SPRITES CORRIGIDOS) =====
 
     function desenharCenario() {
       ctx.fillStyle = '#1a1a2e';
@@ -771,32 +760,48 @@
         }
       });
 
-      // ===== JOGADOR COM SPRITE =====
+      // ===== JOGADOR COM SPRITE (CORRIGIDO) =====
       // Determina direção baseado no movimento
       const dx = player.targetX - player.x;
       const dy = player.targetY - player.y;
       const moving = Math.abs(dx) > 1 || Math.abs(dy) > 1;
-      
+
       if (moving) {
-        // Prioriza direção horizontal se houver movimento significativo
         if (Math.abs(dx) > Math.abs(dy)) {
           playerDirection = dx > 0 ? 'direita' : 'esquerda';
         } else {
           playerDirection = 'frente';
         }
       }
-      
-      // Seleciona a imagem correta
+
+      // Seleciona a imagem
       let img = playerImg.frente;
       if (playerDirection === 'esquerda') img = playerImg.esquerda;
       else if (playerDirection === 'direita') img = playerImg.direita;
-      
-      // Desenha o sprite centralizado
-      const spriteSize = 32; // Tamanho de desenho (ampliado)
-      const x = player.x - spriteSize/2;
-      const y = player.y - 20 - spriteSize/2; // Ajuste para alinhar com a cabeça
-      ctx.drawImage(img, x, y, spriteSize, spriteSize);
-      
+
+      // Tamanho do sprite ampliado (16x16 -> 32x32)
+      const spriteSize = 32;
+      const drawX = player.x - spriteSize/2;
+      const drawY = player.y - spriteSize/2;
+
+      // Se a imagem estiver carregada, desenha o sprite, senão desenha fallback
+      if (img.complete && img.naturalWidth > 0) {
+        ctx.drawImage(img, drawX, drawY, spriteSize, spriteSize);
+      } else {
+        // Fallback visual (círculo)
+        ctx.shadowColor = 'rgba(255,107,53,0.3)';
+        ctx.shadowBlur = 20;
+        ctx.fillStyle = '#ff6b35';
+        ctx.beginPath();
+        ctx.arc(player.x, player.y - 5, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f5cba7';
+        ctx.beginPath();
+        ctx.arc(player.x, player.y - 17, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
       // Nome do jogador
       ctx.fillStyle = '#fff';
       ctx.font = '9px Arial';
@@ -1229,7 +1234,7 @@
 
     // ===== INICIALIZAÇÃO =====
 
-    // Aguarda as imagens carregarem antes de iniciar
+    // Aguarda as imagens carregarem
     let imagesLoaded = 0;
     const totalImages = 3;
     const checkImagesLoaded = () => {
