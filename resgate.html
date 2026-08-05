@@ -212,7 +212,6 @@
       color: #fff;
     }
 
-    /* Admin - Gerenciar Usuários */
     .admin-user-card {
       background: #1a1a1a;
       border: 1px solid #333;
@@ -272,7 +271,6 @@
 
         <div id="userStatus" class="status-box warn">Carregando...</div>
 
-        <!-- SALDO DE PONTOS EM TEMPO REAL -->
         <div class="saldo-box" id="saldoBox">
           <div class="saldo-label">💰 Seus Pontos</div>
           <div class="saldo-valor" id="saldoPontos">0</div>
@@ -331,7 +329,7 @@
           <div id="adminValidarStatus"></div>
         </div>
 
-        <!-- GERENCIAR USUÁRIO - INTEGRADO COM O SISTEMA EXISTENTE -->
+        <!-- GERENCIAR USUÁRIO -->
         <div class="card">
           <h2>👤 Gerenciar Pontos do Usuário</h2>
           <p class="sub">Busque um usuário por telefone ou email</p>
@@ -386,7 +384,7 @@
           </form>
         </div>
 
-        <!-- TODOS OS RESGATES -->
+        <!-- TODOS OS RESGATES - COM NOME DO USUÁRIO -->
         <div class="card">
           <h2>📊 Todos os Resgates</h2>
           <div class="lista-logs" id="logsGlobaisAdmin"></div>
@@ -438,7 +436,7 @@
     let unsubscribeSaldo = null;
     let unsubscribeRedemptions = null;
     let unsubscribeCatalog = null;
-    let usuarioSelecionado = null; // Para o admin gerenciar pontos
+    let usuarioSelecionado = null;
 
     // ===== AUTENTICAÇÃO =====
     auth.onAuthStateChanged(async (user) => {
@@ -468,7 +466,6 @@
 
     // ===== INICIAR LISTENERS =====
     function iniciarListeners(uid) {
-      // 1. SALDO
       if (unsubscribeSaldo) unsubscribeSaldo();
       unsubscribeSaldo = db.collection('users').doc(uid)
         .onSnapshot((doc) => {
@@ -485,7 +482,6 @@
           }
         }, (err) => console.warn('⚠️ Erro no saldo:', err));
 
-      // 2. HISTÓRICO (sem orderBy para não precisar de índice)
       if (unsubscribeRedemptions) unsubscribeRedemptions();
       unsubscribeRedemptions = db.collection('redemptions')
         .where('usuarioId', '==', uid)
@@ -519,7 +515,6 @@
           historicoUsuario.innerHTML = `<p class="historico-vazio" style="color:#ff8a8a;">❌ Erro ao carregar histórico</p>`;
         });
 
-      // 3. CATÁLOGO
       if (unsubscribeCatalog) unsubscribeCatalog();
       unsubscribeCatalog = db.collection('rewards_catalog')
         .orderBy('custo', 'asc')
@@ -572,12 +567,10 @@
       }
 
       try {
-        // Busca por telefone
         let querySnapshot = await db.collection('users')
           .where('telefone', '==', busca)
           .get();
 
-        // Se não encontrar, busca por email
         if (querySnapshot.empty) {
           querySnapshot = await db.collection('users')
             .where('email', '==', busca)
@@ -634,7 +627,6 @@
           t.update(userRef, { points: atual + pontos });
         });
 
-        // Registra no histórico
         await db.collection('historico_pontos').add({
           usuarioId: usuarioSelecionado.id,
           tipo: 'CREDITO',
@@ -644,14 +636,12 @@
           adminId: currentUserUid
         });
 
-        // Atualiza a exibição
         usuarioSelecionado.points = (usuarioSelecionado.points || 0) + pontos;
         document.getElementById('adminUserPoints').textContent = `${usuarioSelecionado.points} pts`;
         document.getElementById('adminPontosStatus').innerHTML = 
           `<p class="sucesso">✅ +${pontos} pontos adicionados! Motivo: ${motivo}</p>`;
         document.getElementById('adminPontos').value = '';
 
-        // Se for o próprio usuário, atualiza o saldo na tela
         if (usuarioSelecionado.id === currentUserUid) {
           saldoAtual = usuarioSelecionado.points;
           saldoPontos.textContent = saldoAtual;
@@ -686,7 +676,6 @@
           t.update(userRef, { points: atual - pontos });
         });
 
-        // Registra no histórico
         await db.collection('historico_pontos').add({
           usuarioId: usuarioSelecionado.id,
           tipo: 'DEBITO',
@@ -696,14 +685,12 @@
           adminId: currentUserUid
         });
 
-        // Atualiza a exibição
         usuarioSelecionado.points = (usuarioSelecionado.points || 0) - pontos;
         document.getElementById('adminUserPoints').textContent = `${usuarioSelecionado.points} pts`;
         document.getElementById('adminPontosStatus').innerHTML = 
           `<p class="sucesso">✅ -${pontos} pontos removidos! Motivo: ${motivo}</p>`;
         document.getElementById('adminPontos').value = '';
 
-        // Se for o próprio usuário, atualiza o saldo na tela
         if (usuarioSelecionado.id === currentUserUid) {
           saldoAtual = usuarioSelecionado.points;
           saldoPontos.textContent = saldoAtual;
@@ -1003,33 +990,55 @@
       }
     }
 
-    // ===== LOGS GLOBAIS (ADMIN) =====
+    // ===== LOGS GLOBAIS (ADMIN) - COM NOME DO USUÁRIO =====
     function ouvirTodosOsResgatesAdmin() {
       if (!usuarioEhAdmin) return;
+      
       db.collection('redemptions')
         .orderBy('solicitadoEm', 'desc')
         .limit(100)
-        .onSnapshot((snapshot) => {
+        .onSnapshot(async (snapshot) => {
           logsGlobaisAdmin.innerHTML = '';
           if (snapshot.empty) {
             logsGlobaisAdmin.innerHTML = '<p style="color:#666;padding:8px;">📭 Nenhum resgate.</p>';
             return;
           }
-          snapshot.forEach(doc => {
+          
+          // Para cada resgate, busca o nome do usuário
+          for (const doc of snapshot.docs) {
             const data = doc.data();
             const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
             const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
+            const horaFormatada = new Date(data.solicitadoEm).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+            
+            let nomeUsuario = 'Usuário desconhecido';
+            
+            // Busca o nome do usuário
+            if (data.usuarioId) {
+              try {
+                const userDoc = await db.collection('users').doc(data.usuarioId).get();
+                if (userDoc.exists) {
+                  const userData = userDoc.data();
+                  nomeUsuario = userData.nome || userData.email || userData.telefone || 'Usuário sem nome';
+                }
+              } catch (err) {
+                console.warn('⚠️ Erro ao buscar nome do usuário:', err);
+              }
+            }
+            
             logsGlobaisAdmin.innerHTML += `
               <div class="log-item">
                 <div>
                   <strong style="color:#ff3b3b;">${data.token}</strong>
                   <span> - ${data.itemNome}</span><br>
-                  <small style="color:#888;">${dataFormatada} | ${data.custoPontos} pts</small>
+                  <small style="color:#888;">
+                    👤 ${nomeUsuario} | ${dataFormatada} ${horaFormatada} | ${data.custoPontos} pts
+                  </small>
                 </div>
                 <span class="badge ${statusClass}">${data.status}</span>
               </div>
             `;
-          });
+          }
         }, (err) => {
           console.error('❌ Erro logs:', err);
           logsGlobaisAdmin.innerHTML = `<p style="color:#ff8a8a;">❌ ${err.message}</p>`;
