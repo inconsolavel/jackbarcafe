@@ -198,6 +198,12 @@
       text-align: center;
     }
     
+    .loading {
+      color: #888;
+      text-align: center;
+      padding: 20px;
+    }
+    
     @media (max-width: 480px) {
       .acoes { flex-direction: column; }
       .btn { width: 100%; }
@@ -227,7 +233,9 @@
         </div>
 
         <h3>📦 Itens Disponíveis</h3>
-        <div id="vitrineItens"></div>
+        <div id="vitrineItens">
+          <div class="loading">⏳ Carregando produtos...</div>
+        </div>
 
         <div id="tokenResultado" style="display:none; margin-top:20px; border-top:1px solid #333; padding-top:15px;">
           <h3 class="sucesso">✅ Token Gerado com Sucesso!</h3>
@@ -238,12 +246,12 @@
 
         <h3 style="margin-top:25px;">📋 Meu Histórico de Resgates</h3>
         <div class="lista-logs" id="historicoUsuario">
-          <p class="historico-vazio">📭 Carregando histórico...</p>
+          <div class="loading">⏳ Carregando histórico...</div>
         </div>
 
         <h3 style="margin-top:25px;">📊 Histórico de Pontos</h3>
         <div class="lista-logs" id="historicoPontos">
-          <p class="historico-vazio">📭 Carregando histórico...</p>
+          <div class="loading">⏳ Carregando histórico...</div>
         </div>
       </main>
 
@@ -369,11 +377,18 @@
         if (user) {
           currentUserUid = user.uid;
           console.log('👤 Usuário autenticado:', user.uid);
-          await checarPermissaoAdmin(user.uid);
-          await carregarSaldoUsuario(user.uid);
+          
+          // Carrega tudo em paralelo
+          await Promise.all([
+            checarPermissaoAdmin(user.uid),
+            carregarSaldoUsuario(user.uid)
+          ]);
+          
+          // Inicia listeners depois que o saldo foi carregado
           ouvirItensDisponiveis();
           carregarHistoricoUsuario(user.uid);
           carregarHistoricoPontos(user.uid);
+          
         } else {
           console.log('🔄 Usuário não autenticado, fazendo login anônimo...');
           await auth.signInAnonymously();
@@ -386,6 +401,7 @@
           await auth.signInAnonymously();
         } catch (e) {
           console.error('❌ Falha no login anônimo:', e);
+          userStatus.textContent = "❌ Falha na autenticação. Recarregue a página.";
         }
       }
     });
@@ -407,9 +423,26 @@
           });
           saldoAtual = 0;
           saldoPontos.textContent = '0';
+          console.log('💰 Novo usuário criado com saldo 0');
         }
       } catch (err) {
         console.error('❌ Erro ao carregar saldo:', err);
+        // Se der erro de permissão, tenta criar o documento com transação
+        if (err.code === 'permission-denied') {
+          try {
+            const docSnap = await db.collection('users').doc(uid).get();
+            if (!docSnap.exists) {
+              await db.collection('users').doc(uid).set({
+                pontos: 0,
+                criadoEm: new Date().toISOString()
+              });
+              saldoAtual = 0;
+              saldoPontos.textContent = '0';
+            }
+          } catch (e) {
+            console.error('❌ Falha ao criar usuário:', e);
+          }
+        }
       }
     }
 
@@ -556,7 +589,6 @@
           transaction.update(userRef, { pontos: pontosAtuais + pontos });
         });
         
-        // Registra no histórico
         await db.collection('historico_pontos').add({
           usuarioId: userId,
           tipo: 'CREDITO',
@@ -569,7 +601,6 @@
         statusDiv.innerHTML = `<p class="sucesso">✅ ${pontos} pontos adicionados ao usuário ${userId.substring(0,8)}...</p>`;
         document.getElementById('adminPontos').value = '';
         
-        // Recarrega o saldo se for o próprio usuário
         if (userId === currentUserUid) {
           await carregarSaldoUsuario(userId);
         }
@@ -607,7 +638,6 @@
           transaction.update(userRef, { pontos: pontosAtuais - pontos });
         });
         
-        // Registra no histórico
         await db.collection('historico_pontos').add({
           usuarioId: userId,
           tipo: 'DEBITO',
@@ -668,9 +698,11 @@
               <div class="produto-padrao">
                 <p>📦 Nenhum produto cadastrado ainda.</p>
                 <p style="color:#888; font-size:0.9rem;">Peça ao administrador para cadastrar produtos.</p>
-                <button class="btn sm" onclick="adicionarProdutoPadrao()" style="margin-top:10px;">
-                  ⚡ Adicionar Produtos de Exemplo
-                </button>
+                ${usuarioEhAdmin ? `
+                  <button class="btn sm" onclick="adicionarProdutoPadrao()" style="margin-top:10px;">
+                    ⚡ Adicionar Produtos de Exemplo
+                  </button>
+                ` : ''}
               </div>
             `;
             return;
@@ -699,6 +731,7 @@
           vitrineItens.innerHTML = `
             <div class="produto-padrao">
               <p>❌ Erro ao carregar catálogo: ${err.message}</p>
+              <p style="color:#888; font-size:0.9rem;">Verifique se a coleção "rewards_catalog" existe no Firestore.</p>
             </div>
           `;
         });
@@ -715,338 +748,4 @@
         { nome: "Camiseta Jack Bar", custo: 100 },
         { nome: "Voucher R$ 20", custo: 80 },
         { nome: "Chaveiro Jack Bar", custo: 30 },
-        { nome: "Ecobag Jack Bar", custo: 40 }
-      ];
-      try {
-        for (const produto of produtos) {
-          await db.collection('rewards_catalog').add({
-            nome: produto.nome,
-            custo: produto.custo,
-            criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-            criadoPor: currentUserUid || 'admin'
-          });
-        }
-        alert('✅ Produtos de exemplo adicionados com sucesso!');
-      } catch (error) {
-        console.error('❌ Erro ao adicionar produtos:', error);
-        alert('❌ Erro ao adicionar produtos: ' + error.message);
-      }
-    }
-
-    // === SOLICITAR RESGATE - COM DESCONTO DE PONTOS ===
-    async function solicitarResgate(idItem, nomeItem, custoItem) {
-      if (saldoAtual < custoItem) {
-        alert(`⚠️ Você não tem pontos suficientes. Necessário: ${custoItem} pontos. Seu saldo: ${saldoAtual} pontos.`);
-        return;
-      }
-      
-      if (!confirm(`Confirmar o resgate de "${nomeItem}" por ${custoItem} pontos?`)) return;
-      
-      const uid = auth.currentUser ? auth.currentUser.uid : 'anonimo';
-      const tokenGeradoString = 'JK-' + String(Math.floor(100000 + Math.random() * 900000));
-      
-      try {
-        userStatus.textContent = "⏳ Processando resgate...";
-        userStatus.className = "status-box warn";
-        
-        // Usa transação para garantir consistência
-        const userRef = db.collection('users').doc(uid);
-        
-        await db.runTransaction(async (transaction) => {
-          const doc = await transaction.get(userRef);
-          if (!doc.exists) {
-            throw new Error('Usuário não encontrado.');
-          }
-          
-          const pontosAtuais = doc.data().pontos || 0;
-          if (pontosAtuais < custoItem) {
-            throw new Error('Saldo insuficiente.');
-          }
-          
-          // Desconta os pontos
-          transaction.update(userRef, { 
-            pontos: pontosAtuais - custoItem 
-          });
-          
-          // Cria o resgate
-          const redemptionRef = db.collection('redemptions').doc(tokenGeradoString);
-          transaction.set(redemptionRef, {
-            token: tokenGeradoString,
-            usuarioId: uid,
-            itemId: idItem,
-            itemNome: nomeItem,
-            custoPontos: custoItem,
-            status: 'PENDENTE',
-            solicitadoEm: new Date().toISOString(),
-            validadoEm: null
-          });
-          
-          // Registra no histórico de pontos
-          const historicoRef = db.collection('historico_pontos').doc();
-          transaction.set(historicoRef, {
-            usuarioId: uid,
-            tipo: 'DEBITO',
-            quantidade: custoItem,
-            descricao: `Resgate: ${nomeItem}`,
-            token: tokenGeradoString,
-            data: new Date().toISOString()
-          });
-        });
-        
-        // Atualiza o saldo local
-        saldoAtual -= custoItem;
-        saldoPontos.textContent = saldoAtual;
-        
-        userStatus.textContent = "✅ Token gerado! Apresente-o no balcão.";
-        userStatus.className = "status-box sucesso";
-        tokenResultado.style.display = 'block';
-        tokenGerado.textContent = tokenGeradoString;
-        
-        // Recarrega o histórico
-        carregarHistoricoUsuario(uid);
-        carregarHistoricoPontos(uid);
-        
-      } catch (error) {
-        console.error('❌ Erro no resgate:', error);
-        alert("❌ Erro no resgate: " + error.message);
-        userStatus.textContent = "❌ Erro ao processar resgate.";
-        userStatus.className = "status-box erro";
-      }
-    }
-
-    // === HISTÓRICO DO USUÁRIO ===
-    function carregarHistoricoUsuario(uid) {
-      historicoUsuario.innerHTML = '<p class="historico-vazio">⏳ Carregando histórico...</p>';
-      
-      db.collection('redemptions')
-        .where('usuarioId', '==', uid)
-        .orderBy('solicitadoEm', 'desc')
-        .get()
-        .then(snapshot => {
-          exibirHistoricoResgates(snapshot);
-        })
-        .catch(err => {
-          console.warn('⚠️ Erro ao carregar histórico com filtro, tentando fallback...', err);
-          
-          db.collection('redemptions')
-            .orderBy('solicitadoEm', 'desc')
-            .get()
-            .then(snapshot => {
-              const docsFiltrados = snapshot.docs.filter(doc => {
-                const data = doc.data();
-                return data.usuarioId === uid;
-              });
-              
-              const snapshotFiltrado = {
-                empty: docsFiltrados.length === 0,
-                forEach: (callback) => docsFiltrados.forEach(callback),
-                size: docsFiltrados.length,
-                docs: docsFiltrados
-              };
-              
-              exibirHistoricoResgates(snapshotFiltrado);
-            })
-            .catch(err2 => {
-              console.error('❌ Erro no fallback do histórico:', err2);
-              historicoUsuario.innerHTML = `
-                <p class="historico-vazio" style="color:#ff8a8a;">
-                  ❌ Erro ao carregar histórico: ${err2.message}
-                </p>
-              `;
-            });
-        });
-    }
-
-    function exibirHistoricoResgates(snapshot) {
-      historicoUsuario.innerHTML = '';
-      
-      if(snapshot.empty) {
-        historicoUsuario.innerHTML = '<p class="historico-vazio">📭 Você ainda não realizou resgates.</p>';
-        return;
-      }
-      
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const statusClass = data.status === 'PENDENTE' ? 'pendente' : data.status === 'VALIDADO' ? 'validado' : 'cancelado';
-        const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
-        const horaFormatada = new Date(data.solicitadoEm).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-        
-        historicoUsuario.innerHTML += `
-          <div class="log-item">
-            <div>
-              <strong>${data.itemNome}</strong>
-              <span style="color:#888; font-size:0.8rem;">(${data.token})</span><br>
-              <small style="color:#666;">${dataFormatada} às ${horaFormatada} - ${data.custoPontos} pts</small>
-            </div>
-            <span class="badge ${statusClass}">${data.status}</span>
-          </div>
-        `;
-      });
-    }
-
-    // === HISTÓRICO DE PONTOS ===
-    function carregarHistoricoPontos(uid) {
-      historicoPontos.innerHTML = '<p class="historico-vazio">⏳ Carregando histórico...</p>';
-      
-      db.collection('historico_pontos')
-        .where('usuarioId', '==', uid)
-        .orderBy('data', 'desc')
-        .get()
-        .then(snapshot => {
-          exibirHistoricoPontos(snapshot);
-        })
-        .catch(err => {
-          console.warn('⚠️ Erro ao carregar histórico de pontos:', err);
-          historicoPontos.innerHTML = `
-            <p class="historico-vazio" style="color:#ff8a8a;">
-              ❌ Erro ao carregar histórico de pontos: ${err.message}
-            </p>
-          `;
-        });
-    }
-
-    function exibirHistoricoPontos(snapshot) {
-      historicoPontos.innerHTML = '';
-      
-      if(snapshot.empty) {
-        historicoPontos.innerHTML = '<p class="historico-vazio">📭 Nenhuma movimentação de pontos.</p>';
-        return;
-      }
-      
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const tipo = data.tipo || 'DEBITO';
-        const badgeClass = tipo === 'CREDITO' ? 'credito' : 'debito';
-        const sinal = tipo === 'CREDITO' ? '+' : '-';
-        const dataFormatada = new Date(data.data).toLocaleDateString('pt-BR');
-        const horaFormatada = new Date(data.data).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-        
-        historicoPontos.innerHTML += `
-          <div class="log-item">
-            <div>
-              <strong>${data.descricao || 'Movimentação'}</strong><br>
-              <small style="color:#666;">${dataFormatada} às ${horaFormatada}</small>
-            </div>
-            <span class="badge ${badgeClass}">${sinal}${data.quantidade}</span>
-          </div>
-        `;
-      });
-    }
-
-    // === VALIDAR TOKEN (ADMIN) ===
-    async function validarTokenCliente() {
-      if (!usuarioEhAdmin) {
-        alert("Apenas administradores podem validar tokens.");
-        return;
-      }
-      
-      const token = document.getElementById('tokenInput').value.trim().toUpperCase();
-      const statusDiv = document.getElementById('adminValidarStatus');
-      
-      if(!token) {
-        statusDiv.innerHTML = '<p class="warn">⚠️ Por favor, digite um token.</p>';
-        return;
-      }
-      
-      try {
-        statusDiv.innerHTML = '<p class="warn">⏳ Verificando token...</p>';
-        
-        const docRef = db.collection('redemptions').doc(token);
-        const docSnap = await docRef.get();
-        
-        if(!docSnap.exists) {
-          statusDiv.innerHTML = '<p class="erro">❌ Token não encontrado ou inválido!</p>';
-          return;
-        }
-        
-        const dadosResgate = docSnap.data();
-        
-        if(dadosResgate.status === 'VALIDADO') {
-          const dataVal = new Date(dadosResgate.validadoEm).toLocaleString('pt-BR');
-          statusDiv.innerHTML = `<p class="warn">⚠️ Este token já foi validado em: ${dataVal}</p>`;
-          return;
-        }
-        
-        try {
-          await docRef.update({
-            status: 'VALIDADO',
-            validadoEm: new Date().toISOString()
-          });
-          
-          statusDiv.innerHTML = `
-            <p class="sucesso">✅ <strong>Token validado com sucesso!</strong></p>
-            <p style="font-size:0.9rem; margin-top:5px; color:#ccc;">
-              🎁 Prêmio: ${dadosResgate.itemNome} (${dadosResgate.custoPontos} pts)
-            </p>
-          `;
-          
-        } catch (updateError) {
-          console.warn('⚠️ Não foi possível atualizar o documento.', updateError);
-          
-          await db.collection('validacoes').doc(token).set({
-            token: token,
-            validadoEm: new Date().toISOString(),
-            validadoPor: currentUserUid,
-            itemNome: dadosResgate.itemNome,
-            custoPontos: dadosResgate.custoPontos
-          });
-          
-          statusDiv.innerHTML = `
-            <p class="sucesso">✅ <strong>Token validado (registro alternativo)!</strong></p>
-            <p style="font-size:0.9rem; margin-top:5px; color:#ccc;">
-              🎁 Prêmio: ${dadosResgate.itemNome} (${dadosResgate.custoPontos} pts)
-            </p>
-            <p style="font-size:0.8rem; color:#ffd27a;">
-              ⚠️ Validação registrada na coleção "validacoes".
-            </p>
-          `;
-        }
-        
-        document.getElementById('tokenInput').value = '';
-        
-      } catch (error) {
-        console.error('❌ Erro na validação:', error);
-        statusDiv.innerHTML = `<p class="erro">❌ Erro: ${error.message}</p>`;
-      }
-    }
-
-    // === LOGS GLOBAIS (ADMIN) ===
-    function ouvirTodosOsResgatesAdmin() {
-      if (!usuarioEhAdmin) return;
-      
-      db.collection('redemptions')
-        .orderBy('solicitadoEm', 'desc')
-        .limit(100)
-        .onSnapshot(snapshot => {
-          logsGlobaisAdmin.innerHTML = '';
-          if(snapshot.empty) {
-            logsGlobaisAdmin.innerHTML = '<p style="color:#666; padding:8px; text-align:center;">📭 Nenhum pedido de resgate no sistema.</p>';
-            return;
-          }
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const statusClass = data.status === 'PENDENTE' ? 'pendente' : data.status === 'VALIDADO' ? 'validado' : 'cancelado';
-            const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
-            
-            logsGlobaisAdmin.innerHTML += `
-              <div class="log-item">
-                <div>
-                  <strong style="color:#ff3b3b;">${data.token}</strong>
-                  <span style="color:#fff;">- ${data.itemNome}</span><br>
-                  <small style="color:#888;">
-                    ${dataFormatada} | ${data.custoPontos} pts | 
-                    ID: ${data.usuarioId ? data.usuarioId.substring(0,8) : 'anonimo'}...
-                  </small>
-                </div>
-                <span class="badge ${statusClass}">${data.status}</span>
-              </div>
-            `;
-          });
-        }, err => {
-          console.error("❌ Erro nos logs globais:", err);
-          logsGlobaisAdmin.innerHTML = `<p style="color:#ff8a8a; padding:8px;">❌ Erro: ${err.message}</p>`;
-        });
-    }
-  </script>
-</body>
-</html>
+       
