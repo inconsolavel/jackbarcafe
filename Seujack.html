@@ -224,7 +224,6 @@
     .toast.bad { border-color: #e74c3c; color: #e74c3c; }
     .toast.info { border-color: #3498db; color: #3498db; }
 
-    /* Save Indicator */
     .save-indicator {
       position: fixed;
       bottom: 10px;
@@ -356,6 +355,18 @@
     const statStaff = document.getElementById('statStaff');
     const logContainer = document.getElementById('logContainer');
     const playerNameEl = document.getElementById('playerName');
+
+    // ===== CARREGAR SPRITES =====
+    const playerImg = {
+      frente: new Image(),
+      esquerda: new Image(),
+      direita: new Image()
+    };
+    playerImg.frente.src = 'jack_frente.png';
+    playerImg.esquerda.src = 'jack_esquerda.png';
+    playerImg.direita.src = 'jack_direita.png';
+
+    let playerDirection = 'frente';
 
     // ===== ESTADO =====
     let state = {
@@ -536,7 +547,6 @@
         atualizarUI();
         addLog('🆕 Novo jogo iniciado!', 'info');
         showToast('🚀 Novo jogo!', 'info');
-        // Salva imediatamente para criar o documento
         setTimeout(() => salvarEstado(), 500);
       } else {
         if (saveData) {
@@ -761,25 +771,39 @@
         }
       });
 
-      // Jogador
-      ctx.shadowColor = 'rgba(255,107,53,0.3)';
-      ctx.shadowBlur = 20;
-      ctx.fillStyle = '#ff6b35';
-      ctx.beginPath();
-      ctx.arc(player.x, player.y - 10, 14, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#f5cba7';
-      ctx.beginPath();
-      ctx.arc(player.x, player.y - 22, 10, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#e74c3c';
-      ctx.fillRect(player.x - 8, player.y - 4, 16, 14);
-      ctx.shadowBlur = 0;
+      // ===== JOGADOR COM SPRITE =====
+      // Determina direção baseado no movimento
+      const dx = player.targetX - player.x;
+      const dy = player.targetY - player.y;
+      const moving = Math.abs(dx) > 1 || Math.abs(dy) > 1;
+      
+      if (moving) {
+        // Prioriza direção horizontal se houver movimento significativo
+        if (Math.abs(dx) > Math.abs(dy)) {
+          playerDirection = dx > 0 ? 'direita' : 'esquerda';
+        } else {
+          playerDirection = 'frente';
+        }
+      }
+      
+      // Seleciona a imagem correta
+      let img = playerImg.frente;
+      if (playerDirection === 'esquerda') img = playerImg.esquerda;
+      else if (playerDirection === 'direita') img = playerImg.direita;
+      
+      // Desenha o sprite centralizado
+      const spriteSize = 32; // Tamanho de desenho (ampliado)
+      const x = player.x - spriteSize/2;
+      const y = player.y - 20 - spriteSize/2; // Ajuste para alinhar com a cabeça
+      ctx.drawImage(img, x, y, spriteSize, spriteSize);
+      
+      // Nome do jogador
       ctx.fillStyle = '#fff';
       ctx.font = '9px Arial';
       ctx.textAlign = 'center';
       ctx.fillText('🧑‍🍳 Você', player.x, player.y - 38);
 
+      // Seleção da mesa
       if (selectedTable !== null && tables[selectedTable]) {
         const t = tables[selectedTable];
         ctx.strokeStyle = '#ffd27a';
@@ -1205,11 +1229,32 @@
 
     // ===== INICIALIZAÇÃO =====
 
-    initTables();
-    atualizarUI();
-    gameLoopId = requestAnimationFrame(gameLoop);
+    // Aguarda as imagens carregarem antes de iniciar
+    let imagesLoaded = 0;
+    const totalImages = 3;
+    const checkImagesLoaded = () => {
+      imagesLoaded++;
+      if (imagesLoaded === totalImages) {
+        console.log('✅ Sprites carregados!');
+        initTables();
+        atualizarUI();
+        gameLoopId = requestAnimationFrame(gameLoop);
+        console.log('☕ Café Runner - Sprites integrados!');
+      }
+    };
+    playerImg.frente.onload = checkImagesLoaded;
+    playerImg.esquerda.onload = checkImagesLoaded;
+    playerImg.direita.onload = checkImagesLoaded;
 
-    console.log('☕ Café Runner - Save funcionando!');
+    // Fallback: se as imagens demorarem muito, inicia mesmo assim
+    setTimeout(() => {
+      if (imagesLoaded < totalImages) {
+        console.warn('⚠️ Algumas imagens não carregaram, iniciando jogo mesmo assim.');
+        initTables();
+        atualizarUI();
+        gameLoopId = requestAnimationFrame(gameLoop);
+      }
+    }, 3000);
   </script>
 </body>
 </html>
