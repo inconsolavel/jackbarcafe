@@ -91,6 +91,7 @@
     .erro { color: #ff8a8a; border-color: #ff3b3b; }
     .sucesso { color: #85ff9f; }
     .warn { color: #ffd27a; }
+    .info { color: #4fc3f7; }
     
     .saldo-box {
       background: #1a1a1a;
@@ -156,6 +157,7 @@
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn.success { background: #2ecc71; }
     .btn.warning { background: #f39c12; }
+    .btn.danger { background: #e74c3c; }
     
     .token-display {
       font-family: monospace;
@@ -210,9 +212,47 @@
       color: #fff;
     }
 
+    /* Admin - Gerenciar Usuários */
+    .admin-user-card {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px 0;
+    }
+    .admin-user-card .user-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .admin-user-card .user-name {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #fff;
+    }
+    .admin-user-card .user-points {
+      font-size: 1.5rem;
+      color: #ffd27a;
+    }
+    .admin-user-card .user-detail {
+      color: #888;
+      font-size: 0.9rem;
+    }
+    .admin-search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .admin-search-box input {
+      flex: 1;
+    }
+
     @media (max-width: 480px) {
       .acoes { flex-direction: column; }
       .btn { width: 100%; }
+      .admin-search-box { flex-direction: column; }
     }
   </style>
 </head>
@@ -281,6 +321,7 @@
       </div>
 
       <div id="adminPanel" style="display: none;">
+        <!-- VALIDAR TOKEN -->
         <div class="card">
           <h2>✅ Validar Token</h2>
           <div class="form-group" style="display:flex; gap:10px;">
@@ -290,20 +331,46 @@
           <div id="adminValidarStatus"></div>
         </div>
 
+        <!-- GERENCIAR USUÁRIO - INTEGRADO COM O SISTEMA EXISTENTE -->
         <div class="card">
-          <h2>➕ Gerenciar Pontos</h2>
-          <div class="form-group">
-            <label>ID do Usuário</label>
-            <input type="text" id="adminUserId" placeholder="UID do usuário">
+          <h2>👤 Gerenciar Pontos do Usuário</h2>
+          <p class="sub">Busque um usuário por telefone ou email</p>
+          
+          <div class="admin-search-box">
+            <input type="text" id="adminBuscarUsuario" placeholder="Telefone ou Email do usuário">
+            <button class="btn sm" onclick="buscarUsuarioAdmin()">🔍 Buscar</button>
           </div>
-          <div class="form-group" style="display:flex; gap:10px;">
-            <input type="number" id="adminPontos" placeholder="Quantidade" min="1">
-            <button class="btn success sm" onclick="adminAdicionarPontos()">➕ Adicionar</button>
-            <button class="btn warning sm" onclick="adminRemoverPontos()">➖ Remover</button>
+
+          <div id="adminUserInfo" style="display:none;">
+            <div class="admin-user-card">
+              <div class="user-info">
+                <div>
+                  <div class="user-name" id="adminUserName">Usuário</div>
+                  <div class="user-detail" id="adminUserDetail">Telefone: - | Email: -</div>
+                </div>
+                <div>
+                  <div class="user-points" id="adminUserPoints">0 pts</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" style="display:flex; gap:10px; flex-wrap:wrap;">
+              <input type="number" id="adminPontos" placeholder="Quantidade" min="1" style="flex:1;">
+              <textarea id="adminMotivo" placeholder="Motivo (ex: Bônus, Correção, etc)" style="flex:2; min-height:40px;"></textarea>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="btn success sm" onclick="adminAdicionarPontos()">➕ Adicionar Pontos</button>
+              <button class="btn danger sm" onclick="adminRemoverPontos()">➖ Remover Pontos</button>
+            </div>
+            <div id="adminPontosStatus" style="margin-top:10px;"></div>
           </div>
-          <div id="adminPontosStatus"></div>
+
+          <div id="adminUserNotFound" style="display:none;">
+            <p class="warn">⚠️ Usuário não encontrado. Verifique o telefone ou email.</p>
+          </div>
         </div>
 
+        <!-- ADICIONAR PRODUTO -->
         <div class="card">
           <h2>➕ Adicionar Produto</h2>
           <form id="formAdicionarItem" onsubmit="adicionarNovoItem(event)">
@@ -319,6 +386,7 @@
           </form>
         </div>
 
+        <!-- TODOS OS RESGATES -->
         <div class="card">
           <h2>📊 Todos os Resgates</h2>
           <div class="lista-logs" id="logsGlobaisAdmin"></div>
@@ -331,11 +399,12 @@
   </div>
 
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
 
   <script>
+    // ===== CONFIGURAÇÃO DO FIREBASE =====
     const firebaseConfig = {
       apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
       authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
@@ -349,7 +418,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     
-    // Elementos
+    // ===== ELEMENTOS DOM =====
     const userStatus = document.getElementById('userStatus');
     const vitrineItens = document.getElementById('vitrineItens');
     const tokenResultado = document.getElementById('tokenResultado');
@@ -362,14 +431,16 @@
     const linkLoginAdminContainer = document.getElementById('linkLoginAdminContainer');
     const saldoPontos = document.getElementById('saldoPontos');
     
+    // ===== VARIÁVEIS GLOBAIS =====
     let usuarioEhAdmin = false;
     let currentUserUid = null;
     let saldoAtual = 0;
     let unsubscribeSaldo = null;
     let unsubscribeRedemptions = null;
     let unsubscribeCatalog = null;
+    let usuarioSelecionado = null; // Para o admin gerenciar pontos
 
-    // === AUTENTICAÇÃO ===
+    // ===== AUTENTICAÇÃO =====
     auth.onAuthStateChanged(async (user) => {
       try {
         if (user) {
@@ -377,8 +448,6 @@
           console.log('👤 Usuário autenticado:', user.uid);
           
           await checarPermissaoAdmin(user.uid);
-          
-          // Inicia todos os listeners em tempo real
           iniciarListeners(user.uid);
           
         } else {
@@ -397,50 +466,43 @@
       }
     });
 
-    // === INICIAR LISTENERS EM TEMPO REAL ===
+    // ===== INICIAR LISTENERS =====
     function iniciarListeners(uid) {
-      // 1. Listener do SALDO em tempo real
+      // 1. SALDO
       if (unsubscribeSaldo) unsubscribeSaldo();
       unsubscribeSaldo = db.collection('users').doc(uid)
         .onSnapshot((doc) => {
           if (doc.exists) {
-            const data = doc.data();
-            saldoAtual = data.points || 0;
-            console.log('💰 Saldo atualizado:', saldoAtual);
+            saldoAtual = doc.data().points || 0;
             saldoPontos.textContent = saldoAtual;
             atualizarBotoesResgate();
           } else {
-            // Cria o documento do usuário se não existir
             db.collection('users').doc(uid).set({
               points: 0,
               isAdmin: false,
               criadoEm: new Date().toISOString()
             }).catch(e => console.error('❌ Erro ao criar usuário:', e));
           }
-        }, (err) => {
-          console.warn('⚠️ Erro no listener do saldo:', err);
-        });
+        }, (err) => console.warn('⚠️ Erro no saldo:', err));
 
-      // 2. Listener do HISTÓRICO em tempo real - AGORA FUNCIONA COM AS REGRAS!
+      // 2. HISTÓRICO (sem orderBy para não precisar de índice)
       if (unsubscribeRedemptions) unsubscribeRedemptions();
       unsubscribeRedemptions = db.collection('redemptions')
         .where('usuarioId', '==', uid)
-        .orderBy('solicitadoEm', 'desc')
         .onSnapshot((snapshot) => {
-          console.log('📋 Histórico atualizado:', snapshot.size, 'itens');
-          historicoUsuario.innerHTML = '';
+          const itens = [];
+          snapshot.forEach(doc => itens.push(doc.data()));
+          itens.sort((a, b) => new Date(b.solicitadoEm) - new Date(a.solicitadoEm));
           
-          if (snapshot.empty) {
+          historicoUsuario.innerHTML = '';
+          if (itens.length === 0) {
             historicoUsuario.innerHTML = '<p class="historico-vazio">📭 Nenhum resgate ainda.</p>';
             return;
           }
-          
-          snapshot.forEach(doc => {
-            const data = doc.data();
+          itens.forEach(data => {
             const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
             const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
             const horaFormatada = new Date(data.solicitadoEm).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-            
             historicoUsuario.innerHTML += `
               <div class="log-item">
                 <div>
@@ -453,15 +515,11 @@
             `;
           });
         }, (err) => {
-          console.warn('⚠️ Erro no listener do histórico:', err);
-          historicoUsuario.innerHTML = `
-            <p class="historico-vazio" style="color:#ff8a8a;">
-              ❌ Erro ao carregar histórico: ${err.message}
-            </p>
-          `;
+          console.warn('⚠️ Erro no histórico:', err);
+          historicoUsuario.innerHTML = `<p class="historico-vazio" style="color:#ff8a8a;">❌ Erro ao carregar histórico</p>`;
         });
 
-      // 3. Listener do CATÁLOGO em tempo real
+      // 3. CATÁLOGO
       if (unsubscribeCatalog) unsubscribeCatalog();
       unsubscribeCatalog = db.collection('rewards_catalog')
         .orderBy('custo', 'asc')
@@ -502,7 +560,162 @@
         });
     }
 
-    // === RECARREGAR SALDO MANUALMENTE ===
+    // ===== BUSCAR USUÁRIO (ADMIN) =====
+    async function buscarUsuarioAdmin() {
+      const busca = document.getElementById('adminBuscarUsuario').value.trim();
+      const userInfoDiv = document.getElementById('adminUserInfo');
+      const notFoundDiv = document.getElementById('adminUserNotFound');
+      
+      if (!busca) {
+        alert('Digite um telefone ou email para buscar.');
+        return;
+      }
+
+      try {
+        // Busca por telefone
+        let querySnapshot = await db.collection('users')
+          .where('telefone', '==', busca)
+          .get();
+
+        // Se não encontrar, busca por email
+        if (querySnapshot.empty) {
+          querySnapshot = await db.collection('users')
+            .where('email', '==', busca)
+            .get();
+        }
+
+        if (querySnapshot.empty) {
+          userInfoDiv.style.display = 'none';
+          notFoundDiv.style.display = 'block';
+          usuarioSelecionado = null;
+          return;
+        }
+
+        notFoundDiv.style.display = 'none';
+        const doc = querySnapshot.docs[0];
+        const data = doc.data();
+        usuarioSelecionado = { id: doc.id, ...data };
+        
+        document.getElementById('adminUserName').textContent = data.nome || 'Usuário sem nome';
+        document.getElementById('adminUserDetail').textContent = 
+          `Telefone: ${data.telefone || '-'} | Email: ${data.email || '-'}`;
+        document.getElementById('adminUserPoints').textContent = `${data.points || 0} pts`;
+        
+        userInfoDiv.style.display = 'block';
+        document.getElementById('adminPontos').value = '';
+        document.getElementById('adminMotivo').value = '';
+        document.getElementById('adminPontosStatus').innerHTML = '';
+
+      } catch (error) {
+        console.error('❌ Erro ao buscar usuário:', error);
+        alert('Erro ao buscar usuário: ' + error.message);
+      }
+    }
+
+    // ===== ADICIONAR PONTOS (ADMIN) =====
+    async function adminAdicionarPontos() {
+      if (!usuarioEhAdmin) return alert("Apenas administradores podem gerenciar pontos.");
+      if (!usuarioSelecionado) return alert("Busque um usuário primeiro.");
+
+      const pontos = Number(document.getElementById('adminPontos').value);
+      const motivo = document.getElementById('adminMotivo').value.trim() || 'Adicionado pelo administrador';
+
+      if (!pontos || pontos <= 0) {
+        document.getElementById('adminPontosStatus').innerHTML = '<p class="warn">⚠️ Digite uma quantidade válida.</p>';
+        return;
+      }
+
+      try {
+        const userRef = db.collection('users').doc(usuarioSelecionado.id);
+        await db.runTransaction(async (t) => {
+          const doc = await t.get(userRef);
+          if (!doc.exists) throw new Error('Usuário não encontrado.');
+          const atual = doc.data().points || 0;
+          t.update(userRef, { points: atual + pontos });
+        });
+
+        // Registra no histórico
+        await db.collection('historico_pontos').add({
+          usuarioId: usuarioSelecionado.id,
+          tipo: 'CREDITO',
+          quantidade: pontos,
+          descricao: motivo,
+          data: new Date().toISOString(),
+          adminId: currentUserUid
+        });
+
+        // Atualiza a exibição
+        usuarioSelecionado.points = (usuarioSelecionado.points || 0) + pontos;
+        document.getElementById('adminUserPoints').textContent = `${usuarioSelecionado.points} pts`;
+        document.getElementById('adminPontosStatus').innerHTML = 
+          `<p class="sucesso">✅ +${pontos} pontos adicionados! Motivo: ${motivo}</p>`;
+        document.getElementById('adminPontos').value = '';
+
+        // Se for o próprio usuário, atualiza o saldo na tela
+        if (usuarioSelecionado.id === currentUserUid) {
+          saldoAtual = usuarioSelecionado.points;
+          saldoPontos.textContent = saldoAtual;
+        }
+
+      } catch (error) {
+        console.error('❌ Erro ao adicionar pontos:', error);
+        document.getElementById('adminPontosStatus').innerHTML = `<p class="erro">❌ ${error.message}</p>`;
+      }
+    }
+
+    // ===== REMOVER PONTOS (ADMIN) =====
+    async function adminRemoverPontos() {
+      if (!usuarioEhAdmin) return alert("Apenas administradores podem gerenciar pontos.");
+      if (!usuarioSelecionado) return alert("Busque um usuário primeiro.");
+
+      const pontos = Number(document.getElementById('adminPontos').value);
+      const motivo = document.getElementById('adminMotivo').value.trim() || 'Removido pelo administrador';
+
+      if (!pontos || pontos <= 0) {
+        document.getElementById('adminPontosStatus').innerHTML = '<p class="warn">⚠️ Digite uma quantidade válida.</p>';
+        return;
+      }
+
+      try {
+        const userRef = db.collection('users').doc(usuarioSelecionado.id);
+        await db.runTransaction(async (t) => {
+          const doc = await t.get(userRef);
+          if (!doc.exists) throw new Error('Usuário não encontrado.');
+          const atual = doc.data().points || 0;
+          if (atual < pontos) throw new Error('Saldo insuficiente.');
+          t.update(userRef, { points: atual - pontos });
+        });
+
+        // Registra no histórico
+        await db.collection('historico_pontos').add({
+          usuarioId: usuarioSelecionado.id,
+          tipo: 'DEBITO',
+          quantidade: pontos,
+          descricao: motivo,
+          data: new Date().toISOString(),
+          adminId: currentUserUid
+        });
+
+        // Atualiza a exibição
+        usuarioSelecionado.points = (usuarioSelecionado.points || 0) - pontos;
+        document.getElementById('adminUserPoints').textContent = `${usuarioSelecionado.points} pts`;
+        document.getElementById('adminPontosStatus').innerHTML = 
+          `<p class="sucesso">✅ -${pontos} pontos removidos! Motivo: ${motivo}</p>`;
+        document.getElementById('adminPontos').value = '';
+
+        // Se for o próprio usuário, atualiza o saldo na tela
+        if (usuarioSelecionado.id === currentUserUid) {
+          saldoAtual = usuarioSelecionado.points;
+          saldoPontos.textContent = saldoAtual;
+        }
+
+      } catch (error) {
+        console.error('❌ Erro ao remover pontos:', error);
+        document.getElementById('adminPontosStatus').innerHTML = `<p class="erro">❌ ${error.message}</p>`;
+      }
+    }
+
+    // ===== RECARREGAR FUNÇÕES =====
     function recarregarSaldo() {
       if (currentUserUid) {
         saldoPontos.textContent = '⏳';
@@ -518,26 +731,46 @@
       }
     }
 
-    // === RECARREGAR HISTÓRICO MANUALMENTE ===
     function recarregarHistorico() {
       if (currentUserUid) {
         historicoUsuario.innerHTML = '<div class="loading">⏳ Atualizando...</div>';
-        // O listener já vai atualizar automaticamente, mas forçamos uma recarga
         db.collection('redemptions')
           .where('usuarioId', '==', currentUserUid)
-          .orderBy('solicitadoEm', 'desc')
           .get()
           .then(snapshot => {
-            // O listener já vai cuidar disso
-            console.log('📋 Histórico recarregado manualmente');
+            const itens = [];
+            snapshot.forEach(doc => itens.push(doc.data()));
+            itens.sort((a, b) => new Date(b.solicitadoEm) - new Date(a.solicitadoEm));
+            
+            historicoUsuario.innerHTML = '';
+            if (itens.length === 0) {
+              historicoUsuario.innerHTML = '<p class="historico-vazio">📭 Nenhum resgate ainda.</p>';
+              return;
+            }
+            itens.forEach(data => {
+              const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
+              const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
+              const horaFormatada = new Date(data.solicitadoEm).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+              historicoUsuario.innerHTML += `
+                <div class="log-item">
+                  <div>
+                    <strong>${data.itemNome}</strong>
+                    <span style="color:#888;font-size:0.8rem;">(${data.token})</span><br>
+                    <small style="color:#666;">${dataFormatada} ${horaFormatada} - ${data.custoPontos} pts</small>
+                  </div>
+                  <span class="badge ${statusClass}">${data.status}</span>
+                </div>
+              `;
+            });
           })
           .catch(err => {
             console.error('❌ Erro ao recarregar histórico:', err);
+            historicoUsuario.innerHTML = `<p class="historico-vazio" style="color:#ff8a8a;">❌ Erro ao carregar histórico</p>`;
           });
       }
     }
 
-    // === ATUALIZAR BOTÕES DE RESGATE ===
+    // ===== ATUALIZAR BOTÕES =====
     function atualizarBotoesResgate() {
       const botoes = document.querySelectorAll('.btn-resgate');
       botoes.forEach(btn => {
@@ -566,7 +799,7 @@
       });
     }
 
-    // === VERIFICAR ADMIN ===
+    // ===== VERIFICAR ADMIN =====
     async function checarPermissaoAdmin(uid) {
       try {
         const docSnap = await db.collection('users').doc(uid).get();
@@ -596,7 +829,7 @@
       adminPanel.style.display = 'none';
     }
 
-    // === LOGIN ADMIN ===
+    // ===== LOGIN ADMIN =====
     async function realizarLoginAdmin() {
       const email = document.getElementById('loginAdminEmail').value.trim();
       const senha = document.getElementById('loginAdminSenha').value;
@@ -647,56 +880,7 @@
       setTimeout(() => document.getElementById('loginAdminEmail').focus(), 100);
     }
 
-    // === ADMIN: PONTOS ===
-    async function adminAdicionarPontos() {
-      if (!usuarioEhAdmin) return alert("Apenas admin.");
-      const userId = document.getElementById('adminUserId').value.trim();
-      const pontos = Number(document.getElementById('adminPontos').value);
-      const statusDiv = document.getElementById('adminPontosStatus');
-      if (!userId || pontos <= 0) {
-        statusDiv.innerHTML = '<p class="warn">⚠️ Preencha todos os campos.</p>';
-        return;
-      }
-      try {
-        const userRef = db.collection('users').doc(userId);
-        await db.runTransaction(async (t) => {
-          const doc = await t.get(userRef);
-          if (!doc.exists) throw new Error('Usuário não encontrado.');
-          t.update(userRef, { points: (doc.data().points || 0) + pontos });
-        });
-        statusDiv.innerHTML = `<p class="sucesso">✅ +${pontos} points para ${userId.substring(0,8)}...</p>`;
-        document.getElementById('adminPontos').value = '';
-      } catch (error) {
-        statusDiv.innerHTML = `<p class="erro">❌ ${error.message}</p>`;
-      }
-    }
-
-    async function adminRemoverPontos() {
-      if (!usuarioEhAdmin) return alert("Apenas admin.");
-      const userId = document.getElementById('adminUserId').value.trim();
-      const pontos = Number(document.getElementById('adminPontos').value);
-      const statusDiv = document.getElementById('adminPontosStatus');
-      if (!userId || pontos <= 0) {
-        statusDiv.innerHTML = '<p class="warn">⚠️ Preencha todos os campos.</p>';
-        return;
-      }
-      try {
-        const userRef = db.collection('users').doc(userId);
-        await db.runTransaction(async (t) => {
-          const doc = await t.get(userRef);
-          if (!doc.exists) throw new Error('Usuário não encontrado.');
-          const atual = doc.data().points || 0;
-          if (atual < pontos) throw new Error('Saldo insuficiente.');
-          t.update(userRef, { points: atual - pontos });
-        });
-        statusDiv.innerHTML = `<p class="sucesso">✅ -${pontos} points de ${userId.substring(0,8)}...</p>`;
-        document.getElementById('adminPontos').value = '';
-      } catch (error) {
-        statusDiv.innerHTML = `<p class="erro">❌ ${error.message}</p>`;
-      }
-    }
-
-    // === ADICIONAR PRODUTO ===
+    // ===== ADICIONAR PRODUTO =====
     async function adicionarNovoItem(e) {
       e.preventDefault();
       if (!usuarioEhAdmin) return alert("Apenas admin.");
@@ -715,7 +899,7 @@
       }
     }
 
-    // === ADICIONAR PRODUTOS PADRÃO ===
+    // ===== ADICIONAR PRODUTOS PADRÃO =====
     async function adicionarProdutoPadrao() {
       if (!usuarioEhAdmin) return alert("Apenas admin.");
       const produtos = [
@@ -738,11 +922,8 @@
       }
     }
 
-    // === SOLICITAR RESGATE ===
+    // ===== SOLICITAR RESGATE =====
     async function solicitarResgate(idItem, nomeItem, custoItem) {
-      console.log('🎯 Solicitando resgate:', nomeItem, custoItem, 'pts');
-      console.log('💰 Saldo atual:', saldoAtual);
-      
       if (saldoAtual < custoItem) {
         alert(`⚠️ Saldo insuficiente! Você tem ${saldoAtual} points.`);
         return;
@@ -758,14 +939,12 @@
 
         const userRef = db.collection('users').doc(uid);
         await db.runTransaction(async (t) => {
-          // 1. Verifica e desconta os pontos
           const doc = await t.get(userRef);
           if (!doc.exists) throw new Error('Usuário não encontrado.');
           const atual = doc.data().points || 0;
           if (atual < custoItem) throw new Error('Saldo insuficiente.');
           t.update(userRef, { points: atual - custoItem });
           
-          // 2. Cria o resgate
           t.set(db.collection('redemptions').doc(token), {
             token,
             usuarioId: uid,
@@ -778,7 +957,6 @@
           });
         });
 
-        // O saldo será atualizado automaticamente pelo listener
         userStatus.textContent = "✅ Token gerado! Apresente no balcão.";
         userStatus.className = "status-box sucesso";
         tokenResultado.style.display = 'block';
@@ -792,7 +970,7 @@
       }
     }
 
-    // === VALIDAR TOKEN (ADMIN) ===
+    // ===== VALIDAR TOKEN (ADMIN) =====
     async function validarTokenCliente() {
       if (!usuarioEhAdmin) return alert("Apenas admin.");
       const token = document.getElementById('tokenInput').value.trim().toUpperCase();
@@ -825,7 +1003,7 @@
       }
     }
 
-    // === LOGS GLOBAIS (ADMIN) ===
+    // ===== LOGS GLOBAIS (ADMIN) =====
     function ouvirTodosOsResgatesAdmin() {
       if (!usuarioEhAdmin) return;
       db.collection('redemptions')
@@ -858,7 +1036,7 @@
         });
     }
 
-    console.log('🚀 App carregado! Usando campo "points" no Firestore');
+    console.log('🚀 App carregado!');
   </script>
 </body>
 </html>
