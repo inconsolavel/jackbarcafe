@@ -91,6 +91,7 @@
     .erro { color: #ff8a8a; border-color: #ff3b3b; }
     .sucesso { color: #85ff9f; }
     .warn { color: #ffd27a; }
+    .info { color: #4fc3f7; }
     
     .saldo-box {
       background: #1a1a1a;
@@ -101,11 +102,15 @@
       text-align: center;
     }
     .saldo-box .saldo-valor {
-      font-size: 2rem;
+      font-size: 2.5rem;
       font-weight: bold;
       color: #ffd27a;
     }
     .saldo-box .saldo-label { color: #888; font-size: 0.9rem; }
+    .saldo-box .saldo-loading {
+      color: #666;
+      font-size: 1rem;
+    }
     
     .lista-logs {
       max-height: 300px;
@@ -197,6 +202,20 @@
       text-align: center;
     }
 
+    .refresh-btn {
+      background: none;
+      border: 1px solid #444;
+      color: #888;
+      padding: 5px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .refresh-btn:hover {
+      border-color: #ff3b3b;
+      color: #fff;
+    }
+
     @media (max-width: 480px) {
       .acoes { flex-direction: column; }
       .btn { width: 100%; }
@@ -219,9 +238,15 @@
 
         <div id="userStatus" class="status-box warn">Carregando...</div>
 
-        <div class="saldo-box">
+        <!-- SALDO DE PONTOS -->
+        <div class="saldo-box" id="saldoBox">
           <div class="saldo-label">💰 Seus Pontos</div>
-          <div class="saldo-valor" id="saldoPontos">0</div>
+          <div class="saldo-valor" id="saldoPontos">
+            <span class="saldo-loading">⏳ Carregando...</span>
+          </div>
+          <div style="margin-top: 8px;">
+            <button class="refresh-btn" onclick="recarregarSaldo()">🔄 Atualizar</button>
+          </div>
         </div>
 
         <h3>📦 Itens Disponíveis</h3>
@@ -348,50 +373,154 @@
     let currentUserUid = null;
     let saldoAtual = 0;
     let meusResgates = [];
+    let saldoListener = null;
 
     // === AUTENTICAÇÃO ===
     auth.onAuthStateChanged(async (user) => {
       try {
         if (user) {
           currentUserUid = user.uid;
-          console.log('👤 Usuário:', user.uid);
+          console.log('👤 Usuário autenticado:', user.uid);
+          console.log('📧 Email:', user.email || 'Anônimo');
           
-          await Promise.all([
-            checarPermissaoAdmin(user.uid),
-            carregarSaldoUsuario(user.uid)
-          ]);
+          // Primeiro verifica se é admin
+          await checarPermissaoAdmin(user.uid);
           
+          // Depois carrega o saldo (com fallback)
+          await carregarSaldoUsuario(user.uid);
+          
+          // Inicia os listeners
           ouvirItensDisponiveis();
           carregarHistoricoLocal();
           
         } else {
-          console.log('🔄 Login anônimo...');
+          console.log('🔄 Usuário não autenticado, fazendo login anônimo...');
           await auth.signInAnonymously();
         }
       } catch (err) {
-        console.error("❌ Erro:", err);
+        console.error("❌ Erro no AuthStateChanged:", err);
         userStatus.textContent = "❌ Erro: " + err.message;
         userStatus.className = "status-box erro";
+        saldoPontos.innerHTML = '❌ Erro';
+        try {
+          await auth.signInAnonymously();
+        } catch (e) {
+          console.error('❌ Falha no login anônimo:', e);
+          userStatus.textContent = "❌ Falha na autenticação. Recarregue a página.";
+        }
       }
     });
 
-    // === CARREGAR SALDO ===
+    // === CARREGAR SALDO DO USUÁRIO ===
     async function carregarSaldoUsuario(uid) {
+      console.log('💰 Carregando saldo para:', uid);
+      
       try {
-        const docSnap = await db.collection('users').doc(uid).get();
+        // Tenta buscar o documento do usuário
+        const docRef = db.collection('users').doc(uid);
+        const docSnap = await docRef.get();
+        
         if (docSnap.exists) {
-          saldoAtual = docSnap.data().pontos || 0;
+          const data = docSnap.data();
+          saldoAtual = data.pontos || 0;
+          console.log('💰 Saldo encontrado:', saldoAtual);
+          saldoPontos.innerHTML = saldoAtual;
+          userStatus.textContent = "✅ Saldo carregado!";
+          userStatus.className = "status-box sucesso";
         } else {
-          await db.collection('users').doc(uid).set({ pontos: 0, criadoEm: new Date().toISOString() });
+          // Se não existe, cria o documento
+          console.log('💰 Criando novo usuário com saldo 0...');
+          await docRef.set({
+            pontos: 0,
+            criadoEm: new Date().toISOString(),
+            isAdmin: false
+          });
           saldoAtual = 0;
+          saldoPontos.innerHTML = '0';
+          userStatus.textContent = "✅ Conta criada! Saldo: 0 pontos.";
+          userStatus.className = "status-box sucesso";
         }
-        saldoPontos.textContent = saldoAtual;
-        console.log('💰 Saldo:', saldoAtual);
+        
+        // Configura listener em tempo real para atualizar o saldo
+        if (saldoListener) {
+          saldoListener();
+        }
+        saldoListener = docRef.onSnapshot((doc) => {
+          if (doc.exists) {
+            const data = doc.data();
+            saldoAtual = data.pontos || 0;
+            console.log('💰 Saldo atualizado em tempo real:', saldoAtual);
+            saldoPontos.innerHTML = saldoAtual;
+            
+            // Atualiza os botões de resgate
+            atualizarBotoesResgate();
+          }
+        }, (err) => {
+          console.warn('⚠️ Erro no listener do saldo:', err);
+        });
+        
       } catch (err) {
         console.error('❌ Erro ao carregar saldo:', err);
-        saldoAtual = 0;
-        saldoPontos.textContent = '0';
+        
+        // Tenta criar o documento mesmo com erro de permissão
+        if (err.code === 'permission-denied') {
+          try {
+            console.log('🔄 Tentando criar usuário com permissão limitada...');
+            await db.collection('users').doc(uid).set({
+              pontos: 0,
+              criadoEm: new Date().toISOString()
+            }, { merge: true });
+            saldoAtual = 0;
+            saldoPontos.innerHTML = '0';
+            userStatus.textContent = "⚠️ Conta criada com permissões limitadas.";
+            userStatus.className = "status-box warn";
+          } catch (e) {
+            console.error('❌ Falha ao criar usuário:', e);
+            saldoPontos.innerHTML = '⚠️ Erro';
+            userStatus.textContent = "❌ Erro ao criar conta. Verifique as regras do Firestore.";
+            userStatus.className = "status-box erro";
+          }
+        } else {
+          saldoPontos.innerHTML = '❌ Erro';
+          userStatus.textContent = "❌ Erro ao carregar saldo: " + err.message;
+          userStatus.className = "status-box erro";
+        }
       }
+    }
+
+    // === RECARREGAR SALDO MANUALMENTE ===
+    function recarregarSaldo() {
+      if (currentUserUid) {
+        saldoPontos.innerHTML = '<span class="saldo-loading">⏳ Atualizando...</span>';
+        carregarSaldoUsuario(currentUserUid);
+      }
+    }
+
+    // === ATUALIZAR BOTÕES DE RESGATE ===
+    function atualizarBotoesResgate() {
+      const botoes = document.querySelectorAll('.btn-resgate');
+      botoes.forEach(btn => {
+        const custo = parseInt(btn.dataset.custo);
+        if (saldoAtual < custo) {
+          btn.disabled = true;
+          btn.textContent = '🚫 Sem Pontos';
+          btn.closest('.item-card').classList.add('disabled');
+          const custoDiv = btn.closest('.item-card').querySelector('.item-custo');
+          if (custoDiv) {
+            custoDiv.classList.add('sem-pontos');
+            custoDiv.textContent = `⭐ ${custo} pts (Saldo insuficiente)`;
+          }
+        } else {
+          btn.disabled = false;
+          btn.textContent = '🎯 Resgatar';
+          btn.closest('.item-card').classList.remove('disabled');
+          const custoDiv = btn.closest('.item-card').querySelector('.item-custo');
+          if (custoDiv) {
+            custoDiv.classList.remove('sem-pontos');
+            custoDiv.textContent = `⭐ ${custo} pts`;
+          }
+        }
+      });
     }
 
     // === VERIFICAR ADMIN ===
@@ -404,14 +533,14 @@
           linkLoginAdminContainer.style.display = 'none';
           adminLoginBox.style.display = 'none';
           adminPanel.style.display = 'block';
-          userStatus.textContent = "👋 Admin logado!";
-          userStatus.className = "status-box sucesso";
+          console.log('👑 Usuário é ADMIN');
           ouvirTodosOsResgatesAdmin();
           return;
         }
+        console.log('👤 Usuário é CLIENTE');
         definirInterfaceCliente();
       } catch (err) {
-        console.error('❌ Erro admin:', err);
+        console.error('❌ Erro ao verificar admin:', err);
         definirInterfaceCliente();
       }
     }
@@ -422,8 +551,6 @@
       linkLoginAdminContainer.style.display = 'block';
       adminLoginBox.style.display = 'block';
       adminPanel.style.display = 'none';
-      userStatus.textContent = "🎯 Escolha um item para resgatar.";
-      userStatus.className = "status-box sucesso";
     }
 
     // === LOGIN ADMIN ===
@@ -568,7 +695,10 @@
                     ⭐ ${data.custo} pts ${!pode ? '(Saldo insuficiente)' : ''}
                   </div>
                 </div>
-                <button class="btn sm" onclick="solicitarResgate('${doc.id}', '${data.nome}', ${data.custo})" ${!pode ? 'disabled' : ''}>
+                <button class="btn sm btn-resgate" 
+                        data-custo="${data.custo}"
+                        onclick="solicitarResgate('${doc.id}', '${data.nome}', ${data.custo})" 
+                        ${!pode ? 'disabled' : ''}>
                   ${pode ? '🎯 Resgatar' : '🚫 Sem Pontos'}
                 </button>
               </div>
@@ -605,6 +735,9 @@
 
     // === SOLICITAR RESGATE ===
     async function solicitarResgate(idItem, nomeItem, custoItem) {
+      console.log('🎯 Solicitando resgate:', nomeItem, custoItem, 'pts');
+      console.log('💰 Saldo atual:', saldoAtual);
+      
       if (saldoAtual < custoItem) {
         alert(`⚠️ Saldo insuficiente! Você tem ${saldoAtual} pontos.`);
         return;
@@ -618,7 +751,6 @@
         userStatus.textContent = "⏳ Processando...";
         userStatus.className = "status-box warn";
 
-        // Transação: desconta pontos e cria resgate
         const userRef = db.collection('users').doc(uid);
         await db.runTransaction(async (t) => {
           const doc = await t.get(userRef);
@@ -627,7 +759,6 @@
           if (atual < custoItem) throw new Error('Saldo insuficiente.');
           t.update(userRef, { pontos: atual - custoItem });
           
-          // Cria o resgate
           t.set(db.collection('redemptions').doc(token), {
             token, usuarioId: uid, itemId: idItem,
             itemNome: nomeItem, custoPontos: custoItem,
@@ -637,11 +768,9 @@
           });
         });
 
-        // Atualiza saldo local
         saldoAtual -= custoItem;
-        saldoPontos.textContent = saldoAtual;
+        saldoPontos.innerHTML = saldoAtual;
 
-        // Salva localmente para o histórico
         meusResgates.unshift({
           token, itemNome: nomeItem, custoPontos: custoItem,
           status: 'PENDENTE',
@@ -654,6 +783,9 @@
         tokenResultado.style.display = 'block';
         tokenGerado.textContent = token;
 
+        // Atualiza botões
+        atualizarBotoesResgate();
+
       } catch (error) {
         console.error('❌ Erro resgate:', error);
         alert('❌ ' + error.message);
@@ -662,9 +794,10 @@
       }
     }
 
-    // === HISTÓRICO LOCAL (FUNCIONA SEM PERMISSÃO) ===
+    // === HISTÓRICO LOCAL ===
     function carregarHistoricoLocal() {
-      // Busca os resgates do usuário diretamente
+      if (!currentUserUid) return;
+      
       db.collection('redemptions')
         .where('usuarioId', '==', currentUserUid)
         .orderBy('solicitadoEm', 'desc')
@@ -672,14 +805,12 @@
         .then(snapshot => {
           meusResgates = [];
           snapshot.forEach(doc => {
-            const data = doc.data();
-            meusResgates.push(data);
+            meusResgates.push(doc.data());
           });
           exibirHistoricoLocal();
         })
         .catch(err => {
-          console.warn('⚠️ Erro ao buscar histórico, usando cache local:', err);
-          // Se não conseguir buscar, mostra os resgates em memória
+          console.warn('⚠️ Erro ao buscar histórico:', err);
           exibirHistoricoLocal();
         });
     }
@@ -736,7 +867,6 @@
         `;
         document.getElementById('tokenInput').value = '';
         
-        // Atualiza histórico local se for do usuário atual
         if (data.usuarioId === currentUserUid) {
           const item = meusResgates.find(r => r.token === token);
           if (item) item.status = 'VALIDADO';
