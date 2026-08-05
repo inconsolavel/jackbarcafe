@@ -195,6 +195,21 @@
       text-align: center;
     }
 
+    .refresh-btn {
+      background: none;
+      border: 1px solid #444;
+      color: #888;
+      padding: 5px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      margin-top: 8px;
+    }
+    .refresh-btn:hover {
+      border-color: #ff3b3b;
+      color: #fff;
+    }
+
     @media (max-width: 480px) {
       .acoes { flex-direction: column; }
       .btn { width: 100%; }
@@ -221,6 +236,7 @@
         <div class="saldo-box" id="saldoBox">
           <div class="saldo-label">💰 Seus Pontos</div>
           <div class="saldo-valor" id="saldoPontos">0</div>
+          <button class="refresh-btn" onclick="recarregarSaldo()">🔄 Atualizar</button>
         </div>
 
         <h3>📦 Itens Disponíveis</h3>
@@ -237,6 +253,9 @@
         <h3 style="margin-top:25px;">📋 Meu Histórico de Resgates</h3>
         <div class="lista-logs" id="historicoUsuario">
           <div class="loading">⏳ Carregando histórico...</div>
+        </div>
+        <div style="text-align:center; margin-top: 8px;">
+          <button class="refresh-btn" onclick="recarregarHistorico()">🔄 Atualizar Histórico</button>
         </div>
       </main>
 
@@ -348,6 +367,7 @@
     let saldoAtual = 0;
     let unsubscribeSaldo = null;
     let unsubscribeRedemptions = null;
+    let unsubscribeCatalog = null;
 
     // === AUTENTICAÇÃO ===
     auth.onAuthStateChanged(async (user) => {
@@ -385,12 +405,9 @@
         .onSnapshot((doc) => {
           if (doc.exists) {
             const data = doc.data();
-            // 🔥 USANDO "points" (inglês) em vez de "pontos"
             saldoAtual = data.points || 0;
             console.log('💰 Saldo atualizado (points):', saldoAtual);
             saldoPontos.textContent = saldoAtual;
-            
-            // Atualiza os botões de resgate
             atualizarBotoesResgate();
           } else {
             // Cria o documento com o campo "points" se não existir
@@ -410,6 +427,7 @@
         .where('usuarioId', '==', uid)
         .orderBy('solicitadoEm', 'desc')
         .onSnapshot((snapshot) => {
+          console.log('📋 Histórico atualizado:', snapshot.size, 'itens');
           historicoUsuario.innerHTML = '';
           if (snapshot.empty) {
             historicoUsuario.innerHTML = '<p class="historico-vazio">📭 Nenhum resgate ainda.</p>';
@@ -437,7 +455,8 @@
         });
 
       // 3. Listener do CATÁLOGO em tempo real
-      db.collection('rewards_catalog')
+      if (unsubscribeCatalog) unsubscribeCatalog();
+      unsubscribeCatalog = db.collection('rewards_catalog')
         .orderBy('custo', 'asc')
         .onSnapshot((snapshot) => {
           vitrineItens.innerHTML = '';
@@ -474,6 +493,60 @@
           console.error('❌ Erro vitrine:', err);
           vitrineItens.innerHTML = `<div class="produto-padrao"><p>❌ Erro: ${err.message}</p></div>`;
         });
+    }
+
+    // === RECARREGAR SALDO MANUALMENTE ===
+    function recarregarSaldo() {
+      if (currentUserUid) {
+        saldoPontos.textContent = '⏳';
+        db.collection('users').doc(currentUserUid).get()
+          .then(doc => {
+            if (doc.exists) {
+              saldoAtual = doc.data().points || 0;
+              saldoPontos.textContent = saldoAtual;
+              atualizarBotoesResgate();
+            }
+          })
+          .catch(err => console.error('❌ Erro ao recarregar saldo:', err));
+      }
+    }
+
+    // === RECARREGAR HISTÓRICO MANUALMENTE ===
+    function recarregarHistorico() {
+      if (currentUserUid) {
+        historicoUsuario.innerHTML = '<div class="loading">⏳ Atualizando...</div>';
+        db.collection('redemptions')
+          .where('usuarioId', '==', currentUserUid)
+          .orderBy('solicitadoEm', 'desc')
+          .get()
+          .then(snapshot => {
+            historicoUsuario.innerHTML = '';
+            if (snapshot.empty) {
+              historicoUsuario.innerHTML = '<p class="historico-vazio">📭 Nenhum resgate ainda.</p>';
+              return;
+            }
+            snapshot.forEach(doc => {
+              const data = doc.data();
+              const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
+              const dataFormatada = new Date(data.solicitadoEm).toLocaleDateString('pt-BR');
+              const horaFormatada = new Date(data.solicitadoEm).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+              historicoUsuario.innerHTML += `
+                <div class="log-item">
+                  <div>
+                    <strong>${data.itemNome}</strong>
+                    <span style="color:#888;font-size:0.8rem;">(${data.token})</span><br>
+                    <small style="color:#666;">${dataFormatada} ${horaFormatada} - ${data.custoPontos} pts</small>
+                  </div>
+                  <span class="badge ${statusClass}">${data.status}</span>
+                </div>
+              `;
+            });
+          })
+          .catch(err => {
+            console.error('❌ Erro ao recarregar histórico:', err);
+            historicoUsuario.innerHTML = `<p class="historico-vazio" style="color:#ff8a8a;">❌ Erro ao carregar histórico</p>`;
+          });
+      }
     }
 
     // === ATUALIZAR BOTÕES DE RESGATE ===
@@ -561,6 +634,7 @@
     function logoutAdmin() {
       if (unsubscribeSaldo) unsubscribeSaldo();
       if (unsubscribeRedemptions) unsubscribeRedemptions();
+      if (unsubscribeCatalog) unsubscribeCatalog();
       auth.signOut().then(() => window.location.reload());
     }
 
@@ -600,7 +674,6 @@
         await db.runTransaction(async (t) => {
           const doc = await t.get(userRef);
           if (!doc.exists) throw new Error('Usuário não encontrado.');
-          // 🔥 USANDO "points"
           t.update(userRef, { points: (doc.data().points || 0) + pontos });
         });
         statusDiv.innerHTML = `<p class="sucesso">✅ +${pontos} points para ${userId.substring(0,8)}...</p>`;
@@ -624,7 +697,6 @@
         await db.runTransaction(async (t) => {
           const doc = await t.get(userRef);
           if (!doc.exists) throw new Error('Usuário não encontrado.');
-          // 🔥 USANDO "points"
           const atual = doc.data().points || 0;
           if (atual < pontos) throw new Error('Saldo insuficiente.');
           t.update(userRef, { points: atual - pontos });
@@ -698,15 +770,12 @@
 
         const userRef = db.collection('users').doc(uid);
         await db.runTransaction(async (t) => {
-          // 1. Verifica e desconta os pontos - USANDO "points"
           const doc = await t.get(userRef);
           if (!doc.exists) throw new Error('Usuário não encontrado.');
-          // 🔥 USANDO "points"
           const atual = doc.data().points || 0;
           if (atual < custoItem) throw new Error('Saldo insuficiente.');
           t.update(userRef, { points: atual - custoItem });
           
-          // 2. Cria o resgate
           t.set(db.collection('redemptions').doc(token), {
             token,
             usuarioId: uid,
