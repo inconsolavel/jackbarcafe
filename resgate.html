@@ -132,6 +132,9 @@
     }
     .badge.pendente { background: #ffd27a; color: #000; }
     .badge.validado { background: #85ff9f; color: #000; }
+    .badge.credito { background: #2ecc71; color: #000; }
+    .badge.debito { background: #ff6b6b; color: #fff; }
+    .badge.cashback { background: #3498db; color: #fff; }
     
     .acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
     .btn {
@@ -158,6 +161,7 @@
     .btn.success { background: #2ecc71; }
     .btn.warning { background: #f39c12; }
     .btn.danger { background: #e74c3c; }
+    .btn.cashback { background: #3498db; }
     
     .token-display {
       font-family: monospace;
@@ -239,6 +243,7 @@
       color: #888;
       font-size: 0.9rem;
     }
+
     .admin-search-box {
       display: flex;
       gap: 10px;
@@ -246,6 +251,41 @@
     }
     .admin-search-box input {
       flex: 1;
+    }
+
+    .cashback-config {
+      background: #1a1a1a;
+      border: 1px solid #3498db44;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px 0;
+    }
+    .cashback-config .config-label {
+      color: #888;
+      font-size: 0.9rem;
+    }
+    .cashback-config .config-value {
+      font-size: 1.2rem;
+      color: #3498db;
+      font-weight: bold;
+    }
+
+    .restante-box {
+      background: #1a1a1a;
+      border: 1px solid #f39c1244;
+      border-radius: 10px;
+      padding: 10px 15px;
+      margin: 10px 0;
+      text-align: center;
+    }
+    .restante-box .restante-label {
+      color: #888;
+      font-size: 0.8rem;
+    }
+    .restante-box .restante-valor {
+      color: #f39c12;
+      font-size: 1.2rem;
+      font-weight: bold;
     }
 
     @media (max-width: 480px) {
@@ -329,7 +369,7 @@
           <div id="adminValidarStatus"></div>
         </div>
 
-        <!-- GERENCIAR USUÁRIO -->
+        <!-- GERENCIAR USUÁRIO - COM SISTEMA DE CASHBACK -->
         <div class="card">
           <h2>👤 Gerenciar Pontos do Usuário</h2>
           <p class="sub">Busque um usuário por telefone ou email</p>
@@ -352,13 +392,51 @@
               </div>
             </div>
 
+            <!-- CONFIGURAÇÃO DO CASHBACK -->
+            <div class="cashback-config">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div>
+                  <div class="config-label">💰 Valor do Ponto</div>
+                  <div class="config-value">R$ <span id="valorPontoDisplay">1,00</span></div>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                  <label style="color:#888; font-size:0.8rem;">R$</label>
+                  <input type="number" id="valorPontoInput" value="1.00" step="0.01" min="0.01" style="width:100px;">
+                  <button class="btn sm cashback" onclick="salvarValorPonto()">💾 Salvar</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- RESTANTE ACUMULADO -->
+            <div class="restante-box" id="restanteBox">
+              <div class="restante-label">💰 Restante acumulado para próximo ponto</div>
+              <div class="restante-valor" id="restanteValor">R$ 0,00</div>
+            </div>
+
+            <!-- ADICIONAR POR VALOR GASTO (CASHBACK) -->
+            <div style="background: #1a1a1a; border: 1px solid #2ecc7144; border-radius: 10px; padding: 15px; margin: 10px 0;">
+              <h4 style="color: #2ecc71; margin: 0 0 10px 0;">💳 Adicionar por Valor Gasto</h4>
+              <p style="color:#888; font-size:0.85rem; margin-bottom:10px;">
+                Insira o valor que o cliente gastou. O sistema converterá automaticamente em pontos.
+              </p>
+              <div class="form-group" style="display:flex; gap:10px; flex-wrap:wrap;">
+                <input type="number" id="adminValorGasto" placeholder="Valor gasto R$" step="0.01" min="0.01" style="flex:1;">
+                <textarea id="adminMotivoCashback" placeholder="Motivo (ex: Compra do dia)" style="flex:2; min-height:40px;"></textarea>
+              </div>
+              <button class="btn cashback" onclick="adminAdicionarPorValorGasto()">🔄 Converter em Pontos</button>
+              <div id="adminCashbackStatus" style="margin-top:10px;"></div>
+            </div>
+
+            <!-- ADICIONAR/REMOVER MANUAL -->
+            <hr style="border-color:#333; margin:15px 0;">
+            <h4 style="color:#888; margin:0 0 10px 0;">🔧 Ajuste Manual</h4>
             <div class="form-group" style="display:flex; gap:10px; flex-wrap:wrap;">
               <input type="number" id="adminPontos" placeholder="Quantidade" min="1" style="flex:1;">
-              <textarea id="adminMotivo" placeholder="Motivo (ex: Bônus, Correção, etc)" style="flex:2; min-height:40px;"></textarea>
+              <textarea id="adminMotivo" placeholder="Motivo" style="flex:2; min-height:40px;"></textarea>
             </div>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <button class="btn success sm" onclick="adminAdicionarPontos()">➕ Adicionar Pontos</button>
-              <button class="btn danger sm" onclick="adminRemoverPontos()">➖ Remover Pontos</button>
+              <button class="btn success sm" onclick="adminAdicionarPontos()">➕ Adicionar</button>
+              <button class="btn danger sm" onclick="adminRemoverPontos()">➖ Remover</button>
             </div>
             <div id="adminPontosStatus" style="margin-top:10px;"></div>
           </div>
@@ -384,7 +462,7 @@
           </form>
         </div>
 
-        <!-- TODOS OS RESGATES - COM NOME DO USUÁRIO -->
+        <!-- TODOS OS RESGATES -->
         <div class="card">
           <h2>📊 Todos os Resgates</h2>
           <div class="lista-logs" id="logsGlobaisAdmin"></div>
@@ -437,6 +515,7 @@
     let unsubscribeRedemptions = null;
     let unsubscribeCatalog = null;
     let usuarioSelecionado = null;
+    let valorPonto = 1.00; // Valor padrão: R$ 1,00 = 1 ponto
 
     // ===== AUTENTICAÇÃO =====
     auth.onAuthStateChanged(async (user) => {
@@ -446,6 +525,7 @@
           console.log('👤 Usuário autenticado:', user.uid);
           
           await checarPermissaoAdmin(user.uid);
+          await carregarValorPonto();
           iniciarListeners(user.uid);
           
         } else {
@@ -464,19 +544,68 @@
       }
     });
 
+    // ===== CARREGAR VALOR DO PONTO =====
+    async function carregarValorPonto() {
+      try {
+        const docSnap = await db.collection('config').doc('cashback').get();
+        if (docSnap.exists) {
+          valorPonto = docSnap.data().valorPonto || 1.00;
+        } else {
+          // Cria configuração padrão
+          await db.collection('config').doc('cashback').set({
+            valorPonto: 1.00,
+            atualizadoEm: new Date().toISOString()
+          });
+          valorPonto = 1.00;
+        }
+        document.getElementById('valorPontoDisplay').textContent = valorPonto.toFixed(2);
+        document.getElementById('valorPontoInput').value = valorPonto.toFixed(2);
+      } catch (err) {
+        console.warn('⚠️ Erro ao carregar valor do ponto:', err);
+      }
+    }
+
+    // ===== SALVAR VALOR DO PONTO =====
+    async function salvarValorPonto() {
+      if (!usuarioEhAdmin) return alert("Apenas administradores podem alterar esta configuração.");
+      
+      const novoValor = parseFloat(document.getElementById('valorPontoInput').value);
+      if (!novoValor || novoValor <= 0) {
+        alert('Digite um valor válido (ex: 1.00)');
+        return;
+      }
+
+      try {
+        await db.collection('config').doc('cashback').set({
+          valorPonto: novoValor,
+          atualizadoEm: new Date().toISOString(),
+          atualizadoPor: currentUserUid
+        }, { merge: true });
+        
+        valorPonto = novoValor;
+        document.getElementById('valorPontoDisplay').textContent = novoValor.toFixed(2);
+        alert('✅ Valor do ponto atualizado para R$ ' + novoValor.toFixed(2));
+      } catch (err) {
+        console.error('❌ Erro ao salvar valor do ponto:', err);
+        alert('❌ Erro ao salvar: ' + err.message);
+      }
+    }
+
     // ===== INICIAR LISTENERS =====
     function iniciarListeners(uid) {
       if (unsubscribeSaldo) unsubscribeSaldo();
       unsubscribeSaldo = db.collection('users').doc(uid)
         .onSnapshot((doc) => {
           if (doc.exists) {
-            saldoAtual = doc.data().points || 0;
+            const data = doc.data();
+            saldoAtual = data.points || 0;
             saldoPontos.textContent = saldoAtual;
             atualizarBotoesResgate();
           } else {
             db.collection('users').doc(uid).set({
               points: 0,
               isAdmin: false,
+              restante: 0,
               criadoEm: new Date().toISOString()
             }).catch(e => console.error('❌ Erro ao criar usuário:', e));
           }
@@ -594,10 +723,18 @@
           `Telefone: ${data.telefone || '-'} | Email: ${data.email || '-'}`;
         document.getElementById('adminUserPoints').textContent = `${data.points || 0} pts`;
         
+        // Mostra o restante acumulado
+        const restante = data.restante || 0;
+        document.getElementById('restanteValor').textContent = `R$ ${restante.toFixed(2)}`;
+        document.getElementById('restanteBox').style.display = 'block';
+        
         userInfoDiv.style.display = 'block';
         document.getElementById('adminPontos').value = '';
         document.getElementById('adminMotivo').value = '';
+        document.getElementById('adminValorGasto').value = '';
+        document.getElementById('adminMotivoCashback').value = '';
         document.getElementById('adminPontosStatus').innerHTML = '';
+        document.getElementById('adminCashbackStatus').innerHTML = '';
 
       } catch (error) {
         console.error('❌ Erro ao buscar usuário:', error);
@@ -605,7 +742,87 @@
       }
     }
 
-    // ===== ADICIONAR PONTOS (ADMIN) =====
+    // ===== ADICIONAR POR VALOR GASTO (CASHBACK) =====
+    async function adminAdicionarPorValorGasto() {
+      if (!usuarioEhAdmin) return alert("Apenas administradores podem gerenciar pontos.");
+      if (!usuarioSelecionado) return alert("Busque um usuário primeiro.");
+
+      const valorGasto = parseFloat(document.getElementById('adminValorGasto').value);
+      const motivo = document.getElementById('adminMotivoCashback').value.trim() || 'Cashback por compra';
+
+      if (!valorGasto || valorGasto <= 0) {
+        document.getElementById('adminCashbackStatus').innerHTML = '<p class="warn">⚠️ Digite um valor válido.</p>';
+        return;
+      }
+
+      try {
+        const userRef = db.collection('users').doc(usuarioSelecionado.id);
+        let pontosAdicionados = 0;
+        let restanteNovo = 0;
+
+        await db.runTransaction(async (t) => {
+          const doc = await t.get(userRef);
+          if (!doc.exists) throw new Error('Usuário não encontrado.');
+          
+          const data = doc.data();
+          const restanteAtual = data.restante || 0;
+          
+          // Soma o valor gasto ao restante acumulado
+          const total = restanteAtual + valorGasto;
+          
+          // Calcula quantos pontos inteiros podem ser gerados
+          pontosAdicionados = Math.floor(total / valorPonto);
+          restanteNovo = total % valorPonto;
+          
+          // Atualiza o usuário
+          t.update(userRef, {
+            points: (data.points || 0) + pontosAdicionados,
+            restante: restanteNovo,
+            ultimaCompra: new Date().toISOString()
+          });
+        });
+
+        // Registra no histórico de pontos
+        if (pontosAdicionados > 0) {
+          await db.collection('historico_pontos').add({
+            usuarioId: usuarioSelecionado.id,
+            tipo: 'CASHBACK',
+            quantidade: pontosAdicionados,
+            valorGasto: valorGasto,
+            descricao: `${motivo} - R$ ${valorGasto.toFixed(2)}`,
+            data: new Date().toISOString(),
+            adminId: currentUserUid
+          });
+        }
+
+        // Atualiza a exibição
+        usuarioSelecionado.points = (usuarioSelecionado.points || 0) + pontosAdicionados;
+        usuarioSelecionado.restante = restanteNovo;
+        
+        document.getElementById('adminUserPoints').textContent = `${usuarioSelecionado.points} pts`;
+        document.getElementById('restanteValor').textContent = `R$ ${restanteNovo.toFixed(2)}`;
+        
+        let mensagem = `✅ R$ ${valorGasto.toFixed(2)} convertido em ${pontosAdicionados} pontos!`;
+        if (restanteNovo > 0) {
+          mensagem += ` Restante: R$ ${restanteNovo.toFixed(2)} acumulado.`;
+        }
+        document.getElementById('adminCashbackStatus').innerHTML = `<p class="sucesso">${mensagem}</p>`;
+        document.getElementById('adminValorGasto').value = '';
+        document.getElementById('adminMotivoCashback').value = '';
+
+        // Se for o próprio usuário, atualiza o saldo na tela
+        if (usuarioSelecionado.id === currentUserUid) {
+          saldoAtual = usuarioSelecionado.points;
+          saldoPontos.textContent = saldoAtual;
+        }
+
+      } catch (error) {
+        console.error('❌ Erro ao converter valor em pontos:', error);
+        document.getElementById('adminCashbackStatus').innerHTML = `<p class="erro">❌ ${error.message}</p>`;
+      }
+    }
+
+    // ===== ADICIONAR PONTOS (MANUAL) =====
     async function adminAdicionarPontos() {
       if (!usuarioEhAdmin) return alert("Apenas administradores podem gerenciar pontos.");
       if (!usuarioSelecionado) return alert("Busque um usuário primeiro.");
@@ -653,7 +870,7 @@
       }
     }
 
-    // ===== REMOVER PONTOS (ADMIN) =====
+    // ===== REMOVER PONTOS (MANUAL) =====
     async function adminRemoverPontos() {
       if (!usuarioEhAdmin) return alert("Apenas administradores podem gerenciar pontos.");
       if (!usuarioSelecionado) return alert("Busque um usuário primeiro.");
@@ -990,7 +1207,7 @@
       }
     }
 
-    // ===== LOGS GLOBAIS (ADMIN) - COM NOME DO USUÁRIO =====
+    // ===== LOGS GLOBAIS (ADMIN) =====
     function ouvirTodosOsResgatesAdmin() {
       if (!usuarioEhAdmin) return;
       
@@ -1004,7 +1221,6 @@
             return;
           }
           
-          // Para cada resgate, busca o nome do usuário
           for (const doc of snapshot.docs) {
             const data = doc.data();
             const statusClass = data.status === 'PENDENTE' ? 'pendente' : 'validado';
@@ -1013,7 +1229,6 @@
             
             let nomeUsuario = 'Usuário desconhecido';
             
-            // Busca o nome do usuário
             if (data.usuarioId) {
               try {
                 const userDoc = await db.collection('users').doc(data.usuarioId).get();
@@ -1045,7 +1260,7 @@
         });
     }
 
-    console.log('🚀 App carregado!');
+    console.log('🚀 App carregado! Sistema de Cashback ativo.');
   </script>
 </body>
 </html>
