@@ -1,18 +1,1072 @@
-// Coleção: cafeManager
-// Documento: UID_DO_USUARIO
-{
-  "money": 250,
-  "coffee": 8,
-  "clients": 45,
-  "rating": 3.8,
-  "day": 5,
-  "totalServed": 120,
-  "upgrades": {
-    "equipment": 2,
-    "staff": 1,
-    "marketing": 0
-  },
-  "updatedAt": "2024-01-01T10:00:00.000Z",
-  "userId": "UID_DO_USUARIO",
-  "userName": "João Silva"
-}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Café Runner - Jack Bar Café</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0d0d0d;
+      color: #fff;
+      min-height: 100svh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      overflow: hidden;
+    }
+    .game-wrapper {
+      background: rgba(20,20,20,0.95);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.06);
+      max-width: 900px;
+      width: 100%;
+      position: relative;
+    }
+
+    /* Menu Overlay */
+    .menu-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10,10,20,0.92);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 30px;
+      backdrop-filter: blur(6px);
+      transition: opacity 0.5s ease;
+    }
+    .menu-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .menu-overlay h1 {
+      font-size: 2.5rem;
+      color: #ff6b35;
+      margin-bottom: 8px;
+      text-shadow: 0 0 30px rgba(255,107,53,0.2);
+    }
+    .menu-overlay .subtitle {
+      color: #888;
+      font-size: 1rem;
+      margin-bottom: 30px;
+    }
+    .menu-overlay .menu-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 100%;
+      max-width: 300px;
+    }
+    .menu-overlay .menu-btn {
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .menu-overlay .menu-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      background: rgba(255,255,255,0.12);
+    }
+    .menu-overlay .menu-btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+    .menu-overlay .menu-btn.primary {
+      background: #ff6b35;
+      border-color: #ff6b35;
+      color: #fff;
+    }
+    .menu-overlay .menu-btn.primary:hover:not(:disabled) {
+      background: #ff5722;
+    }
+    .menu-overlay .menu-btn.success {
+      background: #2ecc71;
+      border-color: #2ecc71;
+      color: #fff;
+    }
+    .menu-overlay .menu-btn.success:hover:not(:disabled) {
+      background: #27ae60;
+    }
+    .menu-overlay .menu-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    .menu-overlay .save-info {
+      color: #888;
+      font-size: 0.9rem;
+      margin-top: 20px;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .menu-overlay .save-info strong {
+      color: #ffd27a;
+    }
+    .menu-overlay .menu-logo {
+      font-size: 4rem;
+      margin-bottom: 10px;
+    }
+    .menu-overlay .loading-text {
+      color: #888;
+      font-size: 1rem;
+      margin-top: 20px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .header h1 {
+      color: #ff6b35;
+      font-size: 1.2rem;
+    }
+    .header .user-name {
+      color: #aaa;
+      font-size: 0.85rem;
+    }
+    .header .user-name strong { color: #ffd27a; }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .stat-card {
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+      padding: 6px 10px;
+      text-align: center;
+    }
+    .stat-card .value {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #ffd27a;
+    }
+    .stat-card .value.money { color: #2ecc71; }
+    .stat-card .value.rating { color: #f1c40f; }
+    .stat-card .value.day { color: #3498db; }
+    .stat-card .label {
+      color: #666;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Canvas */
+    .canvas-container {
+      position: relative;
+      background: #1a1a2e;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.06);
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 10;
+      touch-action: none;
+      cursor: pointer;
+    }
+
+    /* Controls com teclas */
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: 0.2s;
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.08);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); opacity: 0.9; }
+    .btn:active:not(:disabled) { transform: scale(0.95); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn .key {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border-radius: 4px;
+      padding: 0 6px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      color: #ffd27a;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .btn.primary { background: #ff6b35; border-color: #ff6b35; }
+    .btn.success { background: #2ecc71; border-color: #2ecc71; }
+    .btn.warning { background: #f39c12; border-color: #f39c12; }
+    .btn.danger { background: #e74c3c; border-color: #e74c3c; }
+    .btn.info { background: #3498db; border-color: #3498db; }
+    .btn.purple { background: #9b59b6; border-color: #9b59b6; }
+    .btn.pink { background: #e84393; border-color: #e84393; }
+    .btn.sec { background: rgba(255,255,255,0.08); }
+
+    .controls .btn-group {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* Log */
+    .log-container {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 8px 12px;
+      max-height: 60px;
+      overflow-y: auto;
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: #888;
+    }
+    .log-container .log-entry .good { color: #2ecc71; }
+    .log-container .log-entry .bad { color: #e74c3c; }
+    .log-container .log-entry .info { color: #3498db; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.9);
+      padding: 12px 24px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 100;
+      font-weight: bold;
+      display: none;
+      backdrop-filter: blur(10px);
+      text-align: center;
+      max-width: 90%;
+    }
+    .toast.show { display: block; animation: toastAnim 0.3s ease; }
+    @keyframes toastAnim {
+      from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+    .toast.good { border-color: #2ecc71; color: #2ecc71; }
+    .toast.bad { border-color: #e74c3c; color: #e74c3c; }
+    .toast.info { border-color: #3498db; color: #3498db; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .game-wrapper { padding: 12px; }
+      .stats { grid-template-columns: repeat(4, 1fr); }
+      .btn { padding: 6px 10px; font-size: 0.7rem; }
+      .menu-overlay h1 { font-size: 1.8rem; }
+      .menu-overlay .menu-btn { font-size: 1rem; padding: 14px; }
+    }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+
+  <div class="game-wrapper">
+    <!-- MENU INICIAL -->
+    <div class="menu-overlay" id="menuOverlay">
+      <div class="menu-logo">☕</div>
+      <h1>Café Runner</h1>
+      <div class="subtitle">Gerencie seu café e atenda os clientes!</div>
+      <div class="menu-buttons">
+        <button class="menu-btn primary" id="btnNewGame" disabled>🚀 Novo Jogo</button>
+        <button class="menu-btn success" id="btnContinue" disabled>📂 Continuar</button>
+      </div>
+      <div class="save-info" id="saveInfo">
+        <span id="saveStatus">🔑 Aguardando login...</span>
+      </div>
+      <div class="loading-text" id="loadingText"></div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="header">
+      <h1>🏃 Café Runner</h1>
+      <div class="user-name">👤 <strong id="playerName">Carregando...</strong></div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat-card"><div class="value money" id="statMoney">100</div><div class="label">💰 Dinheiro</div></div>
+      <div class="stat-card"><div class="value" id="statClients">0</div><div class="label">👥 Atendidos</div></div>
+      <div class="stat-card"><div class="value rating" id="statRating">⭐ 3.0</div><div class="label">📊 Avaliação</div></div>
+      <div class="stat-card"><div class="value day" id="statDay">Dia 1</div><div class="label">📅</div></div>
+    </div>
+
+    <!-- CANVAS -->
+    <div class="canvas-container">
+      <canvas id="gameCanvas" width="800" height="500"></canvas>
+    </div>
+
+    <!-- CONTROLES COM TECLAS -->
+    <div class="controls">
+      <div class="btn-group">
+        <button class="btn primary" id="btnUp">⬆️ Andar <span class="key">W</span></button>
+        <button class="btn success" id="btnInteract">🤝 Atender <span class="key">E</span></button>
+        <button class="btn warning" id="btnServe">🍽️ Servir <span class="key">R</span></button>
+      </div>
+      <div class="btn-group">
+        <button class="btn info" id="btnNextDay">⏭️ Próx. Dia <span class="key">N</span></button>
+        <button class="btn purple" id="btnUpgrade">⬆️ Melhorar <span class="key">U</span></button>
+        <button class="btn sec" id="btnNewClient">🚪 Chamar Cliente <span class="key">C</span></button>
+        <button class="btn pink" id="btnReset">🔄 Reiniciar</button>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="log-container" id="logContainer">
+      <div class="log-entry"><span class="info">🎮 Use as teclas ou clique nos botões</span></div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ===== FIREBASE =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
+      authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
+      projectId: "jackbarcafe-b8fa8",
+      storageBucket: "jackbarcafe-b8fa8.appspot.com",
+      messagingSenderId: "849215333925",
+      appId: "1:849215333925:web:e02cb0d11c590af32201cc"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // ===== ELEMENTOS =====
+    const menuOverlay = document.getElementById('menuOverlay');
+    const btnNewGame = document.getElementById('btnNewGame');
+    const btnContinue = document.getElementById('btnContinue');
+    const saveStatus = document.getElementById('saveStatus');
+    const loadingText = document.getElementById('loadingText');
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = 800, H = 500;
+
+    const statMoney = document.getElementById('statMoney');
+    const statClients = document.getElementById('statClients');
+    const statRating = document.getElementById('statRating');
+    const statDay = document.getElementById('statDay');
+    const logContainer = document.getElementById('logContainer');
+    const playerNameEl = document.getElementById('playerName');
+
+    // ===== ESTADO DO JOGO =====
+    let state = {
+      money: 100,
+      clients: 0,
+      rating: 3.0,
+      day: 1,
+      upgrades: { speed: 0, service: 0, marketing: 0 }
+    };
+
+    let player = {
+      x: 400, y: 250,
+      w: 30, h: 30,
+      targetX: 400, targetY: 250,
+      moving: false
+    };
+
+    let tables = [];
+    const TABLE_POSITIONS = [
+      { x: 100, y: 120 }, { x: 250, y: 120 }, { x: 400, y: 120 },
+      { x: 550, y: 120 }, { x: 700, y: 120 },
+      { x: 100, y: 320 }, { x: 250, y: 320 }, { x: 400, y: 320 },
+      { x: 550, y: 320 }, { x: 700, y: 320 }
+    ];
+    const counter = { x: 40, y: 220, w: 60, h: 80 };
+
+    let selectedTable = null;
+    let gameLoopId = null;
+    let userId = null;
+    let userName = 'Anônimo';
+    let saveInterval = null;
+    let hasSave = false;
+    let gameStarted = false;
+    let saveData = null;
+
+    // ===== FUNÇÕES AUXILIARES =====
+
+    function addLog(msg, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `<span class="${type}">${msg}</span>`;
+      logContainer.appendChild(entry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+      while (logContainer.children.length > 50) logContainer.removeChild(logContainer.firstChild);
+    }
+
+    function showToast(msg, type = 'info') {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.className = 'toast show ' + type;
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => { toast.className = 'toast'; }, 2500);
+    }
+
+    function atualizarUI() {
+      statMoney.textContent = state.money;
+      statClients.textContent = state.clients;
+      statRating.textContent = '⭐ ' + state.rating.toFixed(1);
+      statDay.textContent = 'Dia ' + state.day;
+    }
+
+    // ===== SALVAR / CARREGAR =====
+
+    function salvarEstado() {
+      if (!userId || !gameStarted) return;
+      const data = {
+        ...state,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        userId: userId,
+        userName: userName
+      };
+      db.collection('cafeManager').doc(userId).set(data, { merge: true })
+        .catch(err => console.error('❌ Erro ao salvar:', err));
+    }
+
+    function carregarEstado(dados) {
+      state = {
+        money: dados.money || 100,
+        clients: dados.clients || 0,
+        rating: dados.rating || 3.0,
+        day: dados.day || 1,
+        upgrades: dados.upgrades || { speed: 0, service: 0, marketing: 0 }
+      };
+      atualizarUI();
+      addLog('📂 Progresso carregado! Dia ' + state.day, 'info');
+    }
+
+    function verificarSave() {
+      if (!userId) return;
+      loadingText.textContent = '⏳ Verificando saves...';
+      db.collection('cafeManager').doc(userId).get()
+        .then(doc => {
+          if (doc.exists) {
+            hasSave = true;
+            saveData = doc.data();
+            btnContinue.disabled = false;
+            btnNewGame.disabled = false;
+            const dia = saveData.day || 1;
+            const dinheiro = saveData.money || 100;
+            const clientes = saveData.clients || 0;
+            saveStatus.innerHTML = `📂 Save encontrado!<br><strong>Dia ${dia}</strong> | 💰 R$ ${dinheiro} | 👥 ${clientes} clientes`;
+            loadingText.textContent = '';
+          } else {
+            hasSave = false;
+            btnContinue.disabled = true;
+            btnNewGame.disabled = false;
+            saveStatus.textContent = '📭 Nenhum save encontrado. Comece um novo jogo!';
+            loadingText.textContent = '';
+          }
+        })
+        .catch(err => {
+          console.error('❌ Erro ao verificar save:', err);
+          saveStatus.textContent = '❌ Erro ao verificar save. Tente recarregar.';
+          loadingText.textContent = '';
+          btnContinue.disabled = true;
+          btnNewGame.disabled = false;
+        });
+    }
+
+    // ===== INICIAR JOGO =====
+
+    function iniciarJogo(novoJogo) {
+      if (novoJogo) {
+        state = {
+          money: 100,
+          clients: 0,
+          rating: 3.0,
+          day: 1,
+          upgrades: { speed: 0, service: 0, marketing: 0 }
+        };
+        player.x = 400; player.y = 250;
+        player.targetX = 400; player.targetY = 250;
+        initTables();
+        atualizarUI();
+        addLog('🆕 Novo jogo iniciado!', 'info');
+        showToast('🚀 Novo jogo!', 'info');
+        salvarEstado();
+      } else {
+        if (saveData) {
+          carregarEstado(saveData);
+          player.x = 400; player.y = 250;
+          player.targetX = 400; player.targetY = 250;
+          initTables();
+          addLog('📂 Jogo continuado!', 'info');
+          showToast('📂 Save carregado!', 'info');
+        } else {
+          iniciarJogo(true);
+          return;
+        }
+      }
+
+      gameStarted = true;
+      menuOverlay.classList.add('hidden');
+
+      if (saveInterval) clearInterval(saveInterval);
+      saveInterval = setInterval(salvarEstado, 30000);
+      window.addEventListener('beforeunload', salvarEstado);
+
+      if (!gameLoopId) {
+        gameLoopId = requestAnimationFrame(gameLoop);
+      }
+    }
+
+    // ===== CLIENTES =====
+
+    function spawnCliente(tableIndex) {
+      if (tables[tableIndex] && tables[tableIndex].client) return false;
+      
+      const nomes = ['João', 'Maria', 'Pedro', 'Ana', 'Carlos', 'Julia', 'Rafael', 'Fernanda'];
+      const pedidos = ['Café', 'Cappuccino', 'Pão de Queijo', 'Bolo', 'Sanduíche', 'Suco', 'Chá', 'Torta'];
+      
+      const cliente = {
+        nome: nomes[Math.floor(Math.random() * nomes.length)],
+        pedido: pedidos[Math.floor(Math.random() * pedidos.length)],
+        tempo: 30 + Math.floor(Math.random() * 30),
+        estado: 'esperando',
+        pagamento: 10 + Math.floor(Math.random() * 20),
+        satisfacao: 0.5 + Math.random() * 0.5
+      };
+      
+      tables[tableIndex].client = cliente;
+      tables[tableIndex].timer = cliente.tempo;
+      return true;
+    }
+
+    function initTables() {
+      tables = TABLE_POSITIONS.map((pos) => ({
+        x: pos.x,
+        y: pos.y,
+        client: null,
+        timer: 0,
+        _pagouTimer: 0
+      }));
+    }
+
+    // ===== DESENHO =====
+
+    function desenharCenario() {
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(0, 0, W, H);
+      
+      ctx.fillStyle = '#1e1e3a';
+      ctx.fillRect(0, 80, W, H - 80);
+      
+      ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < W; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 80);
+        ctx.lineTo(x, H);
+        ctx.stroke();
+      }
+      for (let y = 80; y < H; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = '#2d1b0e';
+      ctx.fillRect(counter.x, counter.y, counter.w, counter.h);
+      ctx.fillStyle = '#3d2b1e';
+      ctx.fillRect(counter.x + 5, counter.y + 5, counter.w - 10, 20);
+      ctx.fillStyle = '#ffd27a';
+      ctx.font = '16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('☕', counter.x + counter.w/2, counter.y + 55);
+      ctx.fillStyle = '#888';
+      ctx.font = '10px Arial';
+      ctx.fillText('BALCÃO', counter.x + counter.w/2, counter.y + 72);
+
+      tables.forEach((table, index) => {
+        const x = table.x, y = table.y;
+        ctx.fillStyle = '#2d1b0e';
+        ctx.fillRect(x - 20, y - 10, 40, 20);
+        ctx.fillStyle = '#3d2b1e';
+        ctx.fillRect(x - 15, y - 6, 30, 6);
+        
+        if (table.client) {
+          const c = table.client;
+          ctx.fillStyle = '#4a6fa5';
+          ctx.beginPath();
+          ctx.arc(x, y - 18, 12, 0, Math.PI * 2);
+          ctx.fill();
+          
+          ctx.fillStyle = '#f5cba7';
+          ctx.beginPath();
+          ctx.arc(x, y - 28, 8, 0, Math.PI * 2);
+          ctx.fill();
+          
+          ctx.fillStyle = '#fff';
+          ctx.font = '9px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(c.nome, x, y - 40);
+          
+          ctx.fillStyle = '#ffd27a';
+          ctx.font = '8px Arial';
+          ctx.fillText('📝 ' + c.pedido, x, y + 12);
+          
+          let cor = '#f39c12';
+          let statusText = '⏳ Esperando';
+          if (c.estado === 'atendido') { cor = '#3498db'; statusText = '📋 Atendido'; }
+          else if (c.estado === 'servido') { cor = '#2ecc71'; statusText = '🍽️ Servido'; }
+          else if (c.estado === 'pagou') { cor = '#2ecc71'; statusText = '💰 Pagou!'; }
+          
+          ctx.fillStyle = cor;
+          ctx.font = '7px Arial';
+          ctx.fillText(statusText, x, y + 24);
+          
+          if (c.estado === 'esperando' || c.estado === 'atendido') {
+            ctx.fillStyle = '#e74c3c';
+            ctx.font = '8px Arial';
+            ctx.fillText('⏱️' + Math.ceil(table.timer) + 's', x, y + 34);
+          }
+        }
+      });
+
+      ctx.shadowColor = 'rgba(255,107,53,0.3)';
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = '#ff6b35';
+      ctx.beginPath();
+      ctx.arc(player.x, player.y - 10, 14, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#f5cba7';
+      ctx.beginPath();
+      ctx.arc(player.x, player.y - 22, 10, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#e74c3c';
+      ctx.fillRect(player.x - 8, player.y - 4, 16, 14);
+      ctx.shadowBlur = 0;
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = '9px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🧑‍🍳 Você', player.x, player.y - 38);
+      
+      if (selectedTable !== null && tables[selectedTable]) {
+        const t = tables[selectedTable];
+        ctx.strokeStyle = '#ffd27a';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(t.x - 30, t.y - 35, 60, 50);
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#ffd27a';
+        ctx.font = '14px Arial';
+        ctx.fillText('▼', t.x, t.y - 40);
+      }
+    }
+
+    // ===== LOOP =====
+
+    function updateGame() {
+      const dx = player.targetX - player.x;
+      const dy = player.targetY - player.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      
+      if (dist > 2) {
+        const speed = 3 + state.upgrades.speed * 0.5;
+        player.x += (dx / dist) * Math.min(speed, dist);
+        player.y += (dy / dist) * Math.min(speed, dist);
+        player.moving = true;
+      } else {
+        player.x = player.targetX;
+        player.y = player.targetY;
+        player.moving = false;
+      }
+      
+      tables.forEach((table) => {
+        if (table.client && table.timer > 0) {
+          table.timer -= 0.016;
+          if (table.timer <= 0 && table.client.estado !== 'pagou') {
+            addLog(`🚶 ${table.client.nome} foi embora! (esperou demais)`, 'bad');
+            state.rating = Math.max(1, state.rating - 0.3);
+            table.client = null;
+            table.timer = 0;
+            atualizarUI();
+            salvarEstado();
+            showToast(`😤 Cliente foi embora!`, 'bad');
+          }
+        }
+        if (table.client && table.client.estado === 'pagou') {
+          if (!table._pagouTimer) table._pagouTimer = 0;
+          table._pagouTimer += 0.016;
+          if (table._pagouTimer > 1.5) {
+            table.client = null;
+            table.timer = 0;
+            table._pagouTimer = 0;
+          }
+        }
+      });
+    }
+
+    function gameLoop() {
+      if (gameStarted) {
+        updateGame();
+        desenharCenario();
+      }
+      gameLoopId = requestAnimationFrame(gameLoop);
+    }
+
+    // ===== AÇÕES =====
+
+    function moverPlayer(x, y) {
+      const margin = 30;
+      player.targetX = Math.max(margin, Math.min(W - margin, x));
+      player.targetY = Math.max(80 + margin, Math.min(H - margin, y));
+    }
+
+    function andar(direcao) {
+      const passo = 80 + state.upgrades.speed * 10;
+      let targetX = player.targetX;
+      let targetY = player.targetY;
+      switch(direcao) {
+        case 'up': targetY = Math.max(80 + 30, player.targetY - passo); break;
+        case 'down': targetY = Math.min(H - 30, player.targetY + passo); break;
+        case 'left': targetX = Math.max(30, player.targetX - passo); break;
+        case 'right': targetX = Math.min(W - 30, player.targetX + passo); break;
+      }
+      moverPlayer(targetX, targetY);
+    }
+
+    function encontrarMesaMaisProxima() {
+      let maisProxima = null;
+      let menorDist = Infinity;
+      tables.forEach((table, index) => {
+        if (table.client) {
+          const dx = player.x - table.x;
+          const dy = player.y - table.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < menorDist) {
+            menorDist = dist;
+            maisProxima = index;
+          }
+        }
+      });
+      return maisProxima;
+    }
+
+    function acaoAtender() {
+      if (!gameStarted) return;
+      const idx = encontrarMesaMaisProxima();
+      if (idx === null) {
+        showToast('⚠️ Nenhum cliente próximo!', 'bad');
+        return;
+      }
+      const table = tables[idx];
+      const client = table.client;
+      const dx = player.x - table.x;
+      const dy = player.y - table.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      
+      if (dist > 80) {
+        moverPlayer(table.x, table.y - 20);
+        showToast('🚶 Indo até o cliente...', 'info');
+        setTimeout(() => acaoAtender(), 500);
+        return;
+      }
+      
+      if (client.estado === 'esperando') {
+        client.estado = 'atendido';
+        addLog(`📋 ${client.nome} foi atendido! Pedido: ${client.pedido}`, 'info');
+        showToast(`📋 ${client.nome} atendido!`, 'info');
+        state.rating = Math.min(5, state.rating + 0.05);
+        atualizarUI();
+        salvarEstado();
+      } else if (client.estado === 'servido') {
+        client.estado = 'pagou';
+        const pagamento = client.pagamento + Math.floor(Math.random() * 5) + state.upgrades.service * 2;
+        state.money += pagamento;
+        state.clients += 1;
+        state.rating = Math.min(5, state.rating + 0.1 * client.satisfacao);
+        addLog(`💰 ${client.nome} pagou R$ ${pagamento}!`, 'good');
+        showToast(`💰 R$ ${pagamento} recebido!`, 'good');
+        atualizarUI();
+        salvarEstado();
+      } else if (client.estado === 'pagou') {
+        showToast(`✅ ${client.nome} já pagou!`, 'info');
+      } else {
+        showToast(`📋 ${client.nome} já foi atendido. Sirva o pedido.`, 'info');
+      }
+    }
+
+    function acaoServir() {
+      if (!gameStarted) return;
+      const idx = encontrarMesaMaisProxima();
+      if (idx === null) {
+        showToast('⚠️ Nenhum cliente próximo!', 'bad');
+        return;
+      }
+      const table = tables[idx];
+      const client = table.client;
+      const dx = player.x - table.x;
+      const dy = player.y - table.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      
+      if (dist > 80) {
+        moverPlayer(table.x, table.y - 20);
+        showToast('🚶 Indo servir...', 'info');
+        setTimeout(() => acaoServir(), 500);
+        return;
+      }
+      
+      if (client.estado === 'atendido') {
+        client.estado = 'servido';
+        addLog(`🍽️ ${client.nome} foi servido!`, 'good');
+        showToast(`🍽️ ${client.pedido} servido!`, 'good');
+        state.rating = Math.min(5, state.rating + 0.1);
+        atualizarUI();
+        salvarEstado();
+      } else if (client.estado === 'esperando') {
+        showToast('⚠️ Atenda o cliente primeiro!', 'warn');
+      } else if (client.estado === 'servido') {
+        showToast('✅ Já foi servido! Cobrar agora.', 'info');
+      } else if (client.estado === 'pagou') {
+        showToast('✅ Cliente já pagou!', 'info');
+      }
+    }
+
+    function acaoNovoCliente() {
+      if (!gameStarted) return;
+      let mesaVazia = -1;
+      for (let i = 0; i < tables.length; i++) {
+        if (!tables[i].client) { mesaVazia = i; break; }
+      }
+      if (mesaVazia === -1) {
+        showToast('⚠️ Todas as mesas estão ocupadas!', 'bad');
+        return;
+      }
+      if (state.money < 5) {
+        showToast('⚠️ Sem dinheiro para ingredientes!', 'bad');
+        return;
+      }
+      const sucesso = spawnCliente(mesaVazia);
+      if (sucesso) {
+        const nome = tables[mesaVazia].client.nome;
+        addLog(`🚪 ${nome} chegou!`, 'info');
+        showToast(`👋 ${nome} sentou na mesa ${mesaVazia + 1}`, 'info');
+        state.money -= 2;
+        atualizarUI();
+        salvarEstado();
+      }
+    }
+
+    function acaoProximoDia() {
+      if (!gameStarted) return;
+      let perdidos = 0;
+      tables.forEach(table => {
+        if (table.client && table.client.estado !== 'pagou') {
+          perdidos++;
+          table.client = null;
+          table.timer = 0;
+        }
+      });
+      if (perdidos > 0) {
+        addLog(`⚠️ ${perdidos} clientes foram embora sem pagar!`, 'bad');
+        state.rating = Math.max(1, state.rating - 0.1 * perdidos);
+      }
+      state.day++;
+      const custo = 10 + state.day;
+      if (state.money >= custo) {
+        state.money -= custo;
+        addLog(`📅 Manutenção: -R$ ${custo}`, 'info');
+      } else {
+        state.rating = Math.max(1, state.rating - 0.2);
+        addLog(`⚠️ Sem dinheiro para manutenção!`, 'bad');
+      }
+      if (state.day % 3 === 0) {
+        const bonus = 20 + state.day * 2;
+        state.money += bonus;
+        addLog(`🎉 Bônus de produtividade: +R$ ${bonus}`, 'good');
+        showToast(`🎉 Bônus de R$ ${bonus}!`, 'good');
+      }
+      const novos = 1 + Math.floor(Math.random() * 2) + state.upgrades.marketing;
+      for (let i = 0; i < novos; i++) {
+        setTimeout(() => acaoNovoCliente(), i * 800);
+      }
+      atualizarUI();
+      salvarEstado();
+      showToast(`📅 Dia ${state.day} começou!`, 'info');
+      addLog(`📅 Dia ${state.day} iniciado.`, 'info');
+    }
+
+    function acaoUpgrade() {
+      if (!gameStarted) return;
+      const opcoes = [
+        { id: 'speed', nome: '🏃 Velocidade', desc: 'Anda mais rápido', custo: 80 + (state.upgrades.speed || 0) * 50 },
+        { id: 'service', nome: '🤝 Atendimento', desc: 'Clientes pagam mais', custo: 100 + (state.upgrades.service || 0) * 60 },
+        { id: 'marketing', nome: '📢 Marketing', desc: '+ clientes por dia', custo: 120 + (state.upgrades.marketing || 0) * 70 }
+      ];
+      let msg = '⬆️ MELHORIAS:\n\n';
+      opcoes.forEach(o => {
+        const level = state.upgrades[o.id] || 0;
+        const maxed = level >= 5;
+        msg += `${o.nome} (Nv.${level}/5)\n`;
+        msg += `  ${o.desc}\n`;
+        msg += `  ${maxed ? '✅ MAX' : '💰 R$ ' + o.custo}\n\n`;
+      });
+      msg += 'Digite o número da melhoria:\n1 - Velocidade\n2 - Atendimento\n3 - Marketing';
+      const escolha = prompt(msg);
+      if (!escolha) return;
+      const idx = parseInt(escolha) - 1;
+      if (idx < 0 || idx > 2) { showToast('❌ Opção inválida!', 'bad'); return; }
+      const op = opcoes[idx];
+      const level = state.upgrades[op.id] || 0;
+      if (level >= 5) { showToast('✅ Já está no nível máximo!', 'info'); return; }
+      const custo = op.custo;
+      if (state.money < custo) { showToast(`❌ R$ ${custo} necessário!`, 'bad'); return; }
+      state.money -= custo;
+      state.upgrades[op.id] = (state.upgrades[op.id] || 0) + 1;
+      atualizarUI();
+      salvarEstado();
+      showToast(`⬆️ ${op.nome} melhorado!`, 'good');
+      addLog(`⬆️ ${op.nome} nível ${state.upgrades[op.id]}!`, 'good');
+    }
+
+    function acaoReset() {
+      if (!gameStarted) return;
+      if (!confirm('Tem certeza que deseja reiniciar o jogo? Todo progresso será perdido!')) return;
+      iniciarJogo(true);
+    }
+
+    // ===== CONTROLES =====
+
+    document.addEventListener('keydown', (e) => {
+      if (!gameStarted) return;
+      switch(e.key.toLowerCase()) {
+        case 'w': andar('up'); e.preventDefault(); break;
+        case 's': andar('down'); e.preventDefault(); break;
+        case 'a': andar('left'); e.preventDefault(); break;
+        case 'd': andar('right'); e.preventDefault(); break;
+        case 'e': acaoAtender(); e.preventDefault(); break;
+        case 'r': acaoServir(); e.preventDefault(); break;
+        case 'c': acaoNovoCliente(); e.preventDefault(); break;
+        case 'n': acaoProximoDia(); e.preventDefault(); break;
+        case 'u': acaoUpgrade(); e.preventDefault(); break;
+      }
+    });
+
+    document.getElementById('btnUp').addEventListener('click', () => andar('up'));
+    document.getElementById('btnInteract').addEventListener('click', acaoAtender);
+    document.getElementById('btnServe').addEventListener('click', acaoServir);
+    document.getElementById('btnNextDay').addEventListener('click', acaoProximoDia);
+    document.getElementById('btnUpgrade').addEventListener('click', acaoUpgrade);
+    document.getElementById('btnNewClient').addEventListener('click', acaoNovoCliente);
+    document.getElementById('btnReset').addEventListener('click', acaoReset);
+
+    canvas.addEventListener('click', (e) => {
+      if (!gameStarted) return;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+      moverPlayer(x, y);
+      tables.forEach((table, index) => {
+        const dx = x - table.x;
+        const dy = y - table.y;
+        if (Math.abs(dx) < 30 && Math.abs(dy) < 30) {
+          selectedTable = selectedTable === index ? null : index;
+        }
+      });
+    });
+
+    // ===== BOTÕES DO MENU =====
+
+    btnNewGame.addEventListener('click', () => {
+      iniciarJogo(true);
+    });
+
+    btnContinue.addEventListener('click', () => {
+      if (hasSave && saveData) {
+        iniciarJogo(false);
+      } else {
+        showToast('❌ Nenhum save disponível!', 'bad');
+      }
+    });
+
+    // ===== AUTENTICAÇÃO - SOMENTE LOGIN (SEM ANÔNIMO) =====
+
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        userId = user.uid;
+        try {
+          const doc = await db.collection('users').doc(userId).get();
+          if (doc.exists) {
+            const data = doc.data();
+            userName = data.nome || data.email || 'Anônimo';
+          }
+        } catch (err) {}
+        playerNameEl.textContent = userName;
+        // Verifica save
+        verificarSave();
+      } else {
+        // Usuário não logado - mostra mensagem e desabilita botões
+        playerNameEl.textContent = 'Não logado';
+        saveStatus.innerHTML = '🔑 <strong>Faça login</strong> para jogar e salvar seu progresso.';
+        btnNewGame.disabled = true;
+        btnContinue.disabled = true;
+        loadingText.textContent = 'Aguardando login...';
+        // Redireciona para a página de login se quiser
+        // window.location.href = 'index.html';
+      }
+    });
+
+    // ===== INICIALIZAÇÃO =====
+
+    initTables();
+    atualizarUI();
+    gameLoopId = requestAnimationFrame(gameLoop);
+
+    console.log('☕ Café Runner - Login obrigatório!');
+  </script>
+</body>
+</html>
