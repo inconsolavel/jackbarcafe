@@ -44,76 +44,119 @@
       right: 10px;
       font-size: clamp(16px, 3vw, 20px);
       background: rgba(0,0,0,0.55);
-      padding: 8px 10px;
+      padding: 8px 14px;
       border-radius: 10px;
       pointer-events: auto;
+      font-weight: bold;
+      border: 1px solid rgba(255,255,255,0.1);
     }
 
     #ranking {
       position: absolute;
       top: 10px;
       left: 10px;
-      width: min(260px, calc(100vw - 24px));
-      background: rgba(0,0,0,0.62);
-      padding: 10px;
-      border-radius: 10px;
+      width: min(280px, calc(100vw - 24px));
+      background: rgba(0,0,0,0.75);
+      padding: 12px 14px;
+      border-radius: 12px;
       pointer-events: auto;
-      max-height: 42vh;
+      max-height: 45vh;
       overflow: auto;
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(4px);
     }
 
-    #ranking h3 { margin: 0 0 8px; font-size: 1rem; }
+    #ranking h3 { 
+      margin: 0 0 10px; 
+      font-size: 0.95rem;
+      color: #ffd27a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 8px;
+    }
+    #ranking h3 .refresh-btn {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #aaa;
+      border-radius: 5px;
+      padding: 2px 10px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      transition: 0.2s;
+    }
+    #ranking h3 .refresh-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
     #ranking ol { 
       margin: 0; 
-      padding-left: 20px;
+      padding-left: 0;
       list-style: none;
-      counter-reset: ranking-counter;
     }
     #ranking li { 
-      margin-bottom: 4px;
-      padding: 4px 8px;
+      margin-bottom: 3px;
+      padding: 5px 8px 5px 30px;
       border-radius: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.9rem;
-      counter-increment: ranking-counter;
+      font-size: 0.85rem;
       position: relative;
-      padding-left: 30px;
+      transition: 0.2s;
     }
     #ranking li::before {
-      content: counter(ranking-counter);
+      content: attr(data-pos);
       position: absolute;
-      left: 4px;
-      color: #ffd27a;
+      left: 6px;
+      color: #888;
       font-weight: bold;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       min-width: 20px;
     }
     #ranking li:nth-child(1) { 
-      background: rgba(255, 215, 0, 0.15); 
+      background: rgba(255, 215, 0, 0.12); 
       border-left: 3px solid #ffd700;
     }
+    #ranking li:nth-child(1)::before { color: #ffd700; }
     #ranking li:nth-child(2) { 
-      background: rgba(192, 192, 192, 0.12); 
+      background: rgba(192, 192, 192, 0.10); 
       border-left: 3px solid #c0c0c0;
     }
+    #ranking li:nth-child(2)::before { color: #c0c0c0; }
     #ranking li:nth-child(3) { 
-      background: rgba(205, 127, 50, 0.12); 
+      background: rgba(205, 127, 50, 0.10); 
       border-left: 3px solid #cd7f32;
     }
-    #ranking .rank-score {
+    #ranking li:nth-child(3)::before { color: #cd7f32; }
+    
+    .rank-score {
       font-weight: bold;
       color: #ffd27a;
+      font-size: 0.9rem;
     }
-    #ranking .rank-player {
+    .rank-player {
       color: #fff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 140px;
     }
-    #ranking .rank-empty {
-      color: #888;
+    .rank-medal {
+      margin-right: 4px;
+    }
+    .rank-empty {
+      color: #666;
       text-align: center;
-      padding: 10px;
+      padding: 15px;
       font-style: italic;
+    }
+    .rank-loading {
+      color: #666;
+      text-align: center;
+      padding: 15px;
     }
 
     .game-shell {
@@ -127,10 +170,10 @@
 
     canvas {
       display: block;
-      background: rgba(34,34,34,0.88);
-      border: 2px solid rgba(255,255,255,0.18);
+      background: rgba(34,34,34,0.92);
+      border: 2px solid rgba(255,255,255,0.12);
       border-radius: 12px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
       width: min(92vw, calc((100svh - 80px) * 0.6667));
       height: auto;
       max-height: 84svh;
@@ -144,22 +187,28 @@
       transform: translateX(-50%);
       bottom: 12px;
       display: none;
-      gap: 10px;
+      gap: 12px;
       z-index: 4;
     }
 
     .ctrl-btn {
-      min-width: 64px;
-      height: 52px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.18);
+      min-width: 70px;
+      height: 54px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.15);
       background: rgba(0,0,0,0.55);
       color: #fff;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       font-weight: bold;
       cursor: pointer;
       touch-action: manipulation;
       user-select: none;
+      backdrop-filter: blur(4px);
+      transition: 0.2s;
+    }
+    .ctrl-btn:active {
+      background: rgba(255,255,255,0.15);
+      transform: scale(0.95);
     }
 
     .top-actions {
@@ -179,12 +228,21 @@
       pointer-events: auto;
       border: 0;
       border-radius: 10px;
-      padding: 9px 12px;
-      background: rgba(0,0,0,0.65);
+      padding: 9px 14px;
+      background: rgba(0,0,0,0.6);
       color: #fff;
       cursor: pointer;
       font-weight: 700;
-      border: 1px solid rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: 0.2s;
+      backdrop-filter: blur(4px);
+      font-size: 0.9rem;
+    }
+    .btn:hover {
+      background: rgba(255,255,255,0.12);
+    }
+    .btn:active {
+      transform: scale(0.95);
     }
 
     .gameover {
@@ -193,28 +251,53 @@
       display: none;
       align-items: center;
       justify-content: center;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.7);
       z-index: 5;
       padding: 16px;
+      backdrop-filter: blur(4px);
     }
 
     .gameover-card {
-      background: #1f1f1f;
+      background: #1a1a1a;
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 14px;
-      padding: 20px;
+      border-radius: 16px;
+      padding: 28px 24px;
       width: min(360px, 100%);
       text-align: center;
     }
 
-    .gameover-card h2 { margin: 0 0 8px; color: #ff4d4d; }
-    .gameover-card p { margin: 0 0 14px; color: #ddd; }
-    .gameover-card .btn { width: 100%; background: #ff0000; }
+    .gameover-card h2 { margin: 0 0 8px; color: #ff4d4d; font-size: 1.6rem; }
+    .gameover-card p { margin: 0 0 18px; color: #ddd; font-size: 1.1rem; }
+    .gameover-card .btn { 
+      width: 100%; 
+      background: #ff0000; 
+      padding: 14px;
+      font-size: 1rem;
+    }
+    .gameover-card .btn:hover { background: #cc0000; }
+
+    .user-info {
+      position: fixed;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      z-index: 4;
+      color: #aaa;
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(4px);
+      white-space: nowrap;
+    }
+    .user-info strong {
+      color: #ffd27a;
+    }
 
     @media (max-width: 900px) {
-      #ranking { max-width: 180px; font-size: 0.9rem; }
-      #ranking h3 { font-size: 0.95rem; }
-      #ranking li { font-size: 0.8rem; padding-left: 26px; }
+      #ranking { max-width: 200px; font-size: 0.85rem; padding: 8px 10px; }
+      #ranking li { font-size: 0.78rem; padding: 4px 6px 4px 26px; }
       .controls { display: flex; }
       canvas { width: min(96vw, 420px); max-height: 72svh; }
     }
@@ -226,14 +309,17 @@
         left: 10px;
         width: calc(100vw - 20px);
         max-width: none;
-        max-height: 120px;
+        max-height: 110px;
+        padding: 8px 10px;
       }
-      #ranking li { font-size: 0.75rem; padding: 2px 6px 2px 26px; }
-      #score { top: 54px; right: 10px; font-size: 15px; }
+      #ranking li { font-size: 0.7rem; padding: 3px 4px 3px 24px; }
+      #ranking li .rank-player { max-width: 80px; }
+      #score { top: 54px; right: 10px; font-size: 14px; padding: 6px 12px; }
       .top-actions { top: 8px; }
-      .controls { bottom: 10px; }
-      .ctrl-btn { min-width: 86px; height: 50px; }
-      canvas { max-height: 60svh; }
+      .controls { bottom: 10px; gap: 8px; }
+      .ctrl-btn { min-width: 80px; height: 48px; font-size: 1.1rem; }
+      canvas { max-height: 58svh; }
+      .user-info { bottom: 65px; font-size: 0.7rem; padding: 4px 14px; }
     }
   </style>
 </head>
@@ -241,17 +327,20 @@
   <div class="overlay" aria-hidden="true"></div>
 
   <div class="hud">
-    <div id="score">Score: 0</div>
+    <div id="score">🏁 0</div>
     <div id="ranking">
-      <h3>🏆 Top 10</h3>
+      <h3>
+        🏆 TOP 10
+        <button class="refresh-btn" onclick="carregarRanking()">🔄</button>
+      </h3>
       <ol id="rankingList">
-        <li class="rank-empty">Carregando ranking...</li>
+        <li class="rank-loading">⏳ Carregando...</li>
       </ol>
     </div>
   </div>
 
   <div class="top-actions">
-    <button class="btn" id="pauseBtn" type="button">⏸ Pausar</button>
+    <button class="btn" id="pauseBtn" type="button">⏸️ Pausar</button>
     <a class="btn" href="index.html" style="text-decoration:none;">🏠 Voltar</a>
   </div>
 
@@ -264,19 +353,25 @@
     <button class="ctrl-btn" id="rightBtn" type="button">▶</button>
   </div>
 
+  <div class="user-info" id="userInfo">
+    👤 <strong id="playerName">Carregando...</strong>
+  </div>
+
   <div class="gameover" id="gameOverPanel">
     <div class="gameover-card">
       <h2>💀 Fim de jogo</h2>
-      <p id="finalScoreText">Sua pontuação: 0</p>
+      <p id="finalScoreText">Pontuação: 0</p>
       <button class="btn" id="restartBtn" type="button">🔄 Jogar novamente</button>
     </div>
   </div>
 
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
 
   <script>
+    // ===== CONFIGURAÇÃO FIREBASE =====
     const firebaseConfig = {
       apiKey: "AIzaSyCSXdOu9Cwly0-s9rySbe9jKb7fqhcz1p8",
       authDomain: "jackbarcafe-b8fa8.firebaseapp.com",
@@ -290,25 +385,12 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    // ===== VARIÁVEIS =====
     let userId = null;
-    let userEmail = 'Anônimo';
+    let userNome = 'Anônimo';
+    let userDataLoaded = false;
 
-    // Autenticação - Tenta pegar o nome do usuário se estiver logado
-    auth.onAuthStateChanged(user => { 
-      if (user) {
-        userId = user.uid;
-        // Tenta buscar o nome do usuário no Firestore
-        db.collection('users').doc(user.uid).get()
-          .then(doc => {
-            if (doc.exists) {
-              const data = doc.data();
-              userEmail = data.nome || data.email || 'Anônimo';
-            }
-          })
-          .catch(() => {});
-      }
-    });
-
+    // ===== ELEMENTOS DOM =====
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const scoreEl = document.getElementById('score');
@@ -317,7 +399,9 @@
     const finalScoreText = document.getElementById('finalScoreText');
     const restartBtn = document.getElementById('restartBtn');
     const pauseBtn = document.getElementById('pauseBtn');
+    const playerNameEl = document.getElementById('playerName');
 
+    // ===== JOGO =====
     let score = 0;
     let speed = 2;
     let gameOver = false;
@@ -325,12 +409,126 @@
     let lastSpawnAt = 0;
     const SPAWN_INTERVAL_MS = 1200;
 
-    const player = { x: 175, y: 520, w: 50, h: 80, color: 'red' };
+    const player = { x: 175, y: 520, w: 50, h: 80, color: '#ff0000' };
     const cars = [];
 
     let leftPressed = false;
     let rightPressed = false;
     let pointerActive = false;
+
+    // ===== RANKING =====
+    async function carregarRanking() {
+      try {
+        const snapshot = await db.collection('gameScores')
+          .orderBy('score', 'desc')
+          .limit(10)
+          .get();
+
+        rankingList.innerHTML = '';
+
+        if (snapshot.empty) {
+          rankingList.innerHTML = '<li class="rank-empty">Nenhuma pontuação ainda.<br>Seja o primeiro! 🎮</li>';
+          return;
+        }
+
+        let pos = 1;
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const nome = data.nome || 'Anônimo';
+          const scoreValue = data.score || 0;
+          const li = document.createElement('li');
+          li.setAttribute('data-pos', pos);
+
+          let medal = '';
+          if (pos === 1) medal = '🥇 ';
+          else if (pos === 2) medal = '🥈 ';
+          else if (pos === 3) medal = '🥉 ';
+
+          li.innerHTML = `
+            <span class="rank-player"><span class="rank-medal">${medal}</span>${nome}</span>
+            <span class="rank-score">${scoreValue}</span>
+          `;
+          rankingList.appendChild(li);
+          pos++;
+        });
+      } catch (err) {
+        console.error('❌ Erro ao carregar ranking:', err);
+        rankingList.innerHTML = '<li class="rank-empty">❌ Erro ao carregar ranking</li>';
+      }
+    }
+
+    // ===== SALVAR PONTUAÇÃO =====
+    async function salvarPontuacao(scoreValue) {
+      if (!userId) {
+        console.warn('⚠️ Usuário não autenticado');
+        return;
+      }
+
+      try {
+        const docRef = db.collection('gameScores').doc(userId);
+        const doc = await docRef.get();
+        const currentScore = doc.exists ? doc.data().score : 0;
+
+        if (scoreValue > currentScore) {
+          await docRef.set({
+            score: scoreValue,
+            nome: userNome,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          console.log('✅ Nova pontuação salva!', scoreValue);
+        } else {
+          console.log('ℹ️ Pontuação não superou o recorde anterior');
+        }
+      } catch (err) {
+        console.error('❌ Erro ao salvar pontuação:', err);
+      }
+    }
+
+    // ===== AUTENTICAÇÃO =====
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        userId = user.uid;
+        console.log('👤 Usuário autenticado:', userId);
+
+        // Busca nome do usuário
+        try {
+          const doc = await db.collection('users').doc(userId).get();
+          if (doc.exists) {
+            const data = doc.data();
+            userNome = data.nome || data.email || 'Anônimo';
+          }
+        } catch (err) {
+          console.warn('⚠️ Erro ao buscar nome:', err);
+        }
+
+        playerNameEl.textContent = userNome;
+        userDataLoaded = true;
+
+        // Carrega ranking
+        carregarRanking();
+
+        // Listener em tempo real
+        db.collection('gameScores')
+          .orderBy('score', 'desc')
+          .limit(10)
+          .onSnapshot(() => {
+            carregarRanking();
+          });
+
+      } else {
+        console.log('👤 Usuário não autenticado');
+        playerNameEl.textContent = 'Anônimo (faça login)';
+        
+        // Tenta login anônimo
+        try {
+          await auth.signInAnonymously();
+        } catch (e) {
+          console.error('❌ Falha no login anônimo:', e);
+        }
+      }
+    });
+
+    // ===== JOGO =====
 
     function resetGame() {
       score = 0;
@@ -341,19 +539,20 @@
       cars.length = 0;
       player.x = 175;
       player.y = 520;
-      scoreEl.innerText = 'Score: 0';
+      scoreEl.textContent = '🏁 0';
       gameOverPanel.style.display = 'none';
-      pauseBtn.textContent = '⏸ Pausar';
+      pauseBtn.textContent = '⏸️ Pausar';
       requestAnimationFrame(loop);
     }
 
     function spawnCar() {
+      const colors = ['#2196F3', '#4CAF50', '#FF9800', '#9C27B0'];
       const car = {
         x: Math.random() * 350,
         y: -100,
-        w: 50,
-        h: 80,
-        color: 'blue'
+        w: 45,
+        h: 75,
+        color: colors[Math.floor(Math.random() * colors.length)]
       };
       cars.push(car);
     }
@@ -368,8 +567,8 @@
       if (gameOver || paused) return;
 
       movePlayer();
-      score += 1;
-      scoreEl.innerText = `Score: ${score}`;
+      score++;
+      scoreEl.textContent = `🏁 ${score}`;
       speed = 2 + Math.floor(score / 200);
 
       for (let i = cars.length - 1; i >= 0; i--) {
@@ -388,20 +587,20 @@
           car.y + car.h > player.y
         ) {
           gameOver = true;
-          finalScoreText.textContent = `Sua pontuação: ${score}`;
+          finalScoreText.textContent = `Pontuação: ${score}`;
           gameOverPanel.style.display = 'flex';
-          saveScore(score);
+          salvarPontuacao(score);
           break;
         }
       }
     }
 
     function drawRoadGuides() {
-      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.fillStyle = 'rgba(255,255,255,0.05)';
       ctx.fillRect(130, 0, 6, canvas.height);
       ctx.fillRect(264, 0, 6, canvas.height);
 
-      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
       const dashH = 24;
       const gap = 16;
       const offset = (score * 0.8) % (dashH + gap);
@@ -411,31 +610,74 @@
     }
 
     function drawCarRect(obj, color) {
+      // Sombra
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 4;
+      
       ctx.fillStyle = color;
-      ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
-      ctx.fillStyle = 'rgba(255,255,255,0.3)';
-      ctx.fillRect(obj.x + 6, obj.y + 8, obj.w - 12, 10);
-      ctx.fillStyle = 'rgba(0,0,0,0.35)';
-      ctx.fillRect(obj.x + 6, obj.y + obj.h - 14, obj.w - 12, 8);
+      ctx.beginPath();
+      ctx.roundRect(obj.x, obj.y, obj.w, obj.h, 6);
+      ctx.fill();
+      
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+
+      // Faróis
+      ctx.fillStyle = 'rgba(255,255,200,0.6)';
+      ctx.fillRect(obj.x + 8, obj.y + 6, 8, 6);
+      ctx.fillRect(obj.x + obj.w - 16, obj.y + 6, 8, 6);
+      
+      // Janela traseira
+      ctx.fillStyle = 'rgba(100,150,255,0.3)';
+      ctx.fillRect(obj.x + 10, obj.y + 20, obj.w - 20, 20);
+      
+      // Faróis traseiros
+      ctx.fillStyle = 'rgba(255,0,0,0.5)';
+      ctx.fillRect(obj.x + 8, obj.y + obj.h - 10, 8, 6);
+      ctx.fillRect(obj.x + obj.w - 16, obj.y + obj.h - 10, 8, 6);
     }
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(34,34,34,0.94)';
+      
+      // Fundo da pista
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, '#1a1a2e');
+      grad.addColorStop(0.5, '#16213e');
+      grad.addColorStop(1, '#0f3460');
+      ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
       drawRoadGuides();
 
       drawCarRect(player, player.color);
       for (const car of cars) drawCarRect(car, car.color);
 
       if (paused && !gameOver) {
-        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 28px Arial';
+        ctx.font = 'bold 32px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('⏸ PAUSADO', canvas.width / 2, canvas.height / 2);
       }
+    }
+
+    // Polyfill para roundRect
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+        if (r > w/2) r = w/2;
+        if (r > h/2) r = h/2;
+        this.moveTo(x + r, y);
+        this.arcTo(x + w, y, x + w, y + h, r);
+        this.arcTo(x + w, y + h, x, y + h, r);
+        this.arcTo(x, y + h, x, y, r);
+        this.arcTo(x, y, x + w, y, r);
+        this.closePath();
+        return this;
+      };
     }
 
     function loop(ts) {
@@ -457,6 +699,8 @@
       requestAnimationFrame(loop);
     }
 
+    // ===== CONTROLES =====
+
     document.addEventListener('keydown', e => {
       if (e.key === 'ArrowLeft') leftPressed = true;
       if (e.key === 'ArrowRight') rightPressed = true;
@@ -468,15 +712,15 @@
       if (e.key === 'ArrowRight') rightPressed = false;
     });
 
-    function bindHoldButton(btn, setter, direction) {
+    function bindHoldButton(btn, setter) {
       const on = (ev) => { ev.preventDefault(); setter(true); };
       const off = (ev) => { ev.preventDefault(); setter(false); };
       ['pointerdown','touchstart','mousedown'].forEach(evt => btn.addEventListener(evt, on, { passive: false }));
       ['pointerup','pointercancel','touchend','touchcancel','mouseup','mouseleave'].forEach(evt => btn.addEventListener(evt, off, { passive: false }));
     }
 
-    bindHoldButton(document.getElementById('leftBtn'), v => { leftPressed = v; if (v) rightPressed = false; }, 'left');
-    bindHoldButton(document.getElementById('rightBtn'), v => { rightPressed = v; if (v) leftPressed = false; }, 'right');
+    bindHoldButton(document.getElementById('leftBtn'), v => { leftPressed = v; if (v) rightPressed = false; });
+    bindHoldButton(document.getElementById('rightBtn'), v => { rightPressed = v; if (v) leftPressed = false; });
 
     function pointerToCanvasX(clientX) {
       const rect = canvas.getBoundingClientRect();
@@ -505,146 +749,17 @@
     function togglePause() {
       if (gameOver) return;
       paused = !paused;
-      pauseBtn.textContent = paused ? '▶ Continuar' : '⏸ Pausar';
+      pauseBtn.textContent = paused ? '▶️ Continuar' : '⏸️ Pausar';
     }
 
     pauseBtn.addEventListener('click', togglePause);
     restartBtn.addEventListener('click', resetGame);
 
-    // ===== SALVAR PONTUAÇÃO COM NOME DO USUÁRIO =====
-    function saveScore(scoreValue) {
-      if (!userId) {
-        loadRanking();
-        return;
-      }
-
-      const ref = db.collection('gameScores').doc(userId);
-      
-      // Primeiro verifica se já existe uma pontuação maior
-      ref.get().then(doc => {
-        const currentScore = doc.exists ? doc.data().score : 0;
-        
-        // Só salva se a nova pontuação for maior
-        if (scoreValue > currentScore) {
-          return ref.set({ 
-            score: scoreValue, 
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            nome: userEmail || 'Anônimo'
-          }, { merge: true });
-        }
-        return Promise.resolve();
-      }).catch(console.error).finally(() => {
-        // Recarrega o ranking após salvar
-        loadRanking();
-      });
-    }
-
-    // ===== CARREGAR RANKING =====
-    function loadRanking() {
-      db.collection('gameScores')
-        .orderBy('score', 'desc')
-        .limit(10)
-        .get()
-        .then(snapshot => {
-          rankingList.innerHTML = '';
-          
-          if (snapshot.empty) {
-            rankingList.innerHTML = '<li class="rank-empty">Nenhuma pontuação ainda. Seja o primeiro! 🎮</li>';
-            return;
-          }
-          
-          let pos = 1;
-          snapshot.forEach(doc => {
-            const data = doc.data() || {};
-            const nome = data.nome || 'Anônimo';
-            const score = data.score || 0;
-            const li = document.createElement('li');
-            
-            // Ícones para os top 3
-            let medal = '';
-            if (pos === 1) medal = '🥇 ';
-            else if (pos === 2) medal = '🥈 ';
-            else if (pos === 3) medal = '🥉 ';
-            
-            li.innerHTML = `
-              <span class="rank-player">${medal}${nome}</span>
-              <span class="rank-score">${score} pts</span>
-            `;
-            rankingList.appendChild(li);
-            pos++;
-          });
-        })
-        .catch(err => {
-          console.error('Erro ao carregar ranking:', err);
-          rankingList.innerHTML = '<li class="rank-empty">❌ Erro ao carregar ranking</li>';
-        });
-    }
-
-    // ===== LISTENER EM TEMPO REAL PARA O RANKING =====
-    function ouvirRanking() {
-      db.collection('gameScores')
-        .orderBy('score', 'desc')
-        .limit(10)
-        .onSnapshot(snapshot => {
-          rankingList.innerHTML = '';
-          
-          if (snapshot.empty) {
-            rankingList.innerHTML = '<li class="rank-empty">Nenhuma pontuação ainda. Seja o primeiro! 🎮</li>';
-            return;
-          }
-          
-          let pos = 1;
-          snapshot.forEach(doc => {
-            const data = doc.data() || {};
-            const nome = data.nome || 'Anônimo';
-            const score = data.score || 0;
-            const li = document.createElement('li');
-            
-            let medal = '';
-            if (pos === 1) medal = '🥇 ';
-            else if (pos === 2) medal = '🥈 ';
-            else if (pos === 3) medal = '🥉 ';
-            
-            li.innerHTML = `
-              <span class="rank-player">${medal}${nome}</span>
-              <span class="rank-score">${score} pts</span>
-            `;
-            rankingList.appendChild(li);
-            pos++;
-          });
-        }, err => {
-          console.error('Erro no listener do ranking:', err);
-        });
-    }
-
-    // ===== INICIALIZAR =====
-    // Carrega o ranking uma vez
-    loadRanking();
-    
-    // Depois de 2 segundos, ativa o listener em tempo real
-    setTimeout(() => {
-      ouvirRanking();
-    }, 2000);
-    
-    // Inicia o jogo
+    // ===== INICIAR =====
+    carregarRanking();
     requestAnimationFrame(loop);
 
-    // Se o usuário fizer login depois, atualiza o nome
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        db.collection('users').doc(user.uid).get()
-          .then(doc => {
-            if (doc.exists) {
-              const data = doc.data();
-              userEmail = data.nome || data.email || 'Anônimo';
-            }
-          })
-          .catch(() => {});
-      }
-    });
-
     console.log('🏎️ Jack Ride - Corrida de Carros!');
-    console.log('📊 Ranking atualizado em tempo real!');
   </script>
 </body>
 </html>
